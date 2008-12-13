@@ -221,7 +221,7 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			break;
 
 		plist_data_t data = plist_new_plist_data();
-		GNode *subnode = g_node_new(data);
+		plist_t subnode = plist_new_node(data);
 		if (*plist_node)
 			g_node_append(*plist_node, subnode);
 		else

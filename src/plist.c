@@ -30,14 +30,14 @@
 
 plist_t plist_new_node(plist_data_t data)
 {
-	return (plist_t)g_node_new(data);
+	return (plist_t) g_node_new(data);
 }
 
-plist_data_t plist_get_data(plist_t node)
+plist_data_t plist_get_data(const plist_t node)
 {
 	if (!node)
 		return NULL;
-	return ((GNode*)node)->data;
+	return ((GNode *) node)->data;
 }
 
 plist_data_t plist_new_plist_data()
@@ -48,90 +48,71 @@ plist_data_t plist_new_plist_data()
 
 void plist_free_plist_data(plist_data_t data)
 {
-	free(data);
+	if (data) {
+		switch (data->type) {
+
+		default:
+			break;
+		}
+		free(data);
+	}
 }
 
-void plist_new_dict(plist_t * plist)
+plist_t plist_new_dict()
 {
-	if (*plist != NULL)
-		return;
 	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_DICT;
-	*plist = plist_new_node(data);
+	return plist_new_node(data);
 }
 
-void plist_new_array(plist_t * plist)
+plist_t plist_new_array()
 {
-	if (*plist != NULL)
-		return;
 	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_ARRAY;
-	*plist = plist_new_node(data);
+	return plist_new_node(data);
 }
 
-void plist_new_dict_in_plist(plist_t plist, plist_t * dict)
+plist_t plist_add_sub_element(plist_t node, plist_type type, void *value, uint64_t length)
 {
-	if (!plist || *dict)
-		return;
+	//only structured types are allowed to have nulll value
+	if (!value && (type == PLIST_DICT || type == PLIST_ARRAY)) {
+		//now handle value
+		plist_data_t data = plist_new_plist_data();
+		data->type = type;
+		data->length = length;
 
-	plist_data_t data = plist_new_plist_data();
-	data->type = PLIST_DICT;
-	*dict = plist_new_node(data);
-	g_node_append(plist, *dict);
-}
+		switch (type) {
+		case PLIST_BOOLEAN:
+			data->boolval = *((char *) value);
+			break;
+		case PLIST_UINT:
+			data->intval = *((uint64_t *) value);
+			break;
+		case PLIST_REAL:
+			data->realval = *((double *) value);
+			break;
+		case PLIST_STRING:
+			data->strval = strdup((char *) value);
+			break;
+		case PLIST_UNICODE:
+			data->unicodeval = wcsdup((wchar_t *) value);
+			break;
+		case PLIST_DATA:
+			memcpy(data->buff, value, length);
+			break;
+		case PLIST_ARRAY:
+		case PLIST_DICT:
+		case PLIST_DATE:
+		default:
+			break;
+		}
 
-
-/** Adds a new key pair to a dict.
- *
- * @param dict The dict node in the plist.
- * @param key the key name of the key pair.
- * @param type The the type of the value in the key pair.
- * @param value a pointer to the actual buffer containing the value. WARNING : the buffer is supposed to match the type of the value
- *
- */
-void plist_add_dict_element(plist_t dict, char *key, plist_type type, void *value, uint64_t length)
-{
-	if (!dict || !key || !value)
-		return;
-
-	plist_data_t data = plist_new_plist_data();
-	data->type = PLIST_KEY;
-	data->strval = strdup(key);
-	plist_t keynode = plist_new_node(data);
-	g_node_append(dict, keynode);
-
-	//now handle value
-	plist_data_t val = plist_new_plist_data();
-	val->type = type;
-	val->length = length;
-
-	switch (type) {
-	case PLIST_BOOLEAN:
-		val->boolval = *((char *) value);
-		break;
-	case PLIST_UINT:
-		val->intval = *((uint64_t *) value);
-		break;
-	case PLIST_REAL:
-		val->realval = *((double *) value);
-		break;
-	case PLIST_STRING:
-		val->strval = strdup((char *) value);
-		break;
-	case PLIST_UNICODE:
-		val->unicodeval = wcsdup((wchar_t *) value);
-		break;
-	case PLIST_DATA:
-		memcpy(val->buff, value, length);
-		break;
-	case PLIST_ARRAY:
-	case PLIST_DICT:
-	case PLIST_DATE:
-	default:
-		break;
-	}
-	plist_t valnode = plist_new_node(val);
-	g_node_append(dict, valnode);
+		plist_t subnode = plist_new_node(data);
+		if (node)
+			g_node_append(node, subnode);
+		return subnode;
+	} else
+		return NULL;
 }
 
 void plist_free(plist_t plist)
@@ -141,44 +122,17 @@ void plist_free(plist_t plist)
 
 plist_t plist_get_first_child(plist_t node)
 {
-	return (plist_t)g_node_first_child( (GNode*)node );
+	return (plist_t) g_node_first_child((GNode *) node);
 }
 
 plist_t plist_get_next_sibling(plist_t node)
 {
-	return (plist_t)g_node_next_sibling( (GNode*)node );
+	return (plist_t) g_node_next_sibling((GNode *) node);
 }
 
 plist_t plist_get_prev_sibling(plist_t node)
 {
-	return (plist_t)g_node_prev_sibling( (GNode*)node );
-}
-
-plist_t plist_find_query_node(plist_t plist, char *key, char *request)
-{
-	if (!plist)
-		return NULL;
-
-	plist_t current = NULL;
-	plist_t next = NULL;
-	for (current = plist_get_first_child(plist); current; current = next) {
-
-		next = plist_get_next_sibling(current);
-		plist_data_t data = plist_get_data(current);
-
-		if (data->type == PLIST_KEY && !strcmp(data->strval, key) && next) {
-
-			data = plist_get_data(next);
-			if (data->type == PLIST_STRING && !strcmp(data->strval, request))
-				return next;
-		}
-		if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-			plist_t sub = plist_find_query_node(current, key, request);
-			if (sub)
-				return sub;
-		}
-	}
-	return NULL;
+	return (plist_t) g_node_prev_sibling((GNode *) node);
 }
 
 char compare_node_value(plist_type type, plist_data_t data, void *value)

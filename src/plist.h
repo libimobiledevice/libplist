@@ -49,10 +49,10 @@ struct plist_data_s {
 	plist_type type;
 };
 
-typedef struct plist_data_s* plist_data_t;
+typedef struct plist_data_s *plist_data_t;
 
 plist_t plist_new_node(plist_data_t data);
-plist_data_t plist_get_data(plist_t node);
+plist_data_t plist_get_data(const plist_t node);
 plist_data_t plist_new_plist_data();
 void plist_free_plist_data(plist_data_t node);
 

@@ -80,7 +80,7 @@ void byte_convert(char *address, size_t size)
 
 #define be64dec(x) bswap_64( *(uint64_t*)(x) )
 
-#define get_needed_bytes(x) (x <= 1<<8 ? 1 : ( x <= 1<<16 ? 2 : ( x <= 1<<32 ? 4 : 8)))
+#define get_needed_bytes(x) (x <= 1<<8 ? 1 : ( x <= 1<<16 ? 2 : ( x <= (uint64_t)1<<32 ? 4 : 8)))
 #define get_real_bytes(x) (x >> 32 ? 4 : 8)
 
 plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
@@ -446,7 +446,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 
 guint plist_data_hash(gconstpointer key)
 {
-	plist_data_t data = plist_get_data(key);
+	plist_data_t data = plist_get_data((plist_t) key);
 
 	guint hash = data->type;
 	guint i = 0;
@@ -467,14 +467,14 @@ guint plist_data_hash(gconstpointer key)
 		size = strlen(buff);
 		break;
 	case PLIST_UNICODE:
-		buff = data->unicodeval;
+		buff = (char *) data->unicodeval;
 		size = strlen(buff) * sizeof(wchar_t);
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
 	case PLIST_DICT:
 		//for these types only hash pointer
-		buff = &key;
+		buff = (char *) &key;
 		size = sizeof(gconstpointer);
 		break;
 	case PLIST_DATE:
@@ -497,8 +497,8 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 	if (!((GNode *) a)->data || !((GNode *) b)->data)
 		return FALSE;
 
-	plist_data_t val_a = plist_get_data(a);
-	plist_data_t val_b = plist_get_data(b);
+	plist_data_t val_a = plist_get_data((plist_t) a);
+	plist_data_t val_b = plist_get_data((plist_t) b);
 
 	if (val_a->type != val_b->type)
 		return FALSE;
@@ -519,7 +519,7 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 		else
 			return FALSE;
 	case PLIST_UNICODE:
-		if (!strcmp(val_a->unicodeval, val_b->unicodeval))
+		if (!wcscmp(val_a->unicodeval, val_b->unicodeval))
 			return TRUE;
 		else
 			return FALSE;
