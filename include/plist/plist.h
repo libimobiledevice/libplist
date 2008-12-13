@@ -1,8 +1,8 @@
 /*
- * iphone.h
- * iPhone struct
- * 
- * Copyright (c) 2008 Zach C. All Rights Reserved.
+ * plist.h
+ * Main include of libplist
+ *
+ * Copyright (c) 2008 Jonathan Beck All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,27 +19,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef IPHONE_H
-#define IPHONE_H
+#ifndef LIBPLIST_H
+#define LIBPLIST_H
 
-#ifndef USBMUX_H
-#include "usbmux.h"
-#warning usbmux not included?
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include <usb.h>
-#include <libiphone/libiphone.h>
+#include <stdint.h>
+#include <sys/types.h>
 
-#define BULKIN 0x85
-#define BULKOUT 0x04
 
-struct iphone_device_int {
-	char *buffer;
-	struct usb_dev_handle *device;
-	struct usb_device *__device;
-};
 
-// Function definitions
-int send_to_phone(iphone_device_t phone, char *data, int datalen);
-int recv_from_phone(iphone_device_t phone, char *data, int datalen);
+#ifdef __cplusplus
+}
 #endif
+
+#endif
+

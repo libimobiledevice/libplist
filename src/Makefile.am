@@ -1,15 +1,7 @@
 INCLUDES = -I$(top_srcdir)/include
 
-AM_CFLAGS = $(libxml2_CFLAGS) $(libusb_CFLAGS) $(libglib2_CFLAGS) $(libgnutls_CFLAGS) $(libtasn1_CFLAGS) $(libgthread2_CFLAGS) -g
-AM_LDFLAGS = $(libxml2_LIBS) $(libusb_LIBS) $(libglib2_LIBS) $(libgnutls_LIBS) $(libtasn1_LIBS) $(libgthread2_LIBS)
+AM_CFLAGS = $(libxml2_CFLAGS) $(libglib2_CFLAGS) 
+AM_LDFLAGS = $(libxml2_LIBS) $(libglib2_LIBS)
 
-bin_PROGRAMS = libiphone-initconf
-
-
-libiphone_initconf_SOURCES = initconf.c userpref.c utils.c
-libiphone_initconf_CFLAGS = $(libgthread2_CFLAGS) $(AM_CFLAGS)
-libiphone_initconf_LDFLAGS = $(libgthread2_LIBS) $(AM_LDFLAGS)
-
-
-lib_LTLIBRARIES = libiphone.la
-libiphone_la_SOURCES = usbmux.c iphone.c plist.c bplist.c xplist.c lockdown.c AFC.c userpref.c utils.c
+lib_LTLIBRARIES = libplist.la
+libplist_la_SOURCES = plist.c bplist.c xplist.c utils.c

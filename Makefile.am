@@ -1,9 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src include fdi $(DEV_SUB)
+SUBDIRS = src include
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libiphone-1.0.pc
+pkgconfig_DATA = libplist-1.0.pc
 
 doc:
 	doxygen doxygen.cfg
