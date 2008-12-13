@@ -83,9 +83,9 @@ void byte_convert(char *address, size_t size)
 #define get_needed_bytes(x) (x <= 1<<8 ? 1 : ( x <= 1<<16 ? 2 : ( x <= 1<<32 ? 4 : 8)))
 #define get_real_bytes(x) (x >> 32 ? 4 : 8)
 
-GNode *parse_uint_node(char *bnode, uint8_t size, char **next_object)
+plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	size = 1 << size;			// make length less misleading
 	switch (size) {
@@ -114,9 +114,9 @@ GNode *parse_uint_node(char *bnode, uint8_t size, char **next_object)
 	return g_node_new(data);
 }
 
-GNode *parse_real_node(char *bnode, uint8_t size)
+plist_t parse_real_node(char *bnode, uint8_t size)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	size = 1 << size;			// make length less misleading
 	switch (size) {
@@ -136,9 +136,9 @@ GNode *parse_real_node(char *bnode, uint8_t size)
 	return g_node_new(data);
 }
 
-GNode *parse_string_node(char *bnode, uint8_t size)
+plist_t parse_string_node(char *bnode, uint8_t size)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	data->type = PLIST_STRING;
 	data->strval = (char *) malloc(sizeof(char) * (size + 1));
@@ -148,9 +148,9 @@ GNode *parse_string_node(char *bnode, uint8_t size)
 	return g_node_new(data);
 }
 
-GNode *parse_unicode_node(char *bnode, uint8_t size)
+plist_t parse_unicode_node(char *bnode, uint8_t size)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	data->type = PLIST_UNICODE;
 	data->unicodeval = (wchar_t *) malloc(sizeof(wchar_t) * (size + 1));
@@ -160,9 +160,9 @@ GNode *parse_unicode_node(char *bnode, uint8_t size)
 	return g_node_new(data);
 }
 
-GNode *parse_data_node(char *bnode, uint64_t size, uint32_t ref_size)
+plist_t parse_data_node(char *bnode, uint64_t size, uint32_t ref_size)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	data->type = PLIST_DATA;
 	data->length = size;
@@ -172,9 +172,9 @@ GNode *parse_data_node(char *bnode, uint64_t size, uint32_t ref_size)
 	return g_node_new(data);
 }
 
-GNode *parse_dict_node(char *bnode, uint64_t size, uint32_t ref_size)
+plist_t parse_dict_node(char *bnode, uint64_t size, uint32_t ref_size)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	data->type = PLIST_DICT;
 	data->length = size;
@@ -184,9 +184,9 @@ GNode *parse_dict_node(char *bnode, uint64_t size, uint32_t ref_size)
 	return g_node_new(data);
 }
 
-GNode *parse_array_node(char *bnode, uint64_t size, uint32_t ref_size)
+plist_t parse_array_node(char *bnode, uint64_t size, uint32_t ref_size)
 {
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 
 	data->type = PLIST_ARRAY;
 	data->length = size;
@@ -198,7 +198,7 @@ GNode *parse_array_node(char *bnode, uint64_t size, uint32_t ref_size)
 
 
 
-GNode *parse_bin_node(char *object, uint8_t dict_size, char **next_object)
+plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_object)
 {
 	if (!object)
 		return NULL;
@@ -214,7 +214,7 @@ GNode *parse_bin_node(char *object, uint8_t dict_size, char **next_object)
 
 		case BPLIST_TRUE:
 			{
-				struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+				plist_data_t data = plist_new_plist_data();
 				data->type = PLIST_BOOLEAN;
 				data->boolval = TRUE;
 				return g_node_new(data);
@@ -222,7 +222,7 @@ GNode *parse_bin_node(char *object, uint8_t dict_size, char **next_object)
 
 		case BPLIST_FALSE:
 			{
-				struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+				plist_data_t data = plist_new_plist_data();
 				data->type = PLIST_BOOLEAN;
 				data->boolval = FALSE;
 				return g_node_new(data);
@@ -299,8 +299,8 @@ GNode *parse_bin_node(char *object, uint8_t dict_size, char **next_object)
 
 gpointer copy_plist_data(gconstpointer src, gpointer data)
 {
-	struct plist_data *srcdata = (struct plist_data *) src;
-	struct plist_data *dstdata = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t srcdata = (plist_data_t) src;
+	plist_data_t dstdata = plist_new_plist_data();
 
 	dstdata->type = srcdata->type;
 	dstdata->length = srcdata->length;
@@ -336,7 +336,7 @@ gpointer copy_plist_data(gconstpointer src, gpointer data)
 	return dstdata;
 }
 
-void bin_to_plist(const char *plist_bin, uint32_t length, plist_t * plist)
+void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 {
 	//first check we have enough data
 	if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + BPLIST_TRL_SIZE))
@@ -393,7 +393,7 @@ void bin_to_plist(const char *plist_bin, uint32_t length, plist_t * plist)
 	for (i = 0; i < num_objects; i++) {
 
 		log_debug_msg("parse_nodes: on node %i\n", i);
-		struct plist_data *data = (struct plist_data *) nodeslist[i]->data;
+		plist_data_t data = plist_get_data(nodeslist[i]);
 
 		switch (data->type) {
 		case PLIST_DICT:
@@ -406,7 +406,7 @@ void bin_to_plist(const char *plist_bin, uint32_t length, plist_t * plist)
 				index2 = swap_n_bytes(data->buff + str_j, dict_param_size);
 
 				//first one is actually a key
-				((struct plist_data *) nodeslist[index1]->data)->type = PLIST_KEY;
+				plist_get_data(nodeslist[index1])->type = PLIST_KEY;
 
 				if (G_NODE_IS_ROOT(nodeslist[index1]))
 					g_node_append(nodeslist[i], nodeslist[index1]);
@@ -446,7 +446,7 @@ void bin_to_plist(const char *plist_bin, uint32_t length, plist_t * plist)
 
 guint plist_data_hash(gconstpointer key)
 {
-	struct plist_data *data = (struct plist_data *) ((GNode *) key)->data;
+	plist_data_t data = plist_get_data(key);
 
 	guint hash = data->type;
 	guint i = 0;
@@ -497,8 +497,8 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 	if (!((GNode *) a)->data || !((GNode *) b)->data)
 		return FALSE;
 
-	struct plist_data *val_a = (struct plist_data *) ((GNode *) a)->data;
-	struct plist_data *val_b = (struct plist_data *) ((GNode *) b)->data;
+	plist_data_t val_a = plist_get_data(a);
+	plist_data_t val_b = plist_get_data(b);
 
 	if (val_a->type != val_b->type)
 		return FALSE;
@@ -718,7 +718,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 	for (i = 0; i < num_objects; i++) {
 
 		offsets[i] = bplist_buff->len;
-		struct plist_data *data = (struct plist_data *) ((GNode *) g_ptr_array_index(objects, i))->data;
+		plist_data_t data = plist_get_data(g_ptr_array_index(objects, i));
 
 		switch (data->type) {
 		case PLIST_BOOLEAN:

@@ -1,6 +1,6 @@
 /*
- * plist.h
- * contains structures and the like for plists
+ * plutil.h
+ * header for plist convertion tool
  *
  * Copyright (c) 2008 Zach C. All Rights Reserved.
  *
@@ -19,42 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef PLIST_H
-#define PLIST_H
+typedef struct _options {
+	char *in_file, *out_file;
+	uint8_t debug, in_fmt, out_fmt;
+} Options;
 
-#include "plist/plist.h"
-
-#include <stdint.h>
-#include <wchar.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <glib.h>
-
-
-
-
-
-struct plist_data_s {
-	union {
-		char boolval;
-		uint64_t intval;
-		double realval;
-		char *strval;
-		wchar_t *unicodeval;
-		char *buff;
-	};
-	uint64_t length;
-	plist_type type;
-};
-
-typedef struct plist_data_s* plist_data_t;
-
-plist_t plist_new_node(plist_data_t data);
-plist_data_t plist_get_data(plist_t node);
-plist_data_t plist_new_plist_data();
-void plist_free_plist_data(plist_data_t node);
-
-
-#endif
+Options *parse_arguments(int argc, char *argv[]);
+void print_usage();

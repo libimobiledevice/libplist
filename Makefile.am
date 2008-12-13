@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src include
+SUBDIRS = src include plutil
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libplist-1.0.pc

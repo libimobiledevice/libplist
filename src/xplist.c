@@ -120,7 +120,7 @@ void node_to_xml(GNode * node, gpointer xml_struct)
 		return;
 
 	struct xml_node *xstruct = (struct xml_node *) xml_struct;
-	struct plist_data *node_data = (struct plist_data *) node->data;
+	plist_data_t node_data = plist_get_data(node);
 
 	xmlNodePtr child_node = NULL;
 	char isStruct = FALSE;
@@ -220,7 +220,7 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		if (!node)
 			break;
 
-		struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+		plist_data_t data = plist_new_plist_data();
 		GNode *subnode = g_node_new(data);
 		if (*plist_node)
 			g_node_append(*plist_node, subnode);
@@ -303,7 +303,7 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 	xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, length);
 }
 
-void xml_to_plist(const char *plist_xml, uint32_t length, plist_t * plist)
+void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
 	xmlDocPtr plist_doc = xmlReadMemory(plist_xml, length, NULL, NULL, 0);
 	xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);

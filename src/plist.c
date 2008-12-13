@@ -28,23 +28,45 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+plist_t plist_new_node(plist_data_t data)
+{
+	return (plist_t)g_node_new(data);
+}
+
+plist_data_t plist_get_data(plist_t node)
+{
+	if (!node)
+		return NULL;
+	return ((GNode*)node)->data;
+}
+
+plist_data_t plist_new_plist_data()
+{
+	plist_data_t data = (plist_data_t) calloc(sizeof(struct plist_data_s), 1);
+	return data;
+}
+
+void plist_free_plist_data(plist_data_t data)
+{
+	free(data);
+}
 
 void plist_new_dict(plist_t * plist)
 {
 	if (*plist != NULL)
 		return;
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_DICT;
-	*plist = g_node_new(data);
+	*plist = plist_new_node(data);
 }
 
 void plist_new_array(plist_t * plist)
 {
 	if (*plist != NULL)
 		return;
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_ARRAY;
-	*plist = g_node_new(data);
+	*plist = plist_new_node(data);
 }
 
 void plist_new_dict_in_plist(plist_t plist, plist_t * dict)
@@ -52,9 +74,9 @@ void plist_new_dict_in_plist(plist_t plist, plist_t * dict)
 	if (!plist || *dict)
 		return;
 
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_DICT;
-	*dict = g_node_new(data);
+	*dict = plist_new_node(data);
 	g_node_append(plist, *dict);
 }
 
@@ -72,14 +94,14 @@ void plist_add_dict_element(plist_t dict, char *key, plist_type type, void *valu
 	if (!dict || !key || !value)
 		return;
 
-	struct plist_data *data = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_KEY;
 	data->strval = strdup(key);
-	GNode *keynode = g_node_new(data);
+	plist_t keynode = plist_new_node(data);
 	g_node_append(dict, keynode);
 
 	//now handle value
-	struct plist_data *val = (struct plist_data *) calloc(sizeof(struct plist_data), 1);
+	plist_data_t val = plist_new_plist_data();
 	val->type = type;
 	val->length = length;
 
@@ -108,7 +130,7 @@ void plist_add_dict_element(plist_t dict, char *key, plist_type type, void *valu
 	default:
 		break;
 	}
-	GNode *valnode = g_node_new(val);
+	plist_t valnode = plist_new_node(val);
 	g_node_append(dict, valnode);
 }
 
@@ -117,24 +139,41 @@ void plist_free(plist_t plist)
 	g_node_destroy(plist);
 }
 
-plist_t find_query_node(plist_t plist, char *key, char *request)
+plist_t plist_get_first_child(plist_t node)
+{
+	return (plist_t)g_node_first_child( (GNode*)node );
+}
+
+plist_t plist_get_next_sibling(plist_t node)
+{
+	return (plist_t)g_node_next_sibling( (GNode*)node );
+}
+
+plist_t plist_get_prev_sibling(plist_t node)
+{
+	return (plist_t)g_node_prev_sibling( (GNode*)node );
+}
+
+plist_t plist_find_query_node(plist_t plist, char *key, char *request)
 {
 	if (!plist)
 		return NULL;
 
-	GNode *current = NULL;
-	for (current = plist->children; current; current = current->next) {
+	plist_t current = NULL;
+	plist_t next = NULL;
+	for (current = plist_get_first_child(plist); current; current = next) {
 
-		struct plist_data *data = (struct plist_data *) current->data;
+		next = plist_get_next_sibling(current);
+		plist_data_t data = plist_get_data(current);
 
-		if (data->type == PLIST_KEY && !strcmp(data->strval, key) && current->next) {
+		if (data->type == PLIST_KEY && !strcmp(data->strval, key) && next) {
 
-			data = (struct plist_data *) current->next->data;
+			data = plist_get_data(next);
 			if (data->type == PLIST_STRING && !strcmp(data->strval, request))
-				return current->next;
+				return next;
 		}
 		if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-			GNode *sub = find_query_node(current, key, request);
+			plist_t sub = plist_find_query_node(current, key, request);
 			if (sub)
 				return sub;
 		}
@@ -142,7 +181,7 @@ plist_t find_query_node(plist_t plist, char *key, char *request)
 	return NULL;
 }
 
-char compare_node_value(plist_type type, struct plist_data *data, void *value)
+char compare_node_value(plist_type type, plist_data_t data, void *value)
 {
 	char res = FALSE;
 	switch (type) {
@@ -174,21 +213,21 @@ char compare_node_value(plist_type type, struct plist_data *data, void *value)
 	return res;
 }
 
-plist_t find_node(plist_t plist, plist_type type, void *value)
+plist_t plist_find_node(plist_t plist, plist_type type, void *value)
 {
 	if (!plist)
 		return NULL;
 
-	GNode *current = NULL;
-	for (current = plist->children; current; current = current->next) {
+	plist_t current = NULL;
+	for (current = plist_get_first_child(plist); current; current = plist_get_next_sibling(current)) {
 
-		struct plist_data *data = (struct plist_data *) current->data;
+		plist_data_t data = plist_get_data(current);
 
 		if (data->type == type && compare_node_value(type, data, value)) {
 			return current;
 		}
 		if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-			GNode *sub = find_node(current, type, value);
+			plist_t sub = plist_find_node(current, type, value);
 			if (sub)
 				return sub;
 		}
@@ -196,12 +235,12 @@ plist_t find_node(plist_t plist, plist_type type, void *value)
 	return NULL;
 }
 
-void get_type_and_value(GNode * node, plist_type * type, void *value, uint64_t * length)
+void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length)
 {
 	if (!node)
 		return;
 
-	struct plist_data *data = (struct plist_data *) node->data;
+	plist_data_t data = plist_get_data(node);
 
 	*type = data->type;
 	*length = data->length;
@@ -236,16 +275,18 @@ void get_type_and_value(GNode * node, plist_type * type, void *value, uint64_t *
 
 plist_type plist_get_node_type(plist_t node)
 {
-	if (node && node->data)
-		return ((struct plist_data *) node->data)->type;
-	else
-		return PLIST_NONE;
+	if (node) {
+		plist_data_t data = plist_get_data(node);
+		if (data)
+			return data->type;
+	}
+	return PLIST_NONE;
 }
 
 uint64_t plist_get_node_uint_val(plist_t node)
 {
 	if (PLIST_UINT == plist_get_node_type(node))
-		return ((struct plist_data *) node->data)->intval;
+		return plist_get_data(node)->intval;
 	else
 		return 0;
 }

@@ -44,4 +44,4 @@ if test "$no_debug_code" = true; then
 	AC_DEFINE(STRIP_DEBUG_CODE,1,[Strip debug reporting code])
 fi
 
-AC_OUTPUT(Makefile src/Makefile include/Makefile libplist-1.0.pc)
+AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile libplist-1.0.pc)
