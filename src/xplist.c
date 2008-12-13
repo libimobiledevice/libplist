@@ -230,12 +230,14 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		if (!xmlStrcmp(node->name, "true")) {
 			data->boolval = 1;
 			data->type = PLIST_BOOLEAN;
+			data->length = 1;
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, "false")) {
 			data->boolval = 0;
 			data->type = PLIST_BOOLEAN;
+			data->length = 1;
 			continue;
 		}
 
@@ -243,6 +245,7 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			char *strval = xmlNodeGetContent(node);
 			data->intval = g_ascii_strtoull(strval, NULL, 0);
 			data->type = PLIST_UINT;
+			data->length = 8;
 			continue;
 		}
 
@@ -250,6 +253,7 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			char *strval = xmlNodeGetContent(node);
 			data->realval = atof(strval);
 			data->type = PLIST_REAL;
+			data->length = 8;
 			continue;
 		}
 
@@ -259,12 +263,14 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		if (!xmlStrcmp(node->name, "string")) {
 			data->strval = strdup(xmlNodeGetContent(node));
 			data->type = PLIST_STRING;
+			data->length = strlen(data->strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, "key")) {
 			data->strval = strdup(xmlNodeGetContent(node));
 			data->type = PLIST_KEY;
+			data->length = strlen(data->strval);
 			continue;
 		}
 

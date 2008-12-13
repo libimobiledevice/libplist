@@ -75,7 +75,7 @@ plist_t plist_new_array()
 plist_t plist_add_sub_element(plist_t node, plist_type type, void *value, uint64_t length)
 {
 	//only structured types are allowed to have nulll value
-	if (!value && (type == PLIST_DICT || type == PLIST_ARRAY)) {
+	if (value || (!value && (type == PLIST_DICT || type == PLIST_ARRAY))) {
 		//now handle value
 		plist_data_t data = plist_new_plist_data();
 		data->type = type;
@@ -91,6 +91,7 @@ plist_t plist_add_sub_element(plist_t node, plist_type type, void *value, uint64
 		case PLIST_REAL:
 			data->realval = *((double *) value);
 			break;
+		case PLIST_KEY:
 		case PLIST_STRING:
 			data->strval = strdup((char *) value);
 			break;
@@ -209,14 +210,12 @@ void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint
 	case PLIST_REAL:
 		*((double *) value) = data->realval;
 		break;
+	case PLIST_KEY:
 	case PLIST_STRING:
 		*((char **) value) = strdup(data->strval);
 		break;
 	case PLIST_UNICODE:
 		*((wchar_t **) value) = wcsdup(data->unicodeval);
-		break;
-	case PLIST_KEY:
-		*((char **) value) = strdup(data->strval);
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
