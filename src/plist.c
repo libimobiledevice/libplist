@@ -157,7 +157,7 @@ char compare_node_value(plist_type type, plist_data_t data, void *value, uint64_
 		res = !wcscmp(data->unicodeval, ((wchar_t *) value));
 		break;
 	case PLIST_DATA:
-		res = memcmp(data->buff,(char*) value, length );
+		res = memcmp(data->buff, (char *) value, length);
 		break;
 	case PLIST_ARRAY:
 	case PLIST_DICT:

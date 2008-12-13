@@ -408,15 +408,19 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 				//first one is actually a key
 				plist_get_data(nodeslist[index1])->type = PLIST_KEY;
 
-				if (G_NODE_IS_ROOT(nodeslist[index1]))
-					g_node_append(nodeslist[i], nodeslist[index1]);
-				else
-					g_node_append(nodeslist[i], g_node_copy_deep(nodeslist[index1], copy_plist_data, NULL));
+				if (index1 >= 0 && index1 < num_objects) {
+					if (G_NODE_IS_ROOT(nodeslist[index1]))
+						g_node_append(nodeslist[i], nodeslist[index1]);
+					else
+						g_node_append(nodeslist[i], g_node_copy_deep(nodeslist[index1], copy_plist_data, NULL));
+				}
 
-				if (G_NODE_IS_ROOT(nodeslist[index2]))
-					g_node_append(nodeslist[i], nodeslist[index2]);
-				else
-					g_node_append(nodeslist[i], g_node_copy_deep(nodeslist[index2], copy_plist_data, NULL));
+				if (index2 >= 0 && index2 < num_objects) {
+					if (G_NODE_IS_ROOT(nodeslist[index2]))
+						g_node_append(nodeslist[i], nodeslist[index2]);
+					else
+						g_node_append(nodeslist[i], g_node_copy_deep(nodeslist[index2], copy_plist_data, NULL));
+				}
 			}
 
 			free(data->buff);
@@ -428,11 +432,12 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 				str_j = j * dict_param_size;
 				index1 = swap_n_bytes(data->buff + str_j, dict_param_size);
 
-				//g_node_append(nodeslist[i], nodeslist[index1]);
-				if (G_NODE_IS_ROOT(nodeslist[index1]))
-					g_node_append(nodeslist[i], nodeslist[index1]);
-				else
-					g_node_append(nodeslist[i], g_node_copy_deep(nodeslist[index1], copy_plist_data, NULL));
+				if (index1 >= 0 && index1 < num_objects) {
+					if (G_NODE_IS_ROOT(nodeslist[index1]))
+						g_node_append(nodeslist[i], nodeslist[index1]);
+					else
+						g_node_append(nodeslist[i], g_node_copy_deep(nodeslist[index1], copy_plist_data, NULL));
+				}
 			}
 			free(data->buff);
 			break;
