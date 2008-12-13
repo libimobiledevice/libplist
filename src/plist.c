@@ -135,7 +135,7 @@ plist_t plist_get_prev_sibling(plist_t node)
 	return (plist_t) g_node_prev_sibling((GNode *) node);
 }
 
-char compare_node_value(plist_type type, plist_data_t data, void *value)
+char compare_node_value(plist_type type, plist_data_t data, void *value, uint64_t length)
 {
 	char res = FALSE;
 	switch (type) {
@@ -156,7 +156,7 @@ char compare_node_value(plist_type type, plist_data_t data, void *value)
 		res = !wcscmp(data->unicodeval, ((wchar_t *) value));
 		break;
 	case PLIST_DATA:
-		res = !strcmp(data->buff, ((char *) value));
+		res = memcmp(data->buff,(char*) value, length );
 		break;
 	case PLIST_ARRAY:
 	case PLIST_DICT:
@@ -167,7 +167,7 @@ char compare_node_value(plist_type type, plist_data_t data, void *value)
 	return res;
 }
 
-plist_t plist_find_node(plist_t plist, plist_type type, void *value)
+plist_t plist_find_node(plist_t plist, plist_type type, void *value, uint64_t length)
 {
 	if (!plist)
 		return NULL;
@@ -177,11 +177,11 @@ plist_t plist_find_node(plist_t plist, plist_type type, void *value)
 
 		plist_data_t data = plist_get_data(current);
 
-		if (data->type == type && compare_node_value(type, data, value)) {
+		if (data->type == type && data->length == length && compare_node_value(type, data, value, length)) {
 			return current;
 		}
 		if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-			plist_t sub = plist_find_node(current, type, value);
+			plist_t sub = plist_find_node(current, type, value, length);
 			if (sub)
 				return sub;
 		}
