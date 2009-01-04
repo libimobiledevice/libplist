@@ -177,7 +177,7 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	case PLIST_DATA:
 		tag = XPLIST_DATA;
 		gchar *valtmp = g_base64_encode(node_data->buff, node_data->length);
-		val = format_string(valtmp, 68, xstruct->depth);
+		val = format_string(valtmp, 60, xstruct->depth);
 		g_free(valtmp);
 		break;
 	case PLIST_ARRAY:
