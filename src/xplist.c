@@ -49,7 +49,7 @@ const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
  *
  * @return The formatted string.
  */
-char *format_string(const char *buf, int cols, int depth)
+static char *format_string(const char *buf, int cols, int depth)
 {
 	int colw = depth + cols + 1;
 	int len = strlen(buf);
@@ -89,7 +89,7 @@ struct xml_node {
  * 
  * @return The plist XML document.
  */
-xmlDocPtr new_xml_plist()
+static xmlDocPtr new_xml_plist()
 {
 	char *plist = strdup(plist_base);
 	xmlDocPtr plist_xml = xmlReadMemory(plist, strlen(plist), NULL, NULL, 0);
@@ -106,7 +106,7 @@ xmlDocPtr new_xml_plist()
  *
  * @param plist The XML document to destroy.
  */
-void free_plist(xmlDocPtr plist)
+static void free_plist(xmlDocPtr plist)
 {
 	if (!plist)
 		return;
@@ -114,7 +114,7 @@ void free_plist(xmlDocPtr plist)
 	xmlFreeDoc(plist);
 }
 
-void node_to_xml(GNode * node, gpointer xml_struct)
+static void node_to_xml(GNode * node, gpointer xml_struct)
 {
 	if (!node)
 		return;
@@ -125,8 +125,8 @@ void node_to_xml(GNode * node, gpointer xml_struct)
 	xmlNodePtr child_node = NULL;
 	char isStruct = FALSE;
 
-	gchar *tag = NULL;
-	gchar *val = NULL;
+	const gchar *tag = NULL;
+	const gchar *val = NULL;
 
 	switch (node_data->type) {
 	case PLIST_BOOLEAN:
@@ -166,7 +166,7 @@ void node_to_xml(GNode * node, gpointer xml_struct)
 	case PLIST_DATA:
 		tag = "data";
 		gchar *valtmp = g_base64_encode(node_data->buff, node_data->length);
-		val = format_string(valtmp, 60, xstruct->depth);
+		val = format_string(valtmp, 68, xstruct->depth);
 		g_free(valtmp);
 		break;
 	case PLIST_ARRAY:
@@ -191,7 +191,7 @@ void node_to_xml(GNode * node, gpointer xml_struct)
 	g_free(val);
 
 	//add return for structured types
-	if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT || node_data->type == PLIST_DATA)
+	if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT)
 		xmlNodeAddContent(child_node, "\n");
 
 	if (isStruct) {
@@ -199,7 +199,7 @@ void node_to_xml(GNode * node, gpointer xml_struct)
 		g_node_children_foreach(node, G_TRAVERSE_ALL, node_to_xml, &child);
 	}
 	//fix indent for structured types
-	if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT || node_data->type == PLIST_DATA) {
+	if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT) {
 
 		for (i = 0; i < xstruct->depth; i++) {
 			xmlNodeAddContent(child_node, "\t");
