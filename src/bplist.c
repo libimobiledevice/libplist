@@ -74,7 +74,7 @@ static void byte_convert(uint8_t *address, size_t size)
 #endif
 }
 
-#define swap_n_bytes(x, n) \
+#define UINT_TO_HOST(x, n) \
 		(n == 8 ? GUINT64_FROM_BE( *(uint64_t *)(x) ) : \
 		(n == 4 ? GUINT32_FROM_BE( *(uint32_t *)(x) ) : \
 		(n == 2 ? GUINT16_FROM_BE( *(uint16_t *)(x) ) : \
@@ -104,7 +104,7 @@ static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
 	case sizeof(uint32_t):
 	case sizeof(uint64_t):
 		memcpy(&data->intval, bnode, size);
-		data->intval = swap_n_bytes(&data->intval, size);
+		data->intval = UINT_TO_HOST(&data->intval, size);
 		break;
 	default:
 		free(data);
@@ -124,7 +124,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 	switch (size) {
 	case sizeof(float):
 	case sizeof(double):
-		data->realval = swap_n_bytes(bnode, size);
+		data->intval = UINT_TO_HOST(bnode, size); //use the fact that we have an union to cheat byte swapping
 		break;
 	default:
 		free(data);
@@ -132,6 +132,18 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 	}
 	data->type = PLIST_REAL;
 	return g_node_new(data);
+}
+
+static plist_t parse_date_node(char *bnode, uint8_t size)
+{
+	plist_t node = parse_real_node(bnode, size);
+	plist_data_t data = plist_get_data(node);
+
+	double time_real = data->realval;
+	data->timeval.tv_sec = (glong)time_real;
+	data->timeval.tv_usec = (time_real - (glong)time_real) * G_USEC_PER_SEC;
+	data->type = PLIST_DATE;
+	return node;
 }
 
 static plist_t parse_string_node(char *bnode, uint8_t size)
@@ -241,7 +253,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 		if (3 != size)
 			return NULL;
 		else
-			return parse_real_node(object, size);
+			return parse_date_node(object, size);
 
 	case BPLIST_DATA:
 		if (0x0F == size) {
@@ -378,7 +390,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 	uint64_t current_offset = 0;
 	const char *offset_table = plist_bin + offset_table_index;
 	for (i = 0; i < num_objects; i++) {
-		current_offset = swap_n_bytes(offset_table + i * offset_size, offset_size);
+		current_offset = UINT_TO_HOST(offset_table + i * offset_size, offset_size);
 
 		log_debug_msg("parse_nodes: current_offset = %i\n", current_offset);
 		char *obj = plist_bin + current_offset;
@@ -402,8 +414,8 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 				str_i = j * dict_param_size;
 				str_j = (j + data->length) * dict_param_size;
 
-				index1 = swap_n_bytes(data->buff + str_i, dict_param_size);
-				index2 = swap_n_bytes(data->buff + str_j, dict_param_size);
+				index1 = UINT_TO_HOST(data->buff + str_i, dict_param_size);
+				index2 = UINT_TO_HOST(data->buff + str_j, dict_param_size);
 
 				//first one is actually a key
 				plist_get_data(nodeslist[index1])->type = PLIST_KEY;
@@ -430,7 +442,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 			log_debug_msg("parse_nodes: array found\n");
 			for (j = 0; j < data->length; j++) {
 				str_j = j * dict_param_size;
-				index1 = swap_n_bytes(data->buff + str_j, dict_param_size);
+				index1 = UINT_TO_HOST(data->buff + str_j, dict_param_size);
 
 				if (index1 < num_objects) {
 					if (G_NODE_IS_ROOT(nodeslist[index1]))
@@ -463,7 +475,7 @@ static guint plist_data_hash(gconstpointer key)
 	case PLIST_BOOLEAN:
 	case PLIST_UINT:
 	case PLIST_REAL:
-		buff = (char *) &data->intval;
+		buff = (char *) &data->intval; //works also for real as we use an union
 		size = 8;
 		break;
 	case PLIST_KEY:
@@ -598,6 +610,17 @@ static void write_real(GByteArray * bplist, double val)
 	uint64_t size = get_real_bytes(*((uint64_t *) & val));	//cheat to know used space
 	uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
 	buff[0] = BPLIST_REAL | Log2(size);
+	memcpy(buff + 1, &val, size);
+	byte_convert(buff + 1, size);
+	g_byte_array_append(bplist, buff, sizeof(uint8_t) + size);
+	free(buff);
+}
+
+static void write_date(GByteArray * bplist, double val)
+{
+	uint64_t size = 8;	//dates always use 8 bytes
+	uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
+	buff[0] = BPLIST_DATE | Log2(size);
 	memcpy(buff + 1, &val, size);
 	byte_convert(buff + 1, size);
 	g_byte_array_append(bplist, buff, sizeof(uint8_t) + size);
@@ -764,7 +787,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 			write_dict(bplist_buff, g_ptr_array_index(objects, i), ref_table, dict_param_size);
 			break;
 		case PLIST_DATE:
-			//TODO
+			write_date(bplist_buff, data->timeval.tv_sec + (double)data->timeval.tv_usec / G_USEC_PER_SEC );
 			break;
 		default:
 			break;

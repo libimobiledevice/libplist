@@ -44,6 +44,7 @@ struct plist_data_s {
 		char *strval;
 		wchar_t *unicodeval;
 		uint8_t *buff;
+		GTimeVal timeval;
 	};
 	uint64_t length;
 	plist_type type;

@@ -188,7 +188,10 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 		tag = XPLIST_DICT;
 		isStruct = TRUE;
 		break;
-	case PLIST_DATE:			//TODO : handle date tag
+	case PLIST_DATE:
+		tag = XPLIST_DATE;
+		val = g_time_val_to_iso8601(&node_data->timeval);
+		break;
 	default:
 		break;
 	}
@@ -268,8 +271,12 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, XPLIST_DATE))
+		if (!xmlStrcmp(node->name, XPLIST_DATE)) {
+			g_time_val_from_iso8601((char*)xmlNodeGetContent(node), &data->timeval);
+			data->type = PLIST_DATE;
+			data->length = sizeof(GTimeVal);
 			continue;			//TODO : handle date tag
+		}
 
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
 			data->strval = strdup( (char*) xmlNodeGetContent(node));
