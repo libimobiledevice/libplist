@@ -27,10 +27,10 @@
 #include <string.h>
 
 /* Magic marker and size. */
-#define BPLIST_MAGIC		"bplist"
+#define BPLIST_MAGIC		((uint8_t*)"bplist")
 #define BPLIST_MAGIC_SIZE	6
 
-#define BPLIST_VERSION		"00"
+#define BPLIST_VERSION		((uint8_t*)"00")
 #define BPLIST_VERSION_SIZE	2
 
 
@@ -59,11 +59,11 @@ enum {
 	BPLIST_MASK = 0xF0
 };
 
-static void byte_convert(char *address, size_t size)
+static void byte_convert(uint8_t *address, size_t size)
 {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
 	uint8_t i = 0, j = 0;
-	char tmp = '\0';
+	uint8_t tmp = 0;
 
 	for (i = 0; i < (size / 2); i++) {
 		tmp = address[i];
@@ -75,13 +75,18 @@ static void byte_convert(char *address, size_t size)
 }
 
 #define swap_n_bytes(x, n) \
-		n == 8 ? GUINT64_FROM_BE( *(uint64_t *)(x) ) : \
+		(n == 8 ? GUINT64_FROM_BE( *(uint64_t *)(x) ) : \
 		(n == 4 ? GUINT32_FROM_BE( *(uint32_t *)(x) ) : \
-		(n == 2 ? GUINT16_FROM_BE( *(uint16_t *)(x) ) : *(uint8_t *)(x) ))
+		(n == 2 ? GUINT16_FROM_BE( *(uint16_t *)(x) ) : \
+		*(uint8_t *)(x) )))
 
 #define be64dec(x) GUINT64_FROM_BE( *(uint64_t*)(x) )
 
-#define get_needed_bytes(x) (x <= 1<<8 ? 1 : ( x <= 1<<16 ? 2 : ( x <= (uint64_t)1<<32 ? 4 : 8)))
+#define get_needed_bytes(x) \
+		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
+		( ((uint64_t)x) < (1ULL << 16) ? 2 : \
+		( ((uint64_t)x) < (1ULL << 32) ? 4 : 8)))
+
 #define get_real_bytes(x) (x >> 32 ? 4 : 8)
 
 
@@ -118,12 +123,8 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 	size = 1 << size;			// make length less misleading
 	switch (size) {
 	case sizeof(float):
-		memcpy(&data->realval, bnode, size);
-		byte_convert((char *) &data->realval, size);
-		break;
 	case sizeof(double):
-		memcpy(&data->realval, bnode, size);
-		byte_convert((char *) &data->realval, size);
+		data->realval = swap_n_bytes(bnode, size);
 		break;
 	default:
 		free(data);
@@ -163,8 +164,8 @@ static plist_t parse_data_node(char *bnode, uint64_t size)
 
 	data->type = PLIST_DATA;
 	data->length = size;
-	data->buff = (char *) malloc(sizeof(char) * size);
-	memcpy(data->buff, bnode, sizeof(char) * size);
+	data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size);
+	memcpy(data->buff, bnode, sizeof(uint8_t) * size);
 
 	return g_node_new(data);
 }
@@ -175,8 +176,8 @@ static plist_t parse_dict_node(char *bnode, uint64_t size, uint32_t ref_size)
 
 	data->type = PLIST_DICT;
 	data->length = size;
-	data->buff = (char *) malloc(sizeof(char) * size * ref_size * 2);
-	memcpy(data->buff, bnode, sizeof(char) * size * ref_size * 2);
+	data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size * ref_size * 2);
+	memcpy(data->buff, bnode, sizeof(uint8_t) * size * ref_size * 2);
 
 	return g_node_new(data);
 }
@@ -187,8 +188,8 @@ static plist_t parse_array_node(char *bnode, uint64_t size, uint32_t ref_size)
 
 	data->type = PLIST_ARRAY;
 	data->length = size;
-	data->buff = (char *) malloc(sizeof(char) * size * ref_size);
-	memcpy(data->buff, bnode, sizeof(char) * size * ref_size);
+	data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size * ref_size);
+	memcpy(data->buff, bnode, sizeof(uint8_t) * size * ref_size);
 
 	return g_node_new(data);
 }
@@ -321,12 +322,12 @@ static gpointer copy_plist_data(gconstpointer src, gpointer data)
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
-		dstdata->buff = (char *) malloc(sizeof(char *) * srcdata->length);
-		memcpy(dstdata->buff, srcdata->buff, sizeof(char *) * srcdata->length);
+		dstdata->buff = (uint8_t *) malloc(sizeof(uint8_t *) * srcdata->length);
+		memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t *) * srcdata->length);
 		break;
 	case PLIST_DICT:
-		dstdata->buff = (char *) malloc(sizeof(char *) * srcdata->length * 2);
-		memcpy(dstdata->buff, srcdata->buff, sizeof(char *) * srcdata->length * 2);
+		dstdata->buff = (uint8_t *) malloc(sizeof(uint8_t *) * srcdata->length * 2);
+		memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t *) * srcdata->length * 2);
 		break;
 	default:
 		break;
@@ -561,7 +562,9 @@ static void serialize_plist(GNode * node, gpointer data)
 		return;
 	}
 	//insert new ref
-	g_hash_table_insert(ser->ref_table, node, GUINT_TO_POINTER(current_index));
+	uint64_t* index_val = (uint64_t*) malloc(sizeof(uint64_t));
+	*index_val = current_index;
+	g_hash_table_insert(ser->ref_table, node, index_val);
 
 	//now append current node to object array
 	g_ptr_array_add(ser->objects, node);
@@ -569,6 +572,12 @@ static void serialize_plist(GNode * node, gpointer data)
 	//now recurse on children
 	g_node_children_foreach(node, G_TRAVERSE_ALL, serialize_plist, data);
 	return;
+}
+
+static gboolean free_index (gpointer key, gpointer value, gpointer user_data)
+{
+	free((uint64_t*)value);
+	return TRUE;
 }
 
 #define Log2(x) (x == 8 ? 3 : (x == 4 ? 2 : (x == 2 ? 1 : 0)))
@@ -619,7 +628,7 @@ static void write_data(GByteArray * bplist, uint8_t * val, uint64_t size)
 static void write_string(GByteArray * bplist, char *val)
 {
 	uint64_t size = strlen(val);
-	write_raw_data(bplist, BPLIST_STRING, val, size);
+	write_raw_data(bplist, BPLIST_STRING, (uint8_t*) val, size);
 }
 
 static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_table, uint8_t dict_param_size)
@@ -640,7 +649,7 @@ static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_tabl
 	GNode *cur = NULL;
 	uint64_t i = 0;
 	for (i = 0, cur = node->children; cur && i < size; cur = cur->next, i++) {
-		idx = GPOINTER_TO_UINT(g_hash_table_lookup(ref_table, cur));
+		idx = *(uint64_t*)(g_hash_table_lookup(ref_table, cur));
 		memcpy(buff + i * dict_param_size, &idx, dict_param_size);
 		byte_convert(buff + i * dict_param_size, dict_param_size);
 	}
@@ -747,7 +756,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 			//TODO
 			break;
 		case PLIST_DATA:
-			write_data(bplist_buff, data->strval, data->length);
+			write_data(bplist_buff, data->buff, data->length);
 		case PLIST_ARRAY:
 			write_array(bplist_buff, g_ptr_array_index(objects, i), ref_table, dict_param_size);
 			break;
@@ -761,6 +770,9 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 			break;
 		}
 	}
+
+	//free intermediate objects
+	g_hash_table_foreach_remove (ref_table, free_index, NULL);
 
 	//write offsets
 	offset_size = get_needed_bytes(bplist_buff->len);
@@ -778,7 +790,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 	root_object = GUINT64_FROM_BE(root_object);
 	offset_table_index = GUINT64_FROM_BE(offset_table_index);
 
-	char trailer[BPLIST_TRL_SIZE];
+	uint8_t trailer[BPLIST_TRL_SIZE];
 	memcpy(trailer + BPLIST_TRL_OFFSIZE_IDX, &offset_size, sizeof(uint8_t));
 	memcpy(trailer + BPLIST_TRL_PARMSIZE_IDX, &dict_param_size, sizeof(uint8_t));
 	memcpy(trailer + BPLIST_TRL_NUMOBJ_IDX, &num_objects, sizeof(uint64_t));

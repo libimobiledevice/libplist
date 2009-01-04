@@ -43,7 +43,7 @@ struct plist_data_s {
 		double realval;
 		char *strval;
 		wchar_t *unicodeval;
-		char *buff;
+		uint8_t *buff;
 	};
 	uint64_t length;
 	plist_type type;

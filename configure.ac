@@ -45,7 +45,7 @@ if test "$no_debug_code" = true; then
 	AC_DEFINE(STRIP_DEBUG_CODE,1,[Strip debug reporting code])
 fi
 
-AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default")
+AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter")
 AC_SUBST(GLOBAL_CFLAGS)
 
 AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile libplist-1.0.pc)

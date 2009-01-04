@@ -32,6 +32,17 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
+#define XPLIST_TEXT	BAD_CAST("text")
+#define XPLIST_KEY	BAD_CAST("key")
+#define XPLIST_FALSE	BAD_CAST("false")
+#define XPLIST_TRUE	BAD_CAST("true")
+#define XPLIST_INT	BAD_CAST("integer")
+#define XPLIST_REAL	BAD_CAST("real")
+#define XPLIST_DATE	BAD_CAST("date")
+#define XPLIST_DATA	BAD_CAST("data")
+#define XPLIST_STRING	BAD_CAST("string")
+#define XPLIST_ARRAY	BAD_CAST("array")
+#define XPLIST_DICT	BAD_CAST("dict")
 
 const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
@@ -125,56 +136,56 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	xmlNodePtr child_node = NULL;
 	char isStruct = FALSE;
 
-	const gchar *tag = NULL;
-	const gchar *val = NULL;
+	const xmlChar *tag = NULL;
+	gchar *val = NULL;
 
 	switch (node_data->type) {
 	case PLIST_BOOLEAN:
 		{
 			if (node_data->boolval)
-				tag = "true";
+				tag = XPLIST_TRUE;
 			else
-				tag = "false";
+				tag = XPLIST_FALSE;
 		}
 		break;
 
 	case PLIST_UINT:
-		tag = "integer";
+		tag = XPLIST_INT;
 		val = g_strdup_printf("%lu", (long unsigned int) node_data->intval);
 		break;
 
 	case PLIST_REAL:
-		tag = "real";
+		tag = XPLIST_REAL;
 		val = g_strdup_printf("%Lf", (long double) node_data->realval);
 		break;
 
 	case PLIST_STRING:
-		tag = "string";
+		tag = XPLIST_STRING;
 		val = g_strdup(node_data->strval);
 		break;
 
 	case PLIST_UNICODE:
-		tag = "string";
+		tag = XPLIST_STRING;
 		val = g_strdup((gchar *) node_data->unicodeval);
 		break;
 
 	case PLIST_KEY:
-		tag = "key";
+		tag = XPLIST_KEY;
 		val = g_strdup((gchar *) node_data->strval);
 		break;
 
 	case PLIST_DATA:
-		tag = "data";
+		tag = XPLIST_DATA;
 		gchar *valtmp = g_base64_encode(node_data->buff, node_data->length);
 		val = format_string(valtmp, 68, xstruct->depth);
 		g_free(valtmp);
 		break;
 	case PLIST_ARRAY:
-		tag = "array";
+		tag = XPLIST_ARRAY;
 		isStruct = TRUE;
 		break;
 	case PLIST_DICT:
-		tag = "dict";
+		tag = XPLIST_DICT;
 		isStruct = TRUE;
 		break;
 	case PLIST_DATE:			//TODO : handle date tag
@@ -182,17 +193,17 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 		break;
 	}
 
-	int i = 0;
+	uint32_t i = 0;
 	for (i = 0; i < xstruct->depth; i++) {
-		xmlNodeAddContent(xstruct->xml, "\t");
+		xmlNodeAddContent(xstruct->xml, BAD_CAST("\t"));
 	}
-	child_node = xmlNewChild(xstruct->xml, NULL, tag, val);
-	xmlNodeAddContent(xstruct->xml, "\n");
+	child_node = xmlNewChild(xstruct->xml, NULL, tag, BAD_CAST(val));
+	xmlNodeAddContent(xstruct->xml, BAD_CAST("\n"));
 	g_free(val);
 
 	//add return for structured types
 	if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT)
-		xmlNodeAddContent(child_node, "\n");
+		xmlNodeAddContent(child_node, BAD_CAST("\n"));
 
 	if (isStruct) {
 		struct xml_node child = { child_node, xstruct->depth + 1 };
@@ -202,20 +213,20 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT) {
 
 		for (i = 0; i < xstruct->depth; i++) {
-			xmlNodeAddContent(child_node, "\t");
+			xmlNodeAddContent(child_node, BAD_CAST("\t"));
 		}
 	}
 
 	return;
 }
 
-void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
+static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 {
 	xmlNodePtr node = NULL;
 
 	for (node = xml_node->children; node; node = node->next) {
 
-		while (node && !xmlStrcmp(node->name, "text"))
+		while (node && !xmlStrcmp(node->name, XPLIST_TEXT))
 			node = node->next;
 		if (!node)
 			break;
@@ -227,68 +238,68 @@ void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		else
 			*plist_node = subnode;
 
-		if (!xmlStrcmp(node->name, "true")) {
-			data->boolval = 1;
+		if (!xmlStrcmp(node->name, XPLIST_TRUE)) {
+			data->boolval = TRUE;
 			data->type = PLIST_BOOLEAN;
 			data->length = 1;
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "false")) {
-			data->boolval = 0;
+		if (!xmlStrcmp(node->name, XPLIST_FALSE)) {
+			data->boolval = FALSE;
 			data->type = PLIST_BOOLEAN;
 			data->length = 1;
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "integer")) {
-			char *strval = xmlNodeGetContent(node);
+		if (!xmlStrcmp(node->name, XPLIST_INT)) {
+			char *strval = (char*)xmlNodeGetContent(node);
 			data->intval = g_ascii_strtoull(strval, NULL, 0);
 			data->type = PLIST_UINT;
 			data->length = 8;
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "real")) {
-			char *strval = xmlNodeGetContent(node);
+		if (!xmlStrcmp(node->name, XPLIST_REAL)) {
+			char *strval = (char*)xmlNodeGetContent(node);
 			data->realval = atof(strval);
 			data->type = PLIST_REAL;
 			data->length = 8;
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "date"))
+		if (!xmlStrcmp(node->name, XPLIST_DATE))
 			continue;			//TODO : handle date tag
 
-		if (!xmlStrcmp(node->name, "string")) {
-			data->strval = strdup(xmlNodeGetContent(node));
+		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
+			data->strval = strdup( (char*) xmlNodeGetContent(node));
 			data->type = PLIST_STRING;
 			data->length = strlen(data->strval);
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "key")) {
-			data->strval = strdup(xmlNodeGetContent(node));
+		if (!xmlStrcmp(node->name, XPLIST_KEY)) {
+			data->strval = strdup( (char*) xmlNodeGetContent(node));
 			data->type = PLIST_KEY;
 			data->length = strlen(data->strval);
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "data")) {
+		if (!xmlStrcmp(node->name, XPLIST_DATA)) {
 			gsize size = 0;
-			data->buff = g_base64_decode(xmlNodeGetContent(node), &size);
+			data->buff = g_base64_decode((char*)xmlNodeGetContent(node), &size);
 			data->length = size;
 			data->type = PLIST_DATA;
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "array")) {
+		if (!xmlStrcmp(node->name, XPLIST_ARRAY)) {
 			data->type = PLIST_ARRAY;
 			xml_to_node(node, &subnode);
 			continue;
 		}
 
-		if (!xmlStrcmp(node->name, "dict")) {
+		if (!xmlStrcmp(node->name, XPLIST_DICT)) {
 			data->type = PLIST_DICT;
 			xml_to_node(node, &subnode);
 			continue;
@@ -306,7 +317,11 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 
 	node_to_xml(plist, &root);
 
-	xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, length);
+	int size = 0;
+	xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, &size);
+	if (size >=0 )
+		*length = size;
+	free_plist(plist_doc);
 }
 
 void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
