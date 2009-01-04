@@ -285,7 +285,6 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			plist_t size_node = parse_bin_node(object, dict_size, &object);
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
-			object++;
 			size = plist_get_node_uint_val(size_node);
 		}
 		return parse_dict_node(object, size, dict_size);
