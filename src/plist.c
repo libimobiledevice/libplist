@@ -136,7 +136,7 @@ plist_t plist_get_prev_sibling(plist_t node)
 	return (plist_t) g_node_prev_sibling((GNode *) node);
 }
 
-char compare_node_value(plist_type type, plist_data_t data, void *value, uint64_t length)
+static char compare_node_value(plist_type type, plist_data_t data, void *value, uint64_t length)
 {
 	char res = FALSE;
 	switch (type) {

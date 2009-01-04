@@ -6,6 +6,7 @@ AC_INIT(libplist, 0.1.0, nospam@nowhere.com)
 AM_INIT_AUTOMAKE(libplist, 0.1.0)
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADER([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_LIBTOOL
 
@@ -43,5 +44,8 @@ AC_ARG_ENABLE([debug-code],
 if test "$no_debug_code" = true; then
 	AC_DEFINE(STRIP_DEBUG_CODE,1,[Strip debug reporting code])
 fi
+
+AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default")
+AC_SUBST(GLOBAL_CFLAGS)
 
 AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile libplist-1.0.pc)
