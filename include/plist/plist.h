@@ -52,6 +52,17 @@ plist_t plist_new_array();
 //Plist edition, create a new root if node is NULL
 plist_t plist_add_sub_element( plist_t node, plist_type type, void* value, uint64_t length);
 
+//Plist edition, only work for dict and array node
+void plist_add_sub_node(plist_t node, plist_t subnode);
+
+void plist_add_sub_key_el(plist_t node, char* val);
+void plist_add_sub_string_el(plist_t node, char* val);
+void plist_add_sub_bool_el(plist_t node, uint8_t val);
+void plist_add_sub_uint_el(plist_t node, uint64_t val);
+void plist_add_sub_real_el(plist_t node, double val);
+void plist_add_sub_data_el(plist_t node, char* val, uint64_t length);
+
+
 //plist free
 void plist_free(plist_t plist);
 
@@ -62,6 +73,16 @@ plist_t plist_get_prev_sibling(plist_t node);
 
 plist_t plist_find_node(plist_t plist, plist_type type, void *value, uint64_t length);
 void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length);
+
+//Plist reading
+plist_type plist_get_node_type(plist_t node);
+
+void plist_get_key_val(plist_t node, char** val);
+void plist_get_string_val(plist_t node, char** val);
+void plist_get_bool_val(plist_t node, uint8_t* val);
+void plist_get_uint_val(plist_t node, uint64_t* val);
+void plist_get_real_val(plist_t node, double* val);
+void plist_get_data_val(plist_t node, char** val, uint64_t* length);
 
 //import and export functions
 void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);

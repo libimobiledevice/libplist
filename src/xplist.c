@@ -256,7 +256,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_INT)) {
-			char *strval = (char*)xmlNodeGetContent(node);
+			char *strval = (char *) xmlNodeGetContent(node);
 			data->intval = g_ascii_strtoull(strval, NULL, 0);
 			data->type = PLIST_UINT;
 			data->length = 8;
@@ -264,7 +264,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_REAL)) {
-			char *strval = (char*)xmlNodeGetContent(node);
+			char *strval = (char *) xmlNodeGetContent(node);
 			data->realval = atof(strval);
 			data->type = PLIST_REAL;
 			data->length = 8;
@@ -272,21 +272,21 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_DATE)) {
-			g_time_val_from_iso8601((char*)xmlNodeGetContent(node), &data->timeval);
+			g_time_val_from_iso8601((char *) xmlNodeGetContent(node), &data->timeval);
 			data->type = PLIST_DATE;
 			data->length = sizeof(GTimeVal);
 			continue;			//TODO : handle date tag
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
-			data->strval = strdup( (char*) xmlNodeGetContent(node));
+			data->strval = strdup((char *) xmlNodeGetContent(node));
 			data->type = PLIST_STRING;
 			data->length = strlen(data->strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_KEY)) {
-			data->strval = strdup( (char*) xmlNodeGetContent(node));
+			data->strval = strdup((char *) xmlNodeGetContent(node));
 			data->type = PLIST_KEY;
 			data->length = strlen(data->strval);
 			continue;
@@ -294,7 +294,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 
 		if (!xmlStrcmp(node->name, XPLIST_DATA)) {
 			gsize size = 0;
-			data->buff = g_base64_decode((char*)xmlNodeGetContent(node), &size);
+			data->buff = g_base64_decode((char *) xmlNodeGetContent(node), &size);
 			data->length = size;
 			data->type = PLIST_DATA;
 			continue;
@@ -326,7 +326,7 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 
 	int size = 0;
 	xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, &size);
-	if (size >=0 )
+	if (size >= 0)
 		*length = size;
 	free_plist(plist_doc);
 }

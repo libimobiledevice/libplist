@@ -59,7 +59,7 @@ enum {
 	BPLIST_MASK = 0xF0
 };
 
-static void byte_convert(uint8_t *address, size_t size)
+static void byte_convert(uint8_t * address, size_t size)
 {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
 	uint8_t i = 0, j = 0;
@@ -124,7 +124,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 	switch (size) {
 	case sizeof(float):
 	case sizeof(double):
-		data->intval = UINT_TO_HOST(bnode, size); //use the fact that we have an union to cheat byte swapping
+		data->intval = UINT_TO_HOST(bnode, size);	//use the fact that we have an union to cheat byte swapping
 		break;
 	default:
 		free(data);
@@ -140,8 +140,8 @@ static plist_t parse_date_node(char *bnode, uint8_t size)
 	plist_data_t data = plist_get_data(node);
 
 	double time_real = data->realval;
-	data->timeval.tv_sec = (glong)time_real;
-	data->timeval.tv_usec = (time_real - (glong)time_real) * G_USEC_PER_SEC;
+	data->timeval.tv_sec = (glong) time_real;
+	data->timeval.tv_usec = (time_real - (glong) time_real) * G_USEC_PER_SEC;
 	data->type = PLIST_DATE;
 	return node;
 }
@@ -475,7 +475,7 @@ static guint plist_data_hash(gconstpointer key)
 	case PLIST_BOOLEAN:
 	case PLIST_UINT:
 	case PLIST_REAL:
-		buff = (char *) &data->intval; //works also for real as we use an union
+		buff = (char *) &data->intval;	//works also for real as we use an union
 		size = 8;
 		break;
 	case PLIST_KEY:
@@ -574,7 +574,7 @@ static void serialize_plist(GNode * node, gpointer data)
 		return;
 	}
 	//insert new ref
-	uint64_t* index_val = (uint64_t*) malloc(sizeof(uint64_t));
+	uint64_t *index_val = (uint64_t *) malloc(sizeof(uint64_t));
 	*index_val = current_index;
 	g_hash_table_insert(ser->ref_table, node, index_val);
 
@@ -586,9 +586,9 @@ static void serialize_plist(GNode * node, gpointer data)
 	return;
 }
 
-static gboolean free_index (gpointer key, gpointer value, gpointer user_data)
+static gboolean free_index(gpointer key, gpointer value, gpointer user_data)
 {
-	free((uint64_t*)value);
+	free((uint64_t *) value);
 	return TRUE;
 }
 
@@ -618,7 +618,7 @@ static void write_real(GByteArray * bplist, double val)
 
 static void write_date(GByteArray * bplist, double val)
 {
-	uint64_t size = 8;	//dates always use 8 bytes
+	uint64_t size = 8;			//dates always use 8 bytes
 	uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
 	buff[0] = BPLIST_DATE | Log2(size);
 	memcpy(buff + 1, &val, size);
@@ -651,7 +651,7 @@ static void write_data(GByteArray * bplist, uint8_t * val, uint64_t size)
 static void write_string(GByteArray * bplist, char *val)
 {
 	uint64_t size = strlen(val);
-	write_raw_data(bplist, BPLIST_STRING, (uint8_t*) val, size);
+	write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
 }
 
 static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_table, uint8_t dict_param_size)
@@ -672,7 +672,7 @@ static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_tabl
 	GNode *cur = NULL;
 	uint64_t i = 0;
 	for (i = 0, cur = node->children; cur && i < size; cur = cur->next, i++) {
-		idx = *(uint64_t*)(g_hash_table_lookup(ref_table, cur));
+		idx = *(uint64_t *) (g_hash_table_lookup(ref_table, cur));
 		memcpy(buff + i * dict_param_size, &idx, dict_param_size);
 		byte_convert(buff + i * dict_param_size, dict_param_size);
 	}
@@ -787,7 +787,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 			write_dict(bplist_buff, g_ptr_array_index(objects, i), ref_table, dict_param_size);
 			break;
 		case PLIST_DATE:
-			write_date(bplist_buff, data->timeval.tv_sec + (double)data->timeval.tv_usec / G_USEC_PER_SEC );
+			write_date(bplist_buff, data->timeval.tv_sec + (double) data->timeval.tv_usec / G_USEC_PER_SEC);
 			break;
 		default:
 			break;
@@ -795,7 +795,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 	}
 
 	//free intermediate objects
-	g_hash_table_foreach_remove (ref_table, free_index, NULL);
+	g_hash_table_foreach_remove(ref_table, free_index, NULL);
 
 	//write offsets
 	offset_size = get_needed_bytes(bplist_buff->len);

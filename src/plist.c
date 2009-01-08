@@ -74,46 +74,50 @@ plist_t plist_new_array()
 
 plist_t plist_add_sub_element(plist_t node, plist_type type, void *value, uint64_t length)
 {
-	//only structured types are allowed to have nulll value
-	if (value || (!value && (type == PLIST_DICT || type == PLIST_ARRAY))) {
-		//now handle value
-		plist_data_t data = plist_new_plist_data();
-		data->type = type;
-		data->length = length;
+	//only structured types can have children
+	plist_type node_type = plist_get_node_type(node);
+	if (node_type == PLIST_DICT || node_type == PLIST_ARRAY) {
+		//only structured types are allowed to have nulll value
+		if (value || (!value && (type == PLIST_DICT || type == PLIST_ARRAY))) {
+			//now handle value
+			plist_data_t data = plist_new_plist_data();
+			data->type = type;
+			data->length = length;
 
-		switch (type) {
-		case PLIST_BOOLEAN:
-			data->boolval = *((char *) value);
-			break;
-		case PLIST_UINT:
-			data->intval = *((uint64_t *) value);
-			break;
-		case PLIST_REAL:
-			data->realval = *((double *) value);
-			break;
-		case PLIST_KEY:
-		case PLIST_STRING:
-			data->strval = strdup((char *) value);
-			break;
-		case PLIST_UNICODE:
-			data->unicodeval = wcsdup((wchar_t *) value);
-			break;
-		case PLIST_DATA:
-			memcpy(data->buff, value, length);
-			break;
-		case PLIST_ARRAY:
-		case PLIST_DICT:
-		case PLIST_DATE:
-		default:
-			break;
-		}
+			switch (type) {
+			case PLIST_BOOLEAN:
+				data->boolval = *((char *) value);
+				break;
+			case PLIST_UINT:
+				data->intval = *((uint64_t *) value);
+				break;
+			case PLIST_REAL:
+				data->realval = *((double *) value);
+				break;
+			case PLIST_KEY:
+			case PLIST_STRING:
+				data->strval = strdup((char *) value);
+				break;
+			case PLIST_UNICODE:
+				data->unicodeval = wcsdup((wchar_t *) value);
+				break;
+			case PLIST_DATA:
+				memcpy(data->buff, value, length);
+				break;
+			case PLIST_ARRAY:
+			case PLIST_DICT:
+			case PLIST_DATE:
+			default:
+				break;
+			}
 
-		plist_t subnode = plist_new_node(data);
-		if (node)
-			g_node_append(node, subnode);
-		return subnode;
-	} else
-		return NULL;
+			plist_t subnode = plist_new_node(data);
+			if (node)
+				g_node_append(node, subnode);
+			return subnode;
+		} else
+			return NULL;
+	}
 }
 
 void plist_free(plist_t plist)
@@ -242,4 +246,95 @@ uint64_t plist_get_node_uint_val(plist_t node)
 		return plist_get_data(node)->intval;
 	else
 		return 0;
+}
+
+void plist_add_sub_node(plist_t node, plist_t subnode)
+{
+	if (node && subnode) {
+		plist_type type = plist_get_node_type(node);
+		if (type == PLIST_DICT || type == PLIST_ARRAY)
+			g_node_append(node, subnode);
+	}
+}
+
+void plist_add_sub_key_el(plist_t node, char *val)
+{
+	plist_add_sub_element(node, PLIST_KEY, val, strlen(val));
+}
+
+void plist_add_sub_string_el(plist_t node, char *val)
+{
+	plist_add_sub_element(node, PLIST_STRING, val, strlen(val));
+}
+
+void plist_add_sub_bool_el(plist_t node, uint8_t val)
+{
+	plist_add_sub_element(node, PLIST_BOOLEAN, &val, sizeof(uint8_t));
+}
+
+void plist_add_sub_uint_el(plist_t node, uint64_t val)
+{
+	plist_add_sub_element(node, PLIST_UINT, &val, sizeof(uint64_t));
+}
+
+void plist_add_sub_real_el(plist_t node, double val)
+{
+	plist_add_sub_element(node, PLIST_REAL, &val, sizeof(double));
+}
+
+void plist_add_sub_data_el(plist_t node, char *val, uint64_t length)
+{
+	plist_add_sub_element(node, PLIST_DATA, val, length);
+}
+
+void plist_get_key_val(plist_t node, char **val)
+{
+	plist_type type = plist_get_node_type(node);
+	uint64_t length = 0;
+	if (PLIST_KEY == type)
+		plist_get_type_and_value(node, &type, (void *) val, &length);
+	assert(length == strlen(*val));
+}
+
+void plist_get_string_val(plist_t node, char **val)
+{
+	plist_type type = plist_get_node_type(node);
+	uint64_t length = 0;
+	if (PLIST_STRING == type)
+		plist_get_type_and_value(node, &type, (void *) val, &length);
+	assert(length == strlen(*val));
+}
+
+void plist_get_bool_val(plist_t node, uint8_t * val)
+{
+	plist_type type = plist_get_node_type(node);
+	uint64_t length = 0;
+	if (PLIST_BOOLEAN == type)
+		plist_get_type_and_value(node, &type, (void *) val, &length);
+	assert(length == sizeof(uint8_t));
+}
+
+void plist_get_uint_val(plist_t node, uint64_t * val)
+{
+	plist_type type = plist_get_node_type(node);
+	uint64_t length = 0;
+	if (PLIST_UINT == type)
+		plist_get_type_and_value(node, &type, (void *) val, &length);
+	assert(length == sizeof(uint64_t));
+}
+
+void plist_get_real_val(plist_t node, double *val)
+{
+	plist_type type = plist_get_node_type(node);
+	uint64_t length = 0;
+	if (PLIST_REAL == type)
+		plist_get_type_and_value(node, &type, (void *) val, &length);
+	assert(length == sizeof(double));
+}
+
+void plist_get_data_val(plist_t node, char **val, uint64_t * length)
+{
+	plist_type type = plist_get_node_type(node);
+	if (PLIST_UINT == type)
+		plist_get_type_and_value(node, &type, (void *) val, length);
 }
