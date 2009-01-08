@@ -113,6 +113,8 @@ static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
 
 	*next_object = bnode + size;
 	data->type = PLIST_UINT;
+	data->length = sizeof(uint64_t);
+
 	return g_node_new(data);
 }
 
@@ -131,6 +133,8 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 		return NULL;
 	}
 	data->type = PLIST_REAL;
+	data->length = sizeof(double);
+
 	return g_node_new(data);
 }
 
@@ -143,6 +147,8 @@ static plist_t parse_date_node(char *bnode, uint8_t size)
 	data->timeval.tv_sec = (glong) time_real;
 	data->timeval.tv_usec = (time_real - (glong) time_real) * G_USEC_PER_SEC;
 	data->type = PLIST_DATE;
+	data->length = sizeof(GTimeVal);
+
 	return node;
 }
 
@@ -154,6 +160,7 @@ static plist_t parse_string_node(char *bnode, uint8_t size)
 	data->strval = (char *) malloc(sizeof(char) * (size + 1));
 	memcpy(data->strval, bnode, size);
 	data->strval[size] = '\0';
+	data->length = strlen(data->strval);
 
 	return g_node_new(data);
 }
@@ -166,6 +173,7 @@ static plist_t parse_unicode_node(char *bnode, uint8_t size)
 	data->unicodeval = (wchar_t *) malloc(sizeof(wchar_t) * (size + 1));
 	memcpy(data->unicodeval, bnode, size);
 	data->unicodeval[size] = '\0';
+	data->length = wcslen(data->unicodeval);
 
 	return g_node_new(data);
 }
