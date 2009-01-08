@@ -808,13 +808,17 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 	//write offsets
 	offset_size = get_needed_bytes(bplist_buff->len);
 	offset_table_index = bplist_buff->len;
-	for (i = 0; i <= num_objects; i++) {
+	for (i = 0; i < num_objects; i++) {
 		uint8_t *offsetbuff = (uint8_t *) malloc(offset_size);
 		memcpy(offsetbuff, offsets + i, offset_size);
 		byte_convert(offsetbuff, offset_size);
 		g_byte_array_append(bplist_buff, offsetbuff, offset_size);
 		free(offsetbuff);
 	}
+
+	//experimental pad to reflect apple's files
+	uint8_t pad[6] = {0, 0, 0, 0, 0, 0};
+	g_byte_array_append(bplist_buff, pad, 6);
 
 	//setup trailer
 	num_objects = GUINT64_FROM_BE(num_objects);
