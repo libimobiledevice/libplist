@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src include plutil
+SUBDIRS = src include plutil swig
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libplist-1.0.pc

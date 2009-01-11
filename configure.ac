@@ -10,6 +10,11 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_LIBTOOL
 
+AM_PATH_PYTHON(2.3)
+AC_PROG_SWIG(1.3.21)
+SWIG_PYTHON
+
+
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -48,4 +53,4 @@ fi
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter")
 AC_SUBST(GLOBAL_CFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile libplist-1.0.pc)
+AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile swig/Makefile libplist-1.0.pc)
