@@ -73,6 +73,7 @@ plist_t plist_get_prev_sibling(plist_t node);
 
 //utili function to find first (and only the first encountred) corresponding node
 plist_t plist_find_node(plist_t plist, plist_type type, void *value, uint64_t length);
+plist_t plist_find_node_by_key(plist_t plist, char *value);
 plist_t plist_find_node_by_string(plist_t plist, char *value);
 
 void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length);

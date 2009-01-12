@@ -194,6 +194,11 @@ plist_t plist_find_node(plist_t plist, plist_type type, void *value, uint64_t le
 	return NULL;
 }
 
+plist_t plist_find_node_by_key(plist_t plist, char *value)
+{
+	return plist_find_node(plist, PLIST_KEY, value, strlen(value));
+}
+
 plist_t plist_find_node_by_string(plist_t plist, char *value)
 {
 	return plist_find_node(plist, PLIST_STRING, value, strlen(value));
