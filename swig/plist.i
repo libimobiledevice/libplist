@@ -1,5 +1,5 @@
  /* swig.i */
- %module PList
+ %module(package="libplist") PList
  %{
  /* Includes the header in the wrapper code */
  #include <plist/plist.h>
@@ -169,3 +169,4 @@ typedef struct {
 		return s;
 	}
 };
+

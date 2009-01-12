@@ -3,6 +3,9 @@ INCLUDES = -I$(top_srcdir)/include
 BUILT_SOURCES = $(srcdir)/plist_wrap.c
 SWIG_SOURCES = plist.i 
 
+swigincludedir =$(includedir)/plist/swig
+swiginclude_HEADERS = $(SWIG_SOURCES)
+
 pkgpython_PYTHON = PList.py __init__.py
 pkgpyexec_LTLIBRARIES = _PList.la
 _PList_la_SOURCES = $(srcdir)/plist_wrap.c $(SWIG_SOURCES)
