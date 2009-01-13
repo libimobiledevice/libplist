@@ -7,6 +7,9 @@ typedef struct {
 	plist_t node;
 } PListNode;
  %}
+
+%include "stdint.i"
+
 /* Parse the header file to generate wrappers */
 typedef enum {
 	PLIST_BOOLEAN,
