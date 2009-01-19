@@ -227,6 +227,9 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 {
 	xmlNodePtr node = NULL;
 
+	if (!xml_node)
+		return;
+
 	for (node = xml_node->children; node; node = node->next) {
 
 		while (node && !xmlStrcmp(node->name, XPLIST_TEXT))
