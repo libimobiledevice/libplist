@@ -35,8 +35,6 @@ void iphone_set_debug(int level)
 	toto_debug = level;
 }
 
-
-
 void log_debug_msg(const char *format, ...)
 {
 #ifndef STRIP_DEBUG_CODE
@@ -60,7 +58,6 @@ inline void log_debug_buffer(const char *data, const int length)
 	/* run the real fprintf */
 	if (toto_debug)
 		fwrite(data, 1, length, stderr);
-
 #endif
 }
 

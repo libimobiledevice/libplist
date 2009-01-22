@@ -24,7 +24,6 @@
 #include <assert.h>
 #include "utils.h"
 #include "plist.h"
-#include <wchar.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -99,7 +98,8 @@ plist_t plist_add_sub_element(plist_t node, plist_type type, void *value, uint64
 				data->strval = strdup((char *) value);
 				break;
 			case PLIST_UNICODE:
-				data->unicodeval = wcsdup((wchar_t *) value);
+				data->unicodeval = (gunichar2*) malloc(length * sizeof(gunichar2));
+				memcpy(data->unicodeval, value, length * sizeof(gunichar2));
 				break;
 			case PLIST_DATA:
 				memcpy(data->buff, value, length);
@@ -158,7 +158,7 @@ static char compare_node_value(plist_type type, plist_data_t data, void *value, 
 		res = !strcmp(data->strval, ((char *) value));
 		break;
 	case PLIST_UNICODE:
-		res = !wcscmp(data->unicodeval, ((wchar_t *) value));
+		res = !memcpy(data->unicodeval, value, length);
 		break;
 	case PLIST_DATA:
 		res = memcmp(data->buff, (char *) value, length);
@@ -229,7 +229,8 @@ void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint
 		*((char **) value) = strdup(data->strval);
 		break;
 	case PLIST_UNICODE:
-		*((wchar_t **) value) = wcsdup(data->unicodeval);
+		*((gunichar2 **) value) = malloc (*length * sizeof(gunichar2));
+		memcpy(*((gunichar2 **) value), data->unicodeval, *length * sizeof(gunichar2));
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:

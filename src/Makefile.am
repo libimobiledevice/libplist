@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir)/include
 
-AM_CFLAGS = $(GLOBAL_CFLAGS) $(libxml2_CFLAGS) $(libglib2_CFLAGS) -D_GNU_SOURCE
+AM_CFLAGS = $(GLOBAL_CFLAGS) $(libxml2_CFLAGS) $(libglib2_CFLAGS)
 AM_LDFLAGS = $(libxml2_LIBS) $(libglib2_LIBS)
 
 lib_LTLIBRARIES = libplist.la

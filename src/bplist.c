@@ -21,7 +21,6 @@
 
 
 #include "plist.h"
-#include <wchar.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -152,7 +151,7 @@ static plist_t parse_date_node(char *bnode, uint8_t size)
 	return node;
 }
 
-static plist_t parse_string_node(char *bnode, uint8_t size)
+static plist_t parse_string_node(char *bnode, uint64_t size)
 {
 	plist_data_t data = plist_new_plist_data();
 
@@ -165,16 +164,17 @@ static plist_t parse_string_node(char *bnode, uint8_t size)
 	return g_node_new(data);
 }
 
-static plist_t parse_unicode_node(char *bnode, uint8_t size)
+static plist_t parse_unicode_node(char *bnode, uint64_t size)
 {
 	plist_data_t data = plist_new_plist_data();
-
+	uint64_t i = 0;
 	data->type = PLIST_UNICODE;
-	data->unicodeval = (wchar_t *) malloc(sizeof(wchar_t) * (size + 1));
-	memcpy(data->unicodeval, bnode, size);
-	data->unicodeval[size] = '\0';
-	data->length = wcslen(data->unicodeval);
-
+	data->unicodeval = (gunichar2 *) malloc(sizeof(gunichar2) * (size + 1));
+	memcpy(data->unicodeval, bnode, sizeof(gunichar2) * size);
+	data->unicodeval[sizeof(gunichar2) * size] = '\0';
+	data->length = size;
+	for (i = 0; i <= size; i++)
+		byte_convert(data->unicodeval + i, sizeof(gunichar2));
 	return g_node_new(data);
 }
 
@@ -338,7 +338,8 @@ static gpointer copy_plist_data(gconstpointer src, gpointer data)
 		dstdata->strval = strdup(srcdata->strval);
 		break;
 	case PLIST_UNICODE:
-		dstdata->unicodeval = wcsdup(srcdata->unicodeval);
+		dstdata->unicodeval = (gunichar2*) malloc(srcdata->length * sizeof(gunichar2));
+		memcpy(dstdata->unicodeval, srcdata->unicodeval, srcdata->length * sizeof(gunichar2));
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
@@ -493,7 +494,7 @@ static guint plist_data_hash(gconstpointer key)
 		break;
 	case PLIST_UNICODE:
 		buff = (char *) data->unicodeval;
-		size = strlen(buff) * sizeof(wchar_t);
+		size = data->length;
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
@@ -544,7 +545,7 @@ static gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 		else
 			return FALSE;
 	case PLIST_UNICODE:
-		if (!wcscmp(val_a->unicodeval, val_b->unicodeval))
+		if (!memcmp(val_a->unicodeval, val_b->unicodeval,val_a->length))
 			return TRUE;
 		else
 			return FALSE;
@@ -660,6 +661,17 @@ static void write_string(GByteArray * bplist, char *val)
 {
 	uint64_t size = strlen(val);
 	write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
+}
+
+static void write_unicode(GByteArray * bplist, gunichar2 *val, uint64_t size)
+{
+	uint64_t i = 0;
+	uint64_t size2 = size * sizeof(gunichar2);
+	uint8_t* buff = (uint8_t*) malloc(size2);
+	memcpy(buff, val, size2);
+	for (i = 0; i < size; i++)
+		byte_convert(buff + i * sizeof(gunichar2), sizeof(gunichar2));
+	write_raw_data(bplist, BPLIST_STRING, buff, size2);
 }
 
 static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_table, uint8_t dict_param_size)
@@ -784,7 +796,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 			write_string(bplist_buff, data->strval);
 			break;
 		case PLIST_UNICODE:
-			//TODO
+			write_unicode(bplist_buff, data->unicodeval, data->length);
 			break;
 		case PLIST_DATA:
 			write_data(bplist_buff, data->buff, data->length);

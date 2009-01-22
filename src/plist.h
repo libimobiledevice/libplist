@@ -25,7 +25,6 @@
 #include "plist/plist.h"
 
 #include <stdint.h>
-#include <wchar.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,7 +41,7 @@ struct plist_data_s {
 		uint64_t intval;
 		double realval;
 		char *strval;
-		wchar_t *unicodeval;
+		gunichar2 *unicodeval;
 		uint8_t *buff;
 		GTimeVal timeval;
 	};

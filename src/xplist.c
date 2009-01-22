@@ -24,7 +24,6 @@
 #include <assert.h>
 #include "utils.h"
 #include "plist.h"
-#include <wchar.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -139,6 +138,12 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	const xmlChar *tag = NULL;
 	gchar *val = NULL;
 
+	//for unicode
+	glong len = 0;
+	glong items_read = 0;
+	glong items_written = 0;
+	GError *error = NULL;
+
 	switch (node_data->type) {
 	case PLIST_BOOLEAN:
 		{
@@ -166,7 +171,8 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 
 	case PLIST_UNICODE:
 		tag = XPLIST_STRING;
-		val = g_strdup((gchar *) node_data->unicodeval);
+		len = node_data->length;
+		val = g_utf16_to_utf8(node_data->unicodeval, len, &items_read, &items_written, &error);
 		break;
 
 	case PLIST_KEY:
@@ -278,13 +284,28 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			g_time_val_from_iso8601((char *) xmlNodeGetContent(node), &data->timeval);
 			data->type = PLIST_DATE;
 			data->length = sizeof(GTimeVal);
-			continue;			//TODO : handle date tag
+			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
-			data->strval = strdup((char *) xmlNodeGetContent(node));
-			data->type = PLIST_STRING;
-			data->length = strlen(data->strval);
+
+			unsigned char *tmp =  xmlNodeGetContent(node);
+			glong len = strlen((char*)tmp);
+			glong items_read = 0;
+			glong items_written = 0;
+			GError *error = NULL;
+			int type = xmlDetectCharEncoding(tmp, len);
+
+			if (XML_CHAR_ENCODING_UTF8  == type) {
+				data->unicodeval = g_utf8_to_utf16((char*) tmp, len, &items_read, &items_written, &error);
+				data->type = PLIST_UNICODE;
+				data->length = items_written;
+			}
+			else if (XML_CHAR_ENCODING_ASCII  == type || XML_CHAR_ENCODING_NONE == type) {
+				data->strval = strdup((char *) xmlNodeGetContent(node));
+				data->type = PLIST_STRING;
+				data->length = strlen(data->strval);
+			}
 			continue;
 		}
 
