@@ -332,6 +332,9 @@ static gpointer copy_plist_data(gconstpointer src, gpointer data)
 		dstdata->intval = srcdata->intval;
 		break;
 	case PLIST_DATE:
+		dstdata->timeval.tv_sec = srcdata->timeval.tv_sec;
+		dstdata->timeval.tv_usec = srcdata->timeval.tv_usec;
+		break;
 	case PLIST_REAL:
 		dstdata->realval = srcdata->realval;
 		break;
@@ -495,6 +498,9 @@ static guint plist_data_hash(gconstpointer key)
 		size = sizeof(gconstpointer);
 		break;
 	case PLIST_DATE:
+		buff = (char *) &(data->timeval);
+		size = data->length;
+		break;
 	default:
 		break;
 	}
@@ -551,6 +557,10 @@ static gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 			return FALSE;
 		break;
 	case PLIST_DATE:
+		if (!memcmp(&(val_a->timeval), &(val_b->timeval),sizeof(GTimeVal)))
+			return TRUE;
+		else
+			return FALSE;
 	default:
 		break;
 	}

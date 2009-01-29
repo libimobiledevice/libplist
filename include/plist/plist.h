@@ -60,7 +60,8 @@ void plist_add_sub_bool_el(plist_t node, uint8_t val);
 void plist_add_sub_uint_el(plist_t node, uint64_t val);
 void plist_add_sub_real_el(plist_t node, double val);
 void plist_add_sub_data_el(plist_t node, const char* val, uint64_t length);
-
+void plist_add_sub_unicode_el(plist_t node, const char* val);
+void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec);
 
 //plist free
 void plist_free(plist_t plist);
@@ -83,6 +84,9 @@ void plist_get_bool_val(plist_t node, uint8_t* val);
 void plist_get_uint_val(plist_t node, uint64_t* val);
 void plist_get_real_val(plist_t node, double* val);
 void plist_get_data_val(plist_t node, char** val, uint64_t* length);
+void plist_get_unicode_val(plist_t node, char** val);
+void plist_get_date_val(plist_t node, int32_t* sec, int32_t* usec);
+
 
 //import and export functions
 void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
