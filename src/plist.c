@@ -251,14 +251,6 @@ plist_type plist_get_node_type(plist_t node)
 	return PLIST_NONE;
 }
 
-uint64_t plist_get_node_uint_val(plist_t node)
-{
-	if (PLIST_UINT == plist_get_node_type(node))
-		return plist_get_data(node)->intval;
-	else
-		return 0;
-}
-
 void plist_add_sub_node(plist_t node, plist_t subnode)
 {
 	if (node && subnode) {

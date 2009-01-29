@@ -268,7 +268,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			plist_t size_node = parse_bin_node(object, dict_size, &object);
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
-			size = plist_get_node_uint_val(size_node);
+			plist_get_uint_val(size_node, &size);
 		}
 		return parse_data_node(object, size);
 
@@ -277,7 +277,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			plist_t size_node = parse_bin_node(object, dict_size, &object);
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
-			size = plist_get_node_uint_val(size_node);
+			plist_get_uint_val(size_node, &size);
 		}
 		return parse_string_node(object, size);
 
@@ -286,7 +286,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			plist_t size_node = parse_bin_node(object, dict_size, &object);
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
-			size = plist_get_node_uint_val(size_node);
+			plist_get_uint_val(size_node, &size);
 		}
 		return parse_unicode_node(object, size);
 
@@ -296,7 +296,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			plist_t size_node = parse_bin_node(object, dict_size, &object);
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
-			size = plist_get_node_uint_val(size_node);
+			plist_get_uint_val(size_node, &size);
 		}
 		return parse_array_node(object, size, dict_size);
 
@@ -306,7 +306,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			plist_t size_node = parse_bin_node(object, dict_size, &object);
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
-			size = plist_get_node_uint_val(size_node);
+			plist_get_uint_val(size_node, &size);
 		}
 		return parse_dict_node(object, size, dict_size);
 	default:

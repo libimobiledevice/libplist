@@ -55,7 +55,6 @@ plist_t plist_new_node(plist_data_t data);
 plist_data_t plist_get_data(const plist_t node);
 plist_data_t plist_new_plist_data();
 void plist_free_plist_data(plist_data_t node);
-uint64_t plist_get_node_uint_val(plist_t node);
 
 plist_t plist_add_sub_element( plist_t node, plist_type type, const void* value, uint64_t length);
 plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length);
