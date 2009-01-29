@@ -289,19 +289,18 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
 
-			unsigned char *tmp =  xmlNodeGetContent(node);
-			glong len = strlen((char*)tmp);
+			unsigned char *tmp = xmlNodeGetContent(node);
+			glong len = strlen((char *) tmp);
 			glong items_read = 0;
 			glong items_written = 0;
 			GError *error = NULL;
 			int type = xmlDetectCharEncoding(tmp, len);
 
-			if (XML_CHAR_ENCODING_UTF8  == type) {
-				data->unicodeval = g_utf8_to_utf16((char*) tmp, len, &items_read, &items_written, &error);
+			if (XML_CHAR_ENCODING_UTF8 == type) {
+				data->unicodeval = g_utf8_to_utf16((char *) tmp, len, &items_read, &items_written, &error);
 				data->type = PLIST_UNICODE;
 				data->length = items_written;
-			}
-			else if (XML_CHAR_ENCODING_ASCII  == type || XML_CHAR_ENCODING_NONE == type) {
+			} else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
 				data->strval = strdup((char *) xmlNodeGetContent(node));
 				data->type = PLIST_STRING;
 				data->length = strlen(data->strval);

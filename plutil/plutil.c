@@ -37,7 +37,6 @@ int main(int argc, char *argv[])
 		print_usage();
 		return 0;
 	}
-
 	//read input file
 	FILE *iplist = fopen(options->in_file, "r");
 	if (!iplist)

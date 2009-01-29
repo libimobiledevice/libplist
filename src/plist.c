@@ -102,16 +102,16 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 				data->strval = strdup((char *) value);
 				break;
 			case PLIST_UNICODE:
-				len = strlen((char*)value);
-				data->unicodeval = g_utf8_to_utf16((char*) value, len, &items_read, &items_written, &error);
+				len = strlen((char *) value);
+				data->unicodeval = g_utf8_to_utf16((char *) value, len, &items_read, &items_written, &error);
 				data->length = items_written;
 				break;
 			case PLIST_DATA:
 				memcpy(data->buff, value, length);
 				break;
 			case PLIST_DATE:
-				data->timeval.tv_sec = ((GTimeVal*)value)->tv_sec;
-				data->timeval.tv_usec = ((GTimeVal*)value)->tv_usec;
+				data->timeval.tv_sec = ((GTimeVal *) value)->tv_sec;
+				data->timeval.tv_usec = ((GTimeVal *) value)->tv_usec;
 				break;
 			case PLIST_ARRAY:
 			case PLIST_DICT:
@@ -250,13 +250,13 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
 		*((char **) value) = g_utf16_to_utf8(data->unicodeval, len, &items_read, &items_written, &error);
 		break;
 	case PLIST_DATA:
-		*((uint8_t**) value) = (uint8_t*) malloc( *length * sizeof(uint8_t));
+		*((uint8_t **) value) = (uint8_t *) malloc(*length * sizeof(uint8_t));
 		memcpy(value, data->buff, *length * sizeof(uint8_t));
 		break;
 	case PLIST_DATE:
 		//exception : here we use memory on the stack since it is just a temporary buffer
-		(*((GTimeVal**) value))->tv_sec = data->timeval.tv_sec;
-		(*((GTimeVal**) value))->tv_usec = data->timeval.tv_usec;
+		(*((GTimeVal **) value))->tv_sec = data->timeval.tv_sec;
+		(*((GTimeVal **) value))->tv_usec = data->timeval.tv_usec;
 		break;
 	case PLIST_ARRAY:
 	case PLIST_DICT:
@@ -314,14 +314,14 @@ void plist_add_sub_data_el(plist_t node, const char *val, uint64_t length)
 	plist_add_sub_element(node, PLIST_DATA, val, length);
 }
 
-void plist_add_sub_unicode_el(plist_t node, const char* val)
+void plist_add_sub_unicode_el(plist_t node, const char *val)
 {
 	plist_add_sub_element(node, PLIST_UNICODE, val, strlen(val));
 }
 
 void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec)
 {
-	GTimeVal val = {sec, usec};
+	GTimeVal val = { sec, usec };
 	plist_add_sub_element(node, PLIST_UNICODE, &val, sizeof(GTimeVal));
 }
 
@@ -377,7 +377,7 @@ void plist_get_data_val(plist_t node, char **val, uint64_t * length)
 		plist_get_type_and_value(node, &type, (void *) val, length);
 }
 
-void plist_get_unicode_val(plist_t node, char** val)
+void plist_get_unicode_val(plist_t node, char **val)
 {
 	plist_type type = plist_get_node_type(node);
 	uint64_t length = 0;
@@ -386,11 +386,11 @@ void plist_get_unicode_val(plist_t node, char** val)
 	assert(length == strlen(*val));
 }
 
-void plist_get_date_val(plist_t node, int32_t* sec, int32_t* usec)
+void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
 {
 	plist_type type = plist_get_node_type(node);
 	uint64_t length = 0;
-	GTimeVal val = {0, 0};
+	GTimeVal val = { 0, 0 };
 	if (PLIST_DATE == type)
 		plist_get_type_and_value(node, &type, (void *) &val, &length);
 	assert(length == sizeof(GTimeVal));

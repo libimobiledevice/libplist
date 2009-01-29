@@ -343,7 +343,7 @@ static gpointer copy_plist_data(gconstpointer src, gpointer data)
 		dstdata->strval = strdup(srcdata->strval);
 		break;
 	case PLIST_UNICODE:
-		dstdata->unicodeval = (gunichar2*) malloc(srcdata->length * sizeof(gunichar2));
+		dstdata->unicodeval = (gunichar2 *) malloc(srcdata->length * sizeof(gunichar2));
 		memcpy(dstdata->unicodeval, srcdata->unicodeval, srcdata->length * sizeof(gunichar2));
 		break;
 	case PLIST_DATA:
@@ -542,7 +542,7 @@ static gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 		else
 			return FALSE;
 	case PLIST_UNICODE:
-		if (!memcmp(val_a->unicodeval, val_b->unicodeval,val_a->length))
+		if (!memcmp(val_a->unicodeval, val_b->unicodeval, val_a->length))
 			return TRUE;
 		else
 			return FALSE;
@@ -557,7 +557,7 @@ static gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 			return FALSE;
 		break;
 	case PLIST_DATE:
-		if (!memcmp(&(val_a->timeval), &(val_b->timeval),sizeof(GTimeVal)))
+		if (!memcmp(&(val_a->timeval), &(val_b->timeval), sizeof(GTimeVal)))
 			return TRUE;
 		else
 			return FALSE;
@@ -664,11 +664,11 @@ static void write_string(GByteArray * bplist, char *val)
 	write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
 }
 
-static void write_unicode(GByteArray * bplist, gunichar2 *val, uint64_t size)
+static void write_unicode(GByteArray * bplist, gunichar2 * val, uint64_t size)
 {
 	uint64_t i = 0;
 	uint64_t size2 = size * sizeof(gunichar2);
-	uint8_t* buff = (uint8_t*) malloc(size2);
+	uint8_t *buff = (uint8_t *) malloc(size2);
 	memcpy(buff, val, size2);
 	for (i = 0; i < size; i++)
 		byte_convert(buff + i * sizeof(gunichar2), sizeof(gunichar2));
@@ -830,7 +830,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 	}
 
 	//experimental pad to reflect apple's files
-	uint8_t pad[6] = {0, 0, 0, 0, 0, 0};
+	uint8_t pad[6] = { 0, 0, 0, 0, 0, 0 };
 	g_byte_array_append(bplist_buff, pad, 6);
 
 	//setup trailer

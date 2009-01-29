@@ -9,4 +9,4 @@ doc:
 	doxygen doxygen.cfg
 
 indent:
-	indent -kr -ut -ts4 -l120 src/*.c src/*.h plutil/*.c
+	indent -kr -ut -ts4 -l120 src/*.c src/*.h plutil/*.c include/plist/*.h
