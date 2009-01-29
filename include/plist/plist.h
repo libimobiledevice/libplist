@@ -49,8 +49,7 @@ typedef enum {
 //utilitary functions to create root nodes (supposed to be dict or array)
 plist_t plist_new_dict();
 plist_t plist_new_array();
-//Plist edition, create a new root if node is NULL
-plist_t plist_add_sub_element( plist_t node, plist_type type, const void* value, uint64_t length);
+
 
 //Plist edition, only work for dict and array node
 void plist_add_sub_node(plist_t node, plist_t subnode);
@@ -72,11 +71,8 @@ plist_t plist_get_next_sibling(plist_t node);
 plist_t plist_get_prev_sibling(plist_t node);
 
 //utili function to find first (and only the first encountred) corresponding node
-plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length);
 plist_t plist_find_node_by_key(plist_t plist, const char *value);
 plist_t plist_find_node_by_string(plist_t plist, const char *value);
-
-void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length);
 
 //Plist reading
 plist_type plist_get_node_type(plist_t node);
