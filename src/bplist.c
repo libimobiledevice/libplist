@@ -20,10 +20,12 @@
  */
 
 
-#include "plist.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <plist/plist.h>
+#include "plist.h"
 
 /* Magic marker and size. */
 #define BPLIST_MAGIC		((uint8_t*)"bplist")

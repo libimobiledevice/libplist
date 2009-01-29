@@ -71,7 +71,7 @@ plist_t plist_new_array()
 	return plist_new_node(data);
 }
 
-plist_t plist_add_sub_element(plist_t node, plist_type type, const void *value, uint64_t length)
+static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *value, uint64_t length)
 {
 	//only structured types can have children
 	plist_type node_type = plist_get_node_type(node);
@@ -172,7 +172,7 @@ static char compare_node_value(plist_type type, plist_data_t data, const void *v
 	return res;
 }
 
-plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length)
+static plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length)
 {
 	if (!plist)
 		return NULL;
@@ -204,7 +204,7 @@ plist_t plist_find_node_by_string(plist_t plist, const char *value)
 	return plist_find_node(plist, PLIST_STRING, value, strlen(value));
 }
 
-void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length)
+static void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length)
 {
 	if (!node)
 		return;

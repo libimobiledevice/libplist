@@ -22,14 +22,16 @@
 
 #include <string.h>
 #include <assert.h>
-#include "utils.h"
-#include "plist.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+
+#include <plist/plist.h>
+#include "utils.h"
+#include "plist.h"
 
 #define XPLIST_TEXT	BAD_CAST("text")
 #define XPLIST_KEY	BAD_CAST("key")
@@ -43,7 +45,7 @@
 #define XPLIST_ARRAY	BAD_CAST("array")
 #define XPLIST_DICT	BAD_CAST("dict")
 
-const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+static const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
 <plist version=\"1.0\">\n\
 </plist>\0";
