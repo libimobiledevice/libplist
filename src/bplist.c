@@ -380,12 +380,6 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 	uint64_t root_object = be64dec(trailer + BPLIST_TRL_ROOTOBJ_IDX);
 	uint64_t offset_table_index = be64dec(trailer + BPLIST_TRL_OFFTAB_IDX);
 
-	log_debug_msg("Offset size: %i\n", offset_size);
-	log_debug_msg("Ref size: %i\n", dict_param_size);
-	log_debug_msg("Number of objects: %lli\n", num_objects);
-	log_debug_msg("Root object index: %lli\n", root_object);
-	log_debug_msg("Offset table index: %lli\n", offset_table_index);
-
 	if (num_objects == 0)
 		return;
 
@@ -403,10 +397,8 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 	for (i = 0; i < num_objects; i++) {
 		current_offset = UINT_TO_HOST(offset_table + i * offset_size, offset_size);
 
-		log_debug_msg("parse_nodes: current_offset = %i\n", current_offset);
 		char *obj = plist_bin + current_offset;
 		nodeslist[i] = parse_bin_node(obj, dict_param_size, &obj);
-		log_debug_msg("parse_nodes: parse_raw_node done\n");
 	}
 
 	//setup children for structured types
@@ -415,12 +407,10 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 
 	for (i = 0; i < num_objects; i++) {
 
-		log_debug_msg("parse_nodes: on node %i\n", i);
 		plist_data_t data = plist_get_data(nodeslist[i]);
 
 		switch (data->type) {
 		case PLIST_DICT:
-			log_debug_msg("parse_nodes: dictionary found\n");
 			for (j = 0; j < data->length; j++) {
 				str_i = j * dict_param_size;
 				str_j = (j + data->length) * dict_param_size;
@@ -450,7 +440,6 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 			break;
 
 		case PLIST_ARRAY:
-			log_debug_msg("parse_nodes: array found\n");
 			for (j = 0; j < data->length; j++) {
 				str_j = j * dict_param_size;
 				index1 = UINT_TO_HOST(data->buff + str_j, dict_param_size);

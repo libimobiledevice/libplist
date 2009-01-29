@@ -29,8 +29,6 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include <plist/plist.h>
-#include "utils.h"
 #include "plist.h"
 
 #define XPLIST_TEXT	BAD_CAST("text")

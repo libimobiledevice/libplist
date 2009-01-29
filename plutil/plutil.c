@@ -38,8 +38,6 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	iphone_set_debug(options->debug);
-
 	//read input file
 	FILE *iplist = fopen(options->in_file, "r");
 	if (!iplist)

@@ -30,9 +30,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <glib.h>
-#include "utils.h"
-
-
 
 
 struct plist_data_s {

@@ -22,7 +22,6 @@
 
 #include <string.h>
 #include <assert.h>
-#include "utils.h"
 #include "plist.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -118,6 +117,7 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 		} else
 			return NULL;
 	}
+	return NULL;
 }
 
 void plist_free(plist_t plist)
