@@ -53,4 +53,4 @@ fi
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter")
 AC_SUBST(GLOBAL_CFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile swig/Makefile libplist-1.0.pc)
+AC_OUTPUT(Makefile src/Makefile include/Makefile plutil/Makefile swig/Makefile libplist.pc)
