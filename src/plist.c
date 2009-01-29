@@ -71,7 +71,7 @@ plist_t plist_new_array()
 	return plist_new_node(data);
 }
 
-plist_t plist_add_sub_element(plist_t node, plist_type type, void *value, uint64_t length)
+plist_t plist_add_sub_element(plist_t node, plist_type type, const void *value, uint64_t length)
 {
 	//only structured types can have children
 	plist_type node_type = plist_get_node_type(node);
@@ -140,7 +140,7 @@ plist_t plist_get_prev_sibling(plist_t node)
 	return (plist_t) g_node_prev_sibling((GNode *) node);
 }
 
-static char compare_node_value(plist_type type, plist_data_t data, void *value, uint64_t length)
+static char compare_node_value(plist_type type, plist_data_t data, const void *value, uint64_t length)
 {
 	char res = FALSE;
 	switch (type) {
@@ -172,7 +172,7 @@ static char compare_node_value(plist_type type, plist_data_t data, void *value, 
 	return res;
 }
 
-plist_t plist_find_node(plist_t plist, plist_type type, void *value, uint64_t length)
+plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length)
 {
 	if (!plist)
 		return NULL;
@@ -194,12 +194,12 @@ plist_t plist_find_node(plist_t plist, plist_type type, void *value, uint64_t le
 	return NULL;
 }
 
-plist_t plist_find_node_by_key(plist_t plist, char *value)
+plist_t plist_find_node_by_key(plist_t plist, const char *value)
 {
 	return plist_find_node(plist, PLIST_KEY, value, strlen(value));
 }
 
-plist_t plist_find_node_by_string(plist_t plist, char *value)
+plist_t plist_find_node_by_string(plist_t plist, const char *value)
 {
 	return plist_find_node(plist, PLIST_STRING, value, strlen(value));
 }
@@ -268,12 +268,12 @@ void plist_add_sub_node(plist_t node, plist_t subnode)
 	}
 }
 
-void plist_add_sub_key_el(plist_t node, char *val)
+void plist_add_sub_key_el(plist_t node, const char *val)
 {
 	plist_add_sub_element(node, PLIST_KEY, val, strlen(val));
 }
 
-void plist_add_sub_string_el(plist_t node, char *val)
+void plist_add_sub_string_el(plist_t node, const char *val)
 {
 	plist_add_sub_element(node, PLIST_STRING, val, strlen(val));
 }
@@ -293,7 +293,7 @@ void plist_add_sub_real_el(plist_t node, double val)
 	plist_add_sub_element(node, PLIST_REAL, &val, sizeof(double));
 }
 
-void plist_add_sub_data_el(plist_t node, char *val, uint64_t length)
+void plist_add_sub_data_el(plist_t node, const char *val, uint64_t length)
 {
 	plist_add_sub_element(node, PLIST_DATA, val, length);
 }
