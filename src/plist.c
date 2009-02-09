@@ -77,15 +77,17 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 	if (node_type == PLIST_DICT || node_type == PLIST_ARRAY) {
 		//only structured types are allowed to have nulll value
 		if (value || (!value && (type == PLIST_DICT || type == PLIST_ARRAY))) {
-			//now handle value
-			plist_data_t data = plist_new_plist_data();
-			data->type = type;
-			data->length = length;
 
 			glong len = 0;
 			glong items_read = 0;
 			glong items_written = 0;
 			GError *error = NULL;
+			plist_t subnode = NULL;
+
+			//now handle value
+			plist_data_t data = plist_new_plist_data();
+			data->type = type;
+			data->length = length;
 
 			switch (type) {
 			case PLIST_BOOLEAN:
@@ -119,7 +121,7 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 				break;
 			}
 
-			plist_t subnode = plist_new_node(data);
+			subnode = plist_new_node(data);
 			if (node)
 				g_node_append(node, subnode);
 			return subnode;
@@ -185,10 +187,11 @@ static char compare_node_value(plist_type type, plist_data_t data, const void *v
 
 static plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length)
 {
+	plist_t current = NULL;
+
 	if (!plist)
 		return NULL;
 
-	plist_t current = NULL;
 	for (current = plist_get_first_child(plist); current; current = plist_get_next_sibling(current)) {
 
 		plist_data_t data = plist_get_data(current);
@@ -217,16 +220,17 @@ plist_t plist_find_node_by_string(plist_t plist, const char *value)
 
 static void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length)
 {
-	if (!node)
-		return;
-
 	//for unicode
 	glong len = 0;
 	glong items_read = 0;
 	glong items_written = 0;
 	GError *error = NULL;
+	plist_data_t data = NULL;
 
-	plist_data_t data = plist_get_data(node);
+	if (!node)
+		return;
+
+	data = plist_get_data(node);
 
 	*type = data->type;
 	*length = data->length;

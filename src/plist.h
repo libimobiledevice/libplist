@@ -24,11 +24,9 @@
 
 #include "plist/plist.h"
 
-#include <stdint.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <glib.h>
 
 

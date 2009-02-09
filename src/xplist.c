@@ -102,7 +102,7 @@ struct xml_node {
 static xmlDocPtr new_xml_plist()
 {
 	char *plist = strdup(plist_base);
-	xmlDocPtr plist_xml = xmlReadMemory(plist, strlen(plist), NULL, NULL, 0);
+	xmlDocPtr plist_xml = xmlParseMemory(plist, strlen(plist));
 
 	if (!plist_xml)
 		return NULL;
@@ -126,11 +126,8 @@ static void free_plist(xmlDocPtr plist)
 
 static void node_to_xml(GNode * node, gpointer xml_struct)
 {
-	if (!node)
-		return;
-
-	struct xml_node *xstruct = (struct xml_node *) xml_struct;
-	plist_data_t node_data = plist_get_data(node);
+	struct xml_node *xstruct = NULL;
+	plist_data_t node_data = NULL;
 
 	xmlNodePtr child_node = NULL;
 	char isStruct = FALSE;
@@ -138,11 +135,22 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	const xmlChar *tag = NULL;
 	gchar *val = NULL;
 
+	//for base64
+	gchar *valtmp = NULL;
+
 	//for unicode
 	glong len = 0;
 	glong items_read = 0;
 	glong items_written = 0;
 	GError *error = NULL;
+
+	uint32_t i = 0;
+
+	if (!node)
+		return;
+
+	xstruct = (struct xml_node *) xml_struct;
+	node_data = plist_get_data(node);
 
 	switch (node_data->type) {
 	case PLIST_BOOLEAN:
@@ -182,7 +190,7 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 
 	case PLIST_DATA:
 		tag = XPLIST_DATA;
-		gchar *valtmp = g_base64_encode(node_data->buff, node_data->length);
+		valtmp = g_base64_encode(node_data->buff, node_data->length);
 		val = format_string(valtmp, 60, xstruct->depth);
 		g_free(valtmp);
 		break;
@@ -202,7 +210,6 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 		break;
 	}
 
-	uint32_t i = 0;
 	for (i = 0; i < xstruct->depth; i++) {
 		xmlNodeAddContent(xstruct->xml, BAD_CAST("\t"));
 	}
@@ -232,6 +239,16 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 {
 	xmlNodePtr node = NULL;
+	plist_data_t data = NULL;
+	plist_t subnode = NULL;
+
+	//for string
+	unsigned char *tmp = NULL;
+	glong len = 0;
+	glong items_read = 0;
+	glong items_written = 0;
+	GError *error = NULL;
+	int type = 0;
 
 	if (!xml_node)
 		return;
@@ -243,8 +260,8 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		if (!node)
 			break;
 
-		plist_data_t data = plist_new_plist_data();
-		plist_t subnode = plist_new_node(data);
+		data = plist_new_plist_data();
+		subnode = plist_new_node(data);
 		if (*plist_node)
 			g_node_append(*plist_node, subnode);
 		else
@@ -289,12 +306,12 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
 
-			unsigned char *tmp = xmlNodeGetContent(node);
-			glong len = strlen((char *) tmp);
-			glong items_read = 0;
-			glong items_written = 0;
-			GError *error = NULL;
-			int type = xmlDetectCharEncoding(tmp, len);
+			tmp = xmlNodeGetContent(node);
+			len = strlen((char *) tmp);
+			items_read = 0;
+			items_written = 0;
+			error = NULL;
+			type = xmlDetectCharEncoding(tmp, len);
 
 			if (XML_CHAR_ENCODING_UTF8 == type) {
 				data->unicodeval = g_utf8_to_utf16((char *) tmp, len, &items_read, &items_written, &error);
@@ -339,15 +356,19 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 
 void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 {
+	xmlDocPtr plist_doc = NULL;
+	xmlNodePtr root_node = NULL;
+	struct xml_node root = { NULL, 0 };
+	int size = 0;
+
 	if (!plist || !plist_xml || *plist_xml)
 		return;
-	xmlDocPtr plist_doc = new_xml_plist();
-	xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);
-	struct xml_node root = { root_node, 0 };
+	plist_doc = new_xml_plist();
+	root_node = xmlDocGetRootElement(plist_doc);
+	root.xml = root_node;
 
 	node_to_xml(plist, &root);
 
-	int size = 0;
 	xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, &size);
 	if (size >= 0)
 		*length = size;
@@ -356,7 +377,7 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 
 void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
-	xmlDocPtr plist_doc = xmlReadMemory(plist_xml, length, NULL, NULL, 0);
+	xmlDocPtr plist_doc = xmlParseMemory(plist_xml, length);
 	xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);
 
 	xml_to_node(root_node, plist);

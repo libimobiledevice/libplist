@@ -30,6 +30,11 @@
 
 int main(int argc, char *argv[])
 {
+	FILE *iplist = NULL;
+	plist_t root_node = NULL;
+	char *plist_out = NULL;
+	int size = 0;
+	char *plist_entire = NULL;
 	struct stat *filestats = (struct stat *) malloc(sizeof(struct stat));
 	Options *options = parse_arguments(argc, argv);
 
@@ -38,19 +43,17 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	//read input file
-	FILE *iplist = fopen(options->in_file, "r");
+	iplist = fopen(options->in_file, "rb");
 	if (!iplist)
 		return 1;
 	stat(options->in_file, filestats);
-	char *plist_entire = (char *) malloc(sizeof(char) * (filestats->st_size + 1));
+	plist_entire = (char *) malloc(sizeof(char) * (filestats->st_size + 1));
 	fread(plist_entire, sizeof(char), filestats->st_size, iplist);
 	fclose(iplist);
 
 
 	//convert one format to another
-	plist_t root_node = NULL;
-	char *plist_out = NULL;
-	int size = 0;
+
 
 	if (memcmp(plist_entire, "bplist00", 8) == 0) {
 		plist_from_bin(plist_entire, filestats->st_size, &root_node);
