@@ -75,19 +75,29 @@ static void byte_convert(uint8_t * address, size_t size)
 #endif
 }
 
+static uint32_t uint24_from_be(char *buff)
+{
+	uint32_t ret = 0;
+	char *tmp = (char*) &ret;
+	memcpy(tmp + 1, buff, 3 * sizeof(char));
+	byte_convert(tmp, sizeof(uint32_t));
+	return ret;
+}
 
 #define UINT_TO_HOST(x, n) \
 		(n == 8 ? GUINT64_FROM_BE( *(uint64_t *)(x) ) : \
 		(n == 4 ? GUINT32_FROM_BE( *(uint32_t *)(x) ) : \
+		(n == 3 ? uint24_from_be( x ) : \
 		(n == 2 ? GUINT16_FROM_BE( *(uint16_t *)(x) ) : \
-		*(uint8_t *)(x) )))
+		*(uint8_t *)(x) ))))
 
 #define be64dec(x) GUINT64_FROM_BE( *(uint64_t*)(x) )
 
 #define get_needed_bytes(x) \
 		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
 		( ((uint64_t)x) < (1ULL << 16) ? 2 : \
-		( ((uint64_t)x) < (1ULL << 32) ? 4 : 8)))
+		( ((uint64_t)x) < (1ULL << 24) ? 3 : \
+		( ((uint64_t)x) < (1ULL << 32) ? 4 : 8))))
 
 #define get_real_bytes(x) (x >> 32 ? 4 : 8)
 
