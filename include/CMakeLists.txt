@@ -1,4 +1,4 @@
 
 
 INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/plist/plist.h
-   DESTINATION include/plist )
+   DESTINATION include/plist COMPONENT dev)
