@@ -27,17 +27,24 @@ extern "C" {
 #endif
 
 #ifdef _MSC_VER
-	typedef __int8 int8_t;
-	typedef __int16 int16_t;
-	typedef __int32 int32_t;
-	typedef __int64 int64_t;
+    typedef __int8 int8_t;
+    typedef __int16 int16_t;
+    typedef __int32 int32_t;
+    typedef __int64 int64_t;
 
-	typedef unsigned __int8 uint8_t;
-	typedef unsigned __int16 uint16_t;
-	typedef unsigned __int32 uint32_t;
-	typedef unsigned __int64 uint64_t;
+    typedef unsigned __int8 uint8_t;
+    typedef unsigned __int16 uint16_t;
+    typedef unsigned __int32 uint32_t;
+    typedef unsigned __int64 uint64_t;
+
+    #ifdef plist_EXPORTS
+        #define PLIST_API  __declspec( dllexport )
+    #else
+        #define PLIST_API  __declspec( dllimport )
+    #endif
 #else
-#include <stdint.h>
+    #include <stdint.h>
+    #define PLIST_API
 #endif
 
 #include <sys/types.h>
@@ -87,7 +94,7 @@ extern "C" {
  * @return the created plist
  * @sa #plist_type
  */
-	plist_t plist_new_dict();
+	PLIST_API plist_t plist_new_dict();
 
 /**
  * Create a new root plist_t type #PLIST_ARRAY
@@ -95,14 +102,14 @@ extern "C" {
  * @return the created plist
  * @sa #plist_type
  */
-	plist_t plist_new_array();
+	PLIST_API plist_t plist_new_array();
 
 /**
  * Destruct a plist_t node and all its children recursively
  *
  * @param plist the plist to free
  */
-	void plist_free(plist_t plist);
+	PLIST_API void plist_free(plist_t plist);
 
 /********************************************
  *                                          *
@@ -115,7 +122,7 @@ extern "C" {
  *
  * @param node the first child
  */
-	plist_t plist_get_first_child(plist_t node);
+	PLIST_API plist_t plist_get_first_child(plist_t node);
 
 
 /**
@@ -123,7 +130,7 @@ extern "C" {
  *
  * @param node the next sibling
  */
-	plist_t plist_get_next_sibling(plist_t node);
+	PLIST_API plist_t plist_get_next_sibling(plist_t node);
 
 
 /**
@@ -131,7 +138,7 @@ extern "C" {
  *
  * @param node the previous sibling
  */
-	plist_t plist_get_prev_sibling(plist_t node);
+	PLIST_API plist_t plist_get_prev_sibling(plist_t node);
 
 /********************************************
  *                                          *
@@ -147,7 +154,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param subnode the children node
  */
-	void plist_add_sub_node(plist_t node, plist_t subnode);
+	PLIST_API void plist_add_sub_node(plist_t node, plist_t subnode);
 
 /**
  * Add a subnode of type #PLIST_KEY to a node. The node must be of a structured type
@@ -156,7 +163,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param val the key value encoded as an ASCII string (must be null terminated)
  */
-	void plist_add_sub_key_el(plist_t node, const char *val);
+	PLIST_API void plist_add_sub_key_el(plist_t node, const char *val);
 
 /**
  * Add a subnode of type #PLIST_STRING to a node. The node must be of a structured type
@@ -165,7 +172,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param val the string value encoded as an ASCII string (must be null terminated)
  */
-	void plist_add_sub_string_el(plist_t node, const char *val);
+	PLIST_API void plist_add_sub_string_el(plist_t node, const char *val);
 
 /**
  * Add a subnode of type #PLIST_BOOLEAN to a node. The node must be of a structured type
@@ -174,7 +181,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param val the boolean value (TRUE or FALSE)
  */
-	void plist_add_sub_bool_el(plist_t node, uint8_t val);
+	PLIST_API void plist_add_sub_bool_el(plist_t node, uint8_t val);
 
 /**
  * Add a subnode of type #PLIST_UINT to a node. The node must be of a structured type
@@ -183,7 +190,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param val the unsigned integer value
  */
-	void plist_add_sub_uint_el(plist_t node, uint64_t val);
+	PLIST_API void plist_add_sub_uint_el(plist_t node, uint64_t val);
 
 /**
  * Add a subnode of type #PLIST_REAL to a node. The node must be of a structured type
@@ -192,7 +199,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param val the real value
  */
-	void plist_add_sub_real_el(plist_t node, double val);
+	PLIST_API void plist_add_sub_real_el(plist_t node, double val);
 
 /**
  * Add a subnode of type #PLIST_DATA to a node. The node must be of a structured type
@@ -202,7 +209,7 @@ extern "C" {
  * @param val the binary buffer
  * @param length the length of the buffer
  */
-	void plist_add_sub_data_el(plist_t node, const char *val, uint64_t length);
+	PLIST_API void plist_add_sub_data_el(plist_t node, const char *val, uint64_t length);
 
 /**
  * Add a subnode of type #PLIST_UNICODE to a node. The node must be of a structured type
@@ -211,7 +218,7 @@ extern "C" {
  * @param node the node to add a children to
  * @param val the unicode string encoded in UTF-8 (must be null terminated)
  */
-	void plist_add_sub_unicode_el(plist_t node, const char *val);
+	PLIST_API void plist_add_sub_unicode_el(plist_t node, const char *val);
 
 /**
  * Add a subnode of type #PLIST_DATE to a node. The node must be of a structured type
@@ -221,7 +228,7 @@ extern "C" {
  * @param sec the number of seconds since 01/01/2001
  * @param usec the number of microseconds
  */
-	void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec);
+	PLIST_API void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec);
 
 
 /********************************************
@@ -236,7 +243,7 @@ extern "C" {
  * @param node the node
  * @return the type of the node
  */
-	plist_type plist_get_node_type(plist_t node);
+	PLIST_API plist_type plist_get_node_type(plist_t node);
 
 /**
  * Get the value of a #PLIST_KEY node.
@@ -246,7 +253,7 @@ extern "C" {
  * @param val a pointer to a C-string. This function allocates the memory,
  *            caller is responsible for freeing it.
  */
-	void plist_get_key_val(plist_t node, char **val);
+	PLIST_API void plist_get_key_val(plist_t node, char **val);
 
 /**
  * Get the value of a #PLIST_STRING node.
@@ -256,7 +263,7 @@ extern "C" {
  * @param val a pointer to a C-string. This function allocates the memory,
  *            caller is responsible for freeing it.
  */
-	void plist_get_string_val(plist_t node, char **val);
+	PLIST_API void plist_get_string_val(plist_t node, char **val);
 
 /**
  * Get the value of a #PLIST_BOOLEAN node.
@@ -265,7 +272,7 @@ extern "C" {
  * @param node the node
  * @param val a pointer to a uint8_t variable.
  */
-	void plist_get_bool_val(plist_t node, uint8_t * val);
+	PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val);
 
 /**
  * Get the value of a #PLIST_UINT node.
@@ -274,7 +281,7 @@ extern "C" {
  * @param node the node
  * @param val a pointer to a uint64_t variable.
  */
-	void plist_get_uint_val(plist_t node, uint64_t * val);
+	PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val);
 
 /**
  * Get the value of a #PLIST_REAL node.
@@ -283,7 +290,7 @@ extern "C" {
  * @param node the node
  * @param val a pointer to a double variable.
  */
-	void plist_get_real_val(plist_t node, double *val);
+	PLIST_API void plist_get_real_val(plist_t node, double *val);
 
 /**
  * Get the value of a #PLIST_DATA node.
@@ -293,7 +300,7 @@ extern "C" {
  * @param val a pointer to an unallocated char buffer. This function allocates the memory,
  *            caller is responsible for freeing it.
  */
-	void plist_get_data_val(plist_t node, char **val, uint64_t * length);
+	PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length);
 
 /**
  * Get the value of a #PLIST_UNICODE node.
@@ -303,7 +310,7 @@ extern "C" {
  * @param val a pointer to a C-string. This function allocates the memory,
  *            caller is responsible for freeing it. Data is UTF-8 encoded.
  */
-	void plist_get_unicode_val(plist_t node, char **val);
+	PLIST_API void plist_get_unicode_val(plist_t node, char **val);
 
 /**
  * Get the value of a #PLIST_DATE node.
@@ -313,7 +320,7 @@ extern "C" {
  * @param sec a pointer to an int32_t variable. Represents the number of seconds since 01/01/2001.
  * @param usec a pointer to an int32_t variable. Represents the number of microseconds
  */
-	void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
+	PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
 
 
 
@@ -331,7 +338,7 @@ extern "C" {
  *            caller is responsible for freeing it. Data is UTF-8 encoded.
  * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
  */
-	void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
+	PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
 
 /**
  * Export the #plist_t structure to binary format.
@@ -341,7 +348,7 @@ extern "C" {
  *            caller is responsible for freeing it.
  * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
  */
-	void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
+	PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
 
 /**
  * Import the #plist_t structure from XML format.
@@ -350,7 +357,7 @@ extern "C" {
  * @param length length of the buffer to read.
  * @param plist a pointer to the imported plist.
  */
-	void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
+	PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
 
 /**
  * Import the #plist_t structure from binary format.
@@ -359,7 +366,7 @@ extern "C" {
  * @param length length of the buffer to read.
  * @param plist a pointer to the imported plist.
  */
-	void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
+	PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
 
 
@@ -376,7 +383,7 @@ extern "C" {
  * @param plist the root node of the plist structure.
  * @param value the ASCII Key to match.
  */
-	plist_t plist_find_node_by_key(plist_t plist, const char *value);
+	PLIST_API plist_t plist_find_node_by_key(plist_t plist, const char *value);
 
 /**
  * Find the first encountered #PLIST_STRING node mathing that string.
@@ -385,7 +392,7 @@ extern "C" {
  * @param plist the root node of the plist structure.
  * @param value the ASCII String to match.
  */
-	plist_t plist_find_node_by_string(plist_t plist, const char *value);
+	PLIST_API plist_t plist_find_node_by_string(plist_t plist, const char *value);
 
 
 /*@}*/
