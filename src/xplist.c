@@ -59,12 +59,12 @@ static const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
  *
  * @return The formatted string.
  */
-static char *format_string(const char *buf, int cols, int depth)
+static gchar *format_string(const char *buf, int cols, int depth)
 {
 	int colw = depth + cols + 1;
 	int len = strlen(buf);
 	int nlines = len / cols + 1;
-	char *new_buf = (char *) malloc(nlines * colw + depth + 1);
+	gchar *new_buf = (gchar *) g_malloc0(nlines * colw + depth + 1);
 	int i = 0;
 	int j = 0;
 
@@ -76,7 +76,7 @@ static char *format_string(const char *buf, int cols, int depth)
 		new_buf[i * colw] = '\n';
 		for (j = 0; j < depth; j++)
 			new_buf[i * colw + 1 + j] = '\t';
-		memcpy(new_buf + i * colw + 1 + depth, buf + i * cols, cols);
+		memcpy(new_buf + i * colw + 1 + depth, buf + i * cols, (i + 1) * cols <= len ? cols : len - i * cols);
 	}
 	new_buf[len + (1 + depth) * nlines] = '\n';
 
