@@ -759,11 +759,11 @@ static void write_dict(GByteArray * bplist, GNode * node, GHashTable * ref_table
 	buff = (uint8_t *) malloc(size * 2 * dict_param_size);
 
 	for (i = 0, cur = node->children; cur && i < size; cur = cur->next->next, i++) {
-		idx1 = GPOINTER_TO_UINT(g_hash_table_lookup(ref_table, cur));
+		idx1 = *(uint64_t *) (g_hash_table_lookup(ref_table, cur));
 		memcpy(buff + i * dict_param_size, &idx1, dict_param_size);
 		byte_convert(buff + i * dict_param_size, dict_param_size);
 
-		idx2 = GPOINTER_TO_UINT(g_hash_table_lookup(ref_table, cur->next));
+		idx2 = *(uint64_t *)(g_hash_table_lookup(ref_table, cur->next));
 		memcpy(buff + (i + size) * dict_param_size, &idx2, dict_param_size);
 		byte_convert(buff + (i + size) * dict_param_size, dict_param_size);
 	}
