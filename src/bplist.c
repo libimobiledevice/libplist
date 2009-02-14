@@ -487,6 +487,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 	}
 
 	*plist = nodeslist[root_object];
+	free(nodeslist);
 }
 
 static guint plist_data_hash(gconstpointer key)

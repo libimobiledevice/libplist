@@ -112,18 +112,6 @@ static xmlDocPtr new_xml_plist()
 	return plist_xml;
 }
 
-/** Destroys a previously created XML document.
- *
- * @param plist The XML document to destroy.
- */
-static void free_plist(xmlDocPtr plist)
-{
-	if (!plist)
-		return;
-
-	xmlFreeDoc(plist);
-}
-
 static void node_to_xml(GNode * node, gpointer xml_struct)
 {
 	struct xml_node *xstruct = NULL;
@@ -284,61 +272,72 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_INT)) {
-			char *strval = (char *) xmlNodeGetContent(node);
-			data->intval = g_ascii_strtoull(strval, NULL, 0);
+			xmlChar *strval = xmlNodeGetContent(node);
+			data->intval = g_ascii_strtoull((char *)strval, NULL, 0);
 			data->type = PLIST_UINT;
 			data->length = 8;
+			xmlFree(strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_REAL)) {
-			char *strval = (char *) xmlNodeGetContent(node);
-			data->realval = atof(strval);
+			xmlChar *strval = xmlNodeGetContent(node);
+			data->realval = atof((char *)strval);
 			data->type = PLIST_REAL;
 			data->length = 8;
+			xmlFree(strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_DATE)) {
-			g_time_val_from_iso8601((char *) xmlNodeGetContent(node), &data->timeval);
+			xmlChar *strval = xmlNodeGetContent(node);
+			g_time_val_from_iso8601((char *) strval, &data->timeval);
 			data->type = PLIST_DATE;
 			data->length = sizeof(GTimeVal);
+			xmlFree(strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
-
-			tmp = xmlNodeGetContent(node);
-			len = strlen((char *) tmp);
+			xmlChar *strval = xmlNodeGetContent(node);
+			len = strlen((char *) strval);
 			items_read = 0;
 			items_written = 0;
 			error = NULL;
-			type = xmlDetectCharEncoding(tmp, len);
+			type = xmlDetectCharEncoding(strval, len);
 
 			if (XML_CHAR_ENCODING_UTF8 == type) {
-				data->unicodeval = g_utf8_to_utf16((char *) tmp, len, &items_read, &items_written, &error);
+				data->unicodeval = g_utf8_to_utf16((char *) strval, len, &items_read, &items_written, &error);
 				data->type = PLIST_UNICODE;
 				data->length = items_written;
 			} else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
-				data->strval = strdup((char *) xmlNodeGetContent(node));
+				data->strval = strdup((char *) strval);
 				data->type = PLIST_STRING;
 				data->length = strlen(data->strval);
 			}
+			xmlFree(strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_KEY)) {
-			data->strval = strdup((char *) xmlNodeGetContent(node));
+			xmlChar *strval = xmlNodeGetContent(node);
+			data->strval = strdup((char *) strval);
 			data->type = PLIST_KEY;
 			data->length = strlen(data->strval);
+			xmlFree(strval);
 			continue;
 		}
 
 		if (!xmlStrcmp(node->name, XPLIST_DATA)) {
+			xmlChar *strval = xmlNodeGetContent(node);
 			gsize size = 0;
-			data->buff = g_base64_decode((char *) xmlNodeGetContent(node), &size);
+			guchar *dec = g_base64_decode((char *) strval, &size);
+			data->buff = (uint8_t*) malloc( size * sizeof(uint8_t));
+			memcpy(data->buff, dec, size * sizeof(uint8_t));
+			g_free(dec);
 			data->length = size;
 			data->type = PLIST_DATA;
+			xmlFree(strval);
 			continue;
 		}
 
@@ -374,7 +373,7 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 	xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, &size);
 	if (size >= 0)
 		*length = size;
-	free_plist(plist_doc);
+	xmlFreeDoc(plist_doc);
 }
 
 void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
@@ -383,4 +382,5 @@ void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 	xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);
 
 	xml_to_node(root_node, plist);
+	xmlFreeDoc(plist_doc);
 }

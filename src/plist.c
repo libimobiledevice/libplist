@@ -44,16 +44,27 @@ plist_data_t plist_new_plist_data()
 	return data;
 }
 
-void plist_free_plist_data(plist_data_t data)
+static void plist_free_node(GNode * node, gpointer none)
 {
+	plist_data_t data = plist_get_data(node);
 	if (data) {
 		switch (data->type) {
-
+		case PLIST_KEY:
+		case PLIST_STRING:
+			free(data->strval);
+			break;
+		case PLIST_UNICODE:
+			free(data->unicodeval);
+			break;
+		case PLIST_DATA:
+			free(data->buff);
+			break;
 		default:
 			break;
 		}
 		free(data);
 	}
+	node->data = NULL;
 }
 
 plist_t plist_new_dict()
@@ -133,6 +144,7 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 
 void plist_free(plist_t plist)
 {
+	g_node_children_foreach(plist, G_TRAVERSE_ALL, plist_free_node, NULL);
 	g_node_destroy(plist);
 }
 
