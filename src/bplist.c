@@ -285,6 +285,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
 			plist_get_uint_val(size_node, &size);
+			plist_free(size_node);
 		}
 		return parse_data_node(object, size);
 
@@ -294,6 +295,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
 			plist_get_uint_val(size_node, &size);
+			plist_free(size_node);
 		}
 		return parse_string_node(object, size);
 
@@ -303,6 +305,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
 			plist_get_uint_val(size_node, &size);
+			plist_free(size_node);
 		}
 		return parse_unicode_node(object, size);
 
@@ -313,6 +316,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
 			plist_get_uint_val(size_node, &size);
+			plist_free(size_node);
 		}
 		return parse_array_node(object, size, dict_size);
 
@@ -323,6 +327,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 			if (plist_get_node_type(size_node) != PLIST_UINT)
 				return NULL;
 			plist_get_uint_val(size_node, &size);
+			plist_free(size_node);
 		}
 		return parse_dict_node(object, size, dict_size);
 	default:
@@ -868,6 +873,8 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
 	//free intermediate objects
 	g_hash_table_foreach_remove(ref_table, free_index, NULL);
+	g_ptr_array_free(objects, TRUE);
+	g_hash_table_destroy(ref_table);
 
 	//write offsets
 	offset_size = get_needed_bytes(bplist_buff->len);

@@ -65,6 +65,7 @@ static void plist_free_node(GNode * node, gpointer none)
 		free(data);
 	}
 	node->data = NULL;
+	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_free_node, NULL);
 }
 
 plist_t plist_new_dict()
@@ -144,7 +145,7 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 
 void plist_free(plist_t plist)
 {
-	g_node_children_foreach(plist, G_TRAVERSE_ALL, plist_free_node, NULL);
+	plist_free_node(plist, NULL);
 	g_node_destroy(plist);
 }
 
