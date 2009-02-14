@@ -190,9 +190,11 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 
 	case PLIST_DATA:
 		tag = XPLIST_DATA;
-		valtmp = g_base64_encode(node_data->buff, node_data->length);
-		val = format_string(valtmp, 60, xstruct->depth);
-		g_free(valtmp);
+		if (node_data->length) {
+			valtmp = g_base64_encode(node_data->buff, node_data->length);
+			val = format_string(valtmp, 60, xstruct->depth);
+			g_free(valtmp);
+		}
 		break;
 	case PLIST_ARRAY:
 		tag = XPLIST_ARRAY;
