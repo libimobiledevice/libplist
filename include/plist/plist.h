@@ -394,6 +394,14 @@ extern "C" {
  */
 	PLIST_API plist_t plist_find_node_by_string(plist_t plist, const char *value);
 
+/**
+ * Compare two node values
+ *
+ * @param node_l left node to compare
+ * @param node_r rigth node to compare
+ * @return TRUE is type and value match, FALSE otherwise.
+ */
+	PLIST_API char plist_compare_node_value(plist_t node_l, plist_t node_r);
 
 /*@}*/
 

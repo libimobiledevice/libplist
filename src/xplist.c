@@ -152,12 +152,12 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 
 	case PLIST_UINT:
 		tag = XPLIST_INT;
-		val = g_strdup_printf("%lu", (long unsigned int) node_data->intval);
+		val = g_strdup_printf("%llu", node_data->intval);
 		break;
 
 	case PLIST_REAL:
 		tag = XPLIST_REAL;
-		val = g_strdup_printf("%Lf", (long double) node_data->realval);
+		val = g_strdup_printf("%f", node_data->realval);
 		break;
 
 	case PLIST_STRING:

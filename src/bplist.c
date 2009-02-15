@@ -87,7 +87,7 @@ static uint32_t uint24_from_be(char *buff)
 #define UINT_TO_HOST(x, n) \
 		(n == 8 ? GUINT64_FROM_BE( *(uint64_t *)(x) ) : \
 		(n == 4 ? GUINT32_FROM_BE( *(uint32_t *)(x) ) : \
-		(n == 3 ? uint24_from_be( x ) : \
+		(n == 3 ? uint24_from_be( (char*)x ) : \
 		(n == 2 ? GUINT16_FROM_BE( *(uint16_t *)(x) ) : \
 		*(uint8_t *)(x) ))))
 
@@ -99,10 +99,7 @@ static uint32_t uint24_from_be(char *buff)
 		( ((uint64_t)x) < (1ULL << 24) ? 3 : \
 		( ((uint64_t)x) < (1ULL << 32) ? 4 : 8))))
 
-#define get_real_bytes(x) (x >> 32 ? 4 : 8)
-
-
-
+#define get_real_bytes(x) (x == (float) x ? 4 : 8)
 
 
 static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
@@ -133,12 +130,18 @@ static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
 static plist_t parse_real_node(char *bnode, uint8_t size)
 {
 	plist_data_t data = plist_new_plist_data();
+	float floatval = 0.0;
 
 	size = 1 << size;			// make length less misleading
 	switch (size) {
 	case sizeof(float):
+		floatval = *(float*)bnode;
+		byte_convert((uint8_t*)&floatval, sizeof(float));
+		data->realval = floatval;
+		break;
 	case sizeof(double):
-		data->intval = UINT_TO_HOST(bnode, size);	//use the fact that we have an union to cheat byte swapping
+		data->realval = *(double*)bnode;
+		byte_convert((uint8_t*)&(data->realval), sizeof(double));
 		break;
 	default:
 		free(data);
@@ -187,7 +190,7 @@ static plist_t parse_unicode_node(char *bnode, uint64_t size)
 	data->unicodeval[sizeof(gunichar2) * size] = '\0';
 	data->length = size;
 	for (i = 0; i <= size; i++)
-		byte_convert(data->unicodeval + i, sizeof(gunichar2));
+		byte_convert((uint8_t*)(data->unicodeval + i), sizeof(gunichar2));
 	return g_node_new(data);
 }
 
@@ -543,63 +546,7 @@ static guint plist_data_hash(gconstpointer key)
 	return hash;
 }
 
-static gboolean plist_data_compare(gconstpointer a, gconstpointer b)
-{
-	plist_data_t val_a = NULL;
-	plist_data_t val_b = NULL;
 
-	if (!a || !b)
-		return FALSE;
-
-	if (!((GNode *) a)->data || !((GNode *) b)->data)
-		return FALSE;
-
-	val_a = plist_get_data((plist_t) a);
-	val_b = plist_get_data((plist_t) b);
-
-	if (val_a->type != val_b->type)
-		return FALSE;
-
-	switch (val_a->type) {
-	case PLIST_BOOLEAN:
-	case PLIST_UINT:
-	case PLIST_REAL:
-		if (val_a->intval == val_b->intval)	//it is an union so this is sufficient
-			return TRUE;
-		else
-			return FALSE;
-
-	case PLIST_KEY:
-	case PLIST_STRING:
-		if (!strcmp(val_a->strval, val_b->strval))
-			return TRUE;
-		else
-			return FALSE;
-	case PLIST_UNICODE:
-		if (!memcmp(val_a->unicodeval, val_b->unicodeval, val_a->length))
-			return TRUE;
-		else
-			return FALSE;
-
-	case PLIST_DATA:
-	case PLIST_ARRAY:
-	case PLIST_DICT:
-		//compare pointer
-		if (a == b)
-			return TRUE;
-		else
-			return FALSE;
-		break;
-	case PLIST_DATE:
-		if (!memcmp(&(val_a->timeval), &(val_b->timeval), sizeof(GTimeVal)))
-			return TRUE;
-		else
-			return FALSE;
-	default:
-		break;
-	}
-	return FALSE;
-}
 
 struct serialize_s {
 	GPtrArray *objects;
@@ -655,7 +602,12 @@ static void write_real(GByteArray * bplist, double val)
 	uint64_t size = get_real_bytes(*((uint64_t *) & val));	//cheat to know used space
 	uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
 	buff[0] = BPLIST_REAL | Log2(size);
-	memcpy(buff + 1, &val, size);
+	if (size == sizeof(double)) {
+		memcpy(buff + 1, &val, size);
+	} else if (size == sizeof(float)) {
+		float tmpval = (float) val;
+		memcpy(buff + 1, &tmpval, size);
+	}
 	byte_convert(buff + 1, size);
 	g_byte_array_append(bplist, buff, sizeof(uint8_t) + size);
 	free(buff);
