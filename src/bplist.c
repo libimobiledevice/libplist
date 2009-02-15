@@ -589,7 +589,11 @@ static gboolean free_index(gpointer key, gpointer value, gpointer user_data)
 static void write_int(GByteArray * bplist, uint64_t val)
 {
 	uint64_t size = get_needed_bytes(val);
-	uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
+	uint8_t *buff = NULL;
+	//do not write 3bytes int node
+	if (size == 3)
+		size++;
+	buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
 	buff[0] = BPLIST_UINT | Log2(size);
 	memcpy(buff + 1, &val, size);
 	byte_convert(buff + 1, size);
