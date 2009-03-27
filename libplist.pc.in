@@ -1,12 +1,12 @@
-prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
+prefix=${CMAKE_INSTALL_PREFIX}
+exec_prefix=${CMAKE_INSTALL_PREFIX}
+libdir=${CMAKE_INSTALL_PREFIX}/lib
+includedir=${CMAKE_INSTALL_PREFIX}/include
 
 Name: libplist
 Description: A library to handle Apple Property Lists whereas they are binary or XML
-Version: @VERSION@
+Version: ${LIBPLIST_VERSION}
 Requires: libxml-2.0 >= 2.6.30 glib-2.0 >= 2.14.1
-Libs: -L${libdir} -lplist
-Cflags: -I${includedir}
+Libs: -L${CMAKE_INSTALL_PREFIX}/lib -lplist
+Cflags: -I${CMAKE_INSTALL_PREFIX}/include
 
