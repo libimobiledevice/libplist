@@ -1,5 +1,6 @@
  /* swig.i */
  %module(package="libplist") PList
+ %feature("autodoc", "1");
  %{
  /* Includes the header in the wrapper code */
  #include <plist/plist.h>
