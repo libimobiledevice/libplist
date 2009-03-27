@@ -69,103 +69,103 @@ typedef struct {
 		plist_add_sub_node($self->node, subnode);
 	}
 
-	void AddSubKey(char* k) {
+	void add_sub_key(char* k) {
 		plist_add_sub_key_el($self->node, k);
 	}
 
-	void AddSubString(char* s) {
+	void add_sub_string(char* s) {
 		plist_add_sub_string_el($self->node, s);
 	}
 
-	void AddSubBool(char b) {
+	void add_sub_bool(char b) {
 		plist_add_sub_bool_el($self->node, b);
 	}
 
-	void AddSubUInt(uint64_t i) {
+	void add_sub_uint(uint64_t i) {
 		plist_add_sub_uint_el($self->node, i);
 	}
 
-	void AddSubReal(double d) {
+	void add_sub_real(double d) {
 		plist_add_sub_real_el($self->node, d);
 	}
 
-	void AddSubData(char* v, uint64_t l) {
+	void add_sub_data(char* v, uint64_t l) {
 		plist_add_sub_data_el($self->node, v, l);
 	}
 
-	PListNode* GetFirstChild() {
+	PListNode* get_first_child() {
 		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
 		plist_get_first_child(&$self->node);
 		return plist;
 	}
 
-	PListNode* GetNextSibling() {
+	PListNode* get_next_sibling() {
 		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
 		plist_get_next_sibling(&$self->node);
 		return plist;
 	}
 
-	PListNode* GetPrevSibling() {
+	PListNode* get_prev_sibling() {
 		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
 		plist_get_prev_sibling(&$self->node);
 		return plist;
 	}
 
-	char* AsKey() {
+	char* as_key() {
 		char* k = NULL;
 		plist_get_key_val($self->node, &k);
 		return k;
 	}
 
-	char* AsString() {
+	char* as_string() {
 		char* s = NULL;
 		plist_get_string_val($self->node, &s);
 		return s;
 	}
 
-	char AsBool() {
+	char as_bool() {
 		char b;
 		plist_get_bool_val($self->node, &b);
 		return b;
 	}
 
-	uint64_t AsUInt() {
+	uint64_t as_uint() {
 		uint64_t i = 0;
 		plist_get_uint_val($self->node, &i);
 		return i;
 	}
 
-	double AsReal() {
+	double as_real() {
 		double d = 0;
 		plist_get_real_val($self->node, &d);
 		return d;
 	}
 
-	char* AsData() {
+	char* as_data() {
 		char* v;
 		uint64_t l;
 		plist_get_data_val($self->node, &v, &l);
 		return v;
 	}
 
-	plist_type GetType() {
+	plist_type get_type() {
 		return plist_get_node_type($self->node);
 	}
 
-	PListNode* FindSubNodeByString(char* s) {
+	PListNode* find_sub_node_by_string(char* s) {
 		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
 		plist = plist_find_node_by_string($self->node, s);
 		return plist;
 	}
 
-	char* ToXml () {
+	char* to_xml () {
 		char* s = NULL;
 		uint32_t l;
 		plist_to_xml($self->node, &s, &l);
 		return s;
 	}
 
-	char* ToBin () {
+	char* to_bin () {
 		char* s = NULL;
 		uint32_t l;
 		plist_to_bin($self->node, &s, &l);
