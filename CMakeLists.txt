@@ -36,7 +36,7 @@ ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/c
 ########## PkgConfig ############################
 CONFIGURE_FILE( "libplist.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/libplist.pc" )
 ########## INSTALL ##############################
-INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/libplist.pc" DESTINATION ${LIBDATA_INSTALL_DIR}/pkgconfig/ )
+INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/libplist.pc" DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/ )
 
 ########## CPack ################################
 INCLUDE( libplistPackaging )
