@@ -94,7 +94,7 @@ extern "C" {
  * @return the created plist
  * @sa #plist_type
  */
-	PLIST_API plist_t plist_new_dict();
+	PLIST_API plist_t plist_new_dict(void);
 
 /**
  * Create a new root plist_t type #PLIST_ARRAY
@@ -102,7 +102,7 @@ extern "C" {
  * @return the created plist
  * @sa #plist_type
  */
-	PLIST_API plist_t plist_new_array();
+	PLIST_API plist_t plist_new_array(void);
 
 /**
  * Destruct a plist_t node and all its children recursively

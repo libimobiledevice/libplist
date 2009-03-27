@@ -99,7 +99,7 @@ struct xml_node {
  * 
  * @return The plist XML document.
  */
-static xmlDocPtr new_xml_plist()
+static xmlDocPtr new_xml_plist(void)
 {
 	char *plist = strdup(plist_base);
 	xmlDocPtr plist_xml = xmlParseMemory(plist, strlen(plist));

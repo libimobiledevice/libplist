@@ -38,7 +38,7 @@ plist_data_t plist_get_data(const plist_t node)
 	return ((GNode *) node)->data;
 }
 
-plist_data_t plist_new_plist_data()
+plist_data_t plist_new_plist_data(void)
 {
 	plist_data_t data = (plist_data_t) calloc(sizeof(struct plist_data_s), 1);
 	return data;
@@ -68,14 +68,14 @@ static void plist_free_node(GNode * node, gpointer none)
 	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_free_node, NULL);
 }
 
-plist_t plist_new_dict()
+plist_t plist_new_dict(void)
 {
 	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_DICT;
 	return plist_new_node(data);
 }
 
-plist_t plist_new_array()
+plist_t plist_new_array(void)
 {
 	plist_data_t data = plist_new_plist_data();
 	data->type = PLIST_ARRAY;
