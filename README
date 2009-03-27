@@ -7,20 +7,23 @@ For:
 You must have:
 	libglib2.0-dev
 	libxml2-dev
+	cmake
 	make
-	autoheader
-	automake
-	autoconf
 	gcc
 
+Optional:
+	swig
+	python
+
 To compile run:
-	./autogen.sh
-	./configure
+	mkdir build
+	cd build
+	cmake ..
 	make
 	sudo make install  # (if you want to install it into your system directories)
 
 On Ubuntu/Debian, you can do:
-	sudo apt-get install build-essential automake autoconf \
+	sudo apt-get install build-essential cmake \
           libglib2.0-dev libxml2-dev
 
 
@@ -32,8 +35,12 @@ wiki:
 code:
 	git clone git://github.com/JonathanBeck/libplist.git
 
+tickets:
+	http://libiphone.lighthouseapp.com/projects/27916-libiphone/tickets?q=all
+	Please tag libplist related bugs with 'libplist'
+
 mailing list:
 	http://lists.mattcolyer.com/listinfo.cgi/iphone-linux-dev-mattcolyer.com
 
 updated:
-	2008-12-12
+	2009-03-27
