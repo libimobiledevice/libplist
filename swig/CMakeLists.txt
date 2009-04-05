@@ -8,9 +8,9 @@ SWIG_ADD_MODULE( PList python plist.i )
 SWIG_LINK_LIBRARIES( PList plist ${PYTHON_LIBRARIES} )
 
 INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/_PList${CMAKE_SHARED_MODULE_SUFFIX}
-   DESTINATION lib/python${PYTHON_VERSION}/site-packages/libplist/ )
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/site-packages/libplist/ )
 INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-   DESTINATION lib/python${PYTHON_VERSION}/site-packages/libplist/ )
+   DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION}/site-packages/libplist/ )
 INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/plist.i
    DESTINATION include/plist/swig COMPONENT dev)
 

@@ -11,6 +11,10 @@ SET( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/modul
 
 cmake_minimum_required(VERSION 2.6)
 
+IF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+   SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")
+ENDIF(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+
 FIND_PACKAGE( LibXml2 REQUIRED )
 FIND_PACKAGE( GLIB2 REQUIRED )
 FIND_PACKAGE( SWIG )
@@ -36,7 +40,7 @@ ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/c
 ########## PkgConfig ############################
 CONFIGURE_FILE( "libplist.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/libplist.pc" )
 ########## INSTALL ##############################
-INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/libplist.pc" DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/ )
+INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/libplist.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/ )
 
 ########## CPack ################################
 INCLUDE( libplistPackaging )
