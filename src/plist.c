@@ -121,6 +121,7 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 				data->length = items_written;
 				break;
 			case PLIST_DATA:
+				data->buff = (uint8_t*)malloc(length);
 				memcpy(data->buff, value, length);
 				break;
 			case PLIST_DATE:
