@@ -67,7 +67,9 @@ typedef struct {
 	}
 
 	void add_sub_node(PListNode* subnode) {
-		plist_add_sub_node($self->node, subnode);
+		if (subnode) {
+			plist_add_sub_node($self->node, subnode->node);
+		}
 	}
 
 	void add_sub_key(char* k) {
