@@ -66,7 +66,7 @@ typedef struct {
 		free($self);
 	}
 
-	void AddSubNode(PListNode* subnode) {
+	void add_sub_node(PListNode* subnode) {
 		plist_add_sub_node($self->node, subnode);
 	}
 
@@ -153,7 +153,13 @@ typedef struct {
 		return plist_get_node_type($self->node);
 	}
 
-	PListNode* find_sub_node_by_string(char* s) {
+	PListNode* find_node_by_key(char *s) {
+		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
+		plist = plist_find_node_by_key($self->node, s);
+		return plist;
+	}
+
+	PListNode* find_node_by_string(char* s) {
 		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
 		plist = plist_find_node_by_string($self->node, s);
 		return plist;
@@ -171,6 +177,14 @@ typedef struct {
 		uint32_t l;
 		plist_to_bin($self->node, &s, &l);
 		return s;
+	}
+
+	void from_xml (char* xml) {
+		plist_from_xml(xml, strlen(xml), &$self->node);
+	}
+
+	void from_bin (char* data, uint64_t len) {
+		plist_from_bin(data, len, &$self->node);
 	}
 };
 
