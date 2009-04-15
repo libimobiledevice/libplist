@@ -6,7 +6,17 @@
  #include <plist/plist.h>
 typedef struct {
 	plist_t node;
+	char should_keep_plist;
 } PListNode;
+
+PListNode *allocate_wrapper() {
+	PListNode* wrapper = (PListNode*) malloc(sizeof(PListNode));
+	if (wrapper) {
+		memset(wrapper, 0, sizeof(PListNode));
+		return wrapper;
+	}
+	return NULL;
+}
  %}
 
 %include "stdint.i"
@@ -27,7 +37,6 @@ typedef enum {
 } plist_type;
 
 typedef struct {
-	plist_t node;
 } PListNode;
 
 %extend PListNode {             // Attach these functions to struct Vector
@@ -35,12 +44,16 @@ typedef struct {
 		PListNode* node = NULL;
 		switch (t) {
 			case PLIST_ARRAY :
-				node = (PListNode*) malloc(sizeof(PListNode));
-				node->node = plist_new_array();
+				node = allocate_wrapper();
+				if (node) {
+					node->node = plist_new_array();
+				}
 				break;
 			case PLIST_DICT :
-				node = (PListNode*) malloc(sizeof(PListNode));
-				node->node = plist_new_dict();
+				node = allocate_wrapper();
+				if (node) {
+					node->node = plist_new_dict();
+				}
 				break;
 			default :
 				node = NULL;
@@ -50,19 +63,21 @@ typedef struct {
 	}
 
 	PListNode(char* xml) {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
+		PListNode* plist = allocate_wrapper();
 		plist_from_xml(xml, strlen(xml), &plist->node);
 		return plist;
 	}
 
 	PListNode(char* bin, uint64_t len) {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
+		PListNode* plist = allocate_wrapper();
 		plist_from_bin(bin, len, &plist->node);
 		return plist;
 	}
 
 	~PListNode() {
-		plist_free($self->node);
+		if (!$self->should_keep_plist) {
+			plist_free($self->node);
+		}
 		free($self);
 	}
 
@@ -97,20 +112,29 @@ typedef struct {
 	}
 
 	PListNode* get_first_child() {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
-		plist_get_first_child(&$self->node);
+		PListNode* plist = allocate_wrapper();
+		if (plist) {
+			plist->node = plist_get_first_child(&$self->node);
+			plist->should_keep_plist = 1;
+		}
 		return plist;
 	}
 
 	PListNode* get_next_sibling() {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
-		plist_get_next_sibling(&$self->node);
+		PListNode* plist = allocate_wrapper();
+		if (plist) {
+			plist->node = plist_get_next_sibling(&$self->node);
+			plist->should_keep_plist = 1;
+		}
 		return plist;
 	}
 
 	PListNode* get_prev_sibling() {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
-		plist_get_prev_sibling(&$self->node);
+		PListNode* plist = allocate_wrapper();
+		if (plist) {
+			plist->node = plist_get_prev_sibling(&$self->node);
+			plist->should_keep_plist = 1;
+		}
 		return plist;
 	}
 
@@ -156,14 +180,20 @@ typedef struct {
 	}
 
 	PListNode* find_node_by_key(char *s) {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
-		plist = plist_find_node_by_key($self->node, s);
+		PListNode* plist = allocate_wrapper();
+		if (plist) {
+			plist->node = plist_find_node_by_key($self->node, s);
+			plist->should_keep_plist = 1;
+		}
 		return plist;
 	}
 
 	PListNode* find_node_by_string(char* s) {
-		PListNode* plist = (PListNode*) malloc(sizeof(PListNode));
-		plist = plist_find_node_by_string($self->node, s);
+		PListNode* plist = allocate_wrapper();
+		if (plist) {
+			plist->node = plist_find_node_by_string($self->node, s);
+			plist->should_keep_plist = 1;
+		}
 		return plist;
 	}
 
