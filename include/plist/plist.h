@@ -140,6 +140,25 @@ extern "C" {
  */
 	PLIST_API plist_t plist_get_prev_sibling(plist_t node);
 
+/**
+ * Get the nth child of a #PLIST_ARRAY node.
+ *
+ * @param node the node of type #PLIST_ARRAY
+ * @param n the index of the child to get. Range is [0, array_size[
+ * @return the nth children or NULL if node is not of type #PLIST_ARRAY
+ */
+	PLIST_API plist_t plist_get_array_nth_el(plist_t node, uint32_t n);
+
+/**
+ * Get the child of a #PLIST_DICT node from the associated key value.
+ *
+ * @param node the node of type #PLIST_DICT
+ * @param key the key associated to the requested value
+ * @return the key associated value or NULL if node is not of type #PLIST_DICT
+ */
+	PLIST_API plist_t plist_get_dict_el_from_key(plist_t node, const char *key);
+
+
 /********************************************
  *                                          *
  *                Setters                   *

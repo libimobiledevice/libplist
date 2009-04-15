@@ -180,21 +180,55 @@ typedef struct {
 	}
 
 	PListNode* find_node_by_key(char *s) {
-		PListNode* plist = allocate_wrapper();
-		if (plist) {
-			plist->node = plist_find_node_by_key($self->node, s);
-			plist->should_keep_plist = 1;
+		plist_t node = plist_find_node_by_key($self->node, s);
+		if (node) {
+			PListNode* plist = allocate_wrapper();
+			if (plist) {
+				plist->node = node;
+				plist->should_keep_plist = 1;
+			}
+			return plist;
 		}
-		return plist;
+		return NULL;
 	}
 
 	PListNode* find_node_by_string(char* s) {
-		PListNode* plist = allocate_wrapper();
-		if (plist) {
-			plist->node = plist_find_node_by_string($self->node, s);
-			plist->should_keep_plist = 1;
+		plist_t node = plist_find_node_by_string($self->node, s);
+		if (node) {
+			PListNode* plist = allocate_wrapper();
+			if (plist) {
+				plist->node = node;
+				plist->should_keep_plist = 1;
+			}
+			return plist;
+			}
+		return NULL;
+	}
+
+	PListNode* get_array_nth_el(unsigned int n) {
+		plist_t node = plist_get_array_nth_el($self->node, n);
+		if (node) {
+			PListNode* plist = allocate_wrapper();
+			if (plist) {
+				plist->node = node;
+				plist->should_keep_plist = 1;
+			}
+			return plist;
 		}
-		return plist;
+		return NULL;
+	}
+
+	PListNode* get_dict_el_from_key(char *key) {
+		plist_t node = plist_get_dict_el_from_key($self->node, key);
+		if (node) {
+			PListNode* plist = allocate_wrapper();
+			if (plist) {
+				plist->node = node;
+				plist->should_keep_plist = 1;
+			}
+			return plist;
+		}
+		return NULL;
 	}
 
 	char* to_xml () {

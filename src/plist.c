@@ -165,6 +165,34 @@ plist_t plist_get_prev_sibling(plist_t node)
 	return (plist_t) g_node_prev_sibling((GNode *) node);
 }
 
+plist_t plist_get_array_nth_el(plist_t node, uint32_t n)
+{
+	plist_t ret = NULL;
+	if (node && PLIST_ARRAY == plist_get_node_type(node)) {
+		uint32_t i = 0;
+		plist_t temp = plist_get_first_child(node);
+
+		while ( i <= n && temp) {
+			if (i == n)
+				ret = temp;
+			temp = plist_get_next_sibling(temp);
+			i++;
+		}
+	}
+	return ret;
+}
+
+plist_t plist_get_dict_el_from_key(plist_t node, const char *key)
+{
+	plist_t ret = NULL;
+	if (node && PLIST_DICT == plist_get_node_type(node)) {
+
+		plist_t key_node = plist_find_node_by_key(node, key);
+		ret = plist_get_next_sibling(key_node);
+	}
+	return ret;
+}
+
 static char compare_node_value(plist_type type, plist_data_t data, const void *value, uint64_t length)
 {
 	char res = FALSE;
