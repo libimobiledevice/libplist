@@ -9,10 +9,12 @@ typedef struct {
 	char should_keep_plist;
 } PListNode;
 
-PListNode *allocate_wrapper() {
+PListNode *allocate_wrapper(plist_t plist, char should_keep_plist) {
 	PListNode* wrapper = (PListNode*) malloc(sizeof(PListNode));
 	if (wrapper) {
 		memset(wrapper, 0, sizeof(PListNode));
+		wrapper->node = plist;
+		wrapper->should_keep_plist = should_keep_plist;
 		return wrapper;
 	}
 	return NULL;
@@ -37,6 +39,8 @@ typedef enum {
 } plist_type;
 
 typedef struct {
+	plist_t node;
+	char should_keep_plist;
 } PListNode;
 
 %extend PListNode {             // Attach these functions to struct Vector
@@ -44,16 +48,10 @@ typedef struct {
 		PListNode* node = NULL;
 		switch (t) {
 			case PLIST_ARRAY :
-				node = allocate_wrapper();
-				if (node) {
-					node->node = plist_new_array();
-				}
+				node = allocate_wrapper( plist_new_array(), 0 );
 				break;
 			case PLIST_DICT :
-				node = allocate_wrapper();
-				if (node) {
-					node->node = plist_new_dict();
-				}
+				node = allocate_wrapper( plist_new_dict(), 0 );
 				break;
 			default :
 				node = NULL;
@@ -63,27 +61,36 @@ typedef struct {
 	}
 
 	PListNode(char* xml) {
-		PListNode* plist = allocate_wrapper();
-		plist_from_xml(xml, strlen(xml), &plist->node);
-		return plist;
+		plist_t plist = NULL;
+		plist_from_xml(xml, strlen(xml), &plist);
+		if (plist)
+			return allocate_wrapper( plist, 0 );
+		return NULL;
 	}
 
 	PListNode(char* bin, uint64_t len) {
-		PListNode* plist = allocate_wrapper();
-		plist_from_bin(bin, len, &plist->node);
-		return plist;
+		plist_t plist = NULL;
+		plist_from_bin(bin, len, &plist);
+		if (plist)
+			return allocate_wrapper( plist, 0 );
+		return NULL;
 	}
 
 	~PListNode() {
 		if (!$self->should_keep_plist) {
 			plist_free($self->node);
 		}
+		$self->node = NULL;
+		$self->should_keep_plist = 0;
 		free($self);
+		$self = NULL;
 	}
 
 	void add_sub_node(PListNode* subnode) {
 		if (subnode) {
 			plist_add_sub_node($self->node, subnode->node);
+			//subnode is not root anymore. Do not delete tree
+			subnode->should_keep_plist = 1;
 		}
 	}
 
@@ -112,30 +119,27 @@ typedef struct {
 	}
 
 	PListNode* get_first_child() {
-		PListNode* plist = allocate_wrapper();
-		if (plist) {
-			plist->node = plist_get_first_child(&$self->node);
-			plist->should_keep_plist = 1;
+		plist_t node = plist_get_first_child( $self->node );
+		if (node) {
+			return allocate_wrapper(node, 1);
 		}
-		return plist;
+		return NULL;
 	}
 
 	PListNode* get_next_sibling() {
-		PListNode* plist = allocate_wrapper();
-		if (plist) {
-			plist->node = plist_get_next_sibling(&$self->node);
-			plist->should_keep_plist = 1;
+		plist_t node = plist_get_next_sibling( $self->node );
+		if (node) {
+			return allocate_wrapper(node, 1);
 		}
-		return plist;
+		return NULL;
 	}
 
 	PListNode* get_prev_sibling() {
-		PListNode* plist = allocate_wrapper();
-		if (plist) {
-			plist->node = plist_get_prev_sibling(&$self->node);
-			plist->should_keep_plist = 1;
+		plist_t node = plist_get_prev_sibling( $self->node );
+		if (node) {
+			return allocate_wrapper(node, 1);
 		}
-		return plist;
+		return NULL;
 	}
 
 	char* as_key() {
@@ -182,12 +186,7 @@ typedef struct {
 	PListNode* find_node_by_key(char *s) {
 		plist_t node = plist_find_node_by_key($self->node, s);
 		if (node) {
-			PListNode* plist = allocate_wrapper();
-			if (plist) {
-				plist->node = node;
-				plist->should_keep_plist = 1;
-			}
-			return plist;
+			return allocate_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -195,25 +194,15 @@ typedef struct {
 	PListNode* find_node_by_string(char* s) {
 		plist_t node = plist_find_node_by_string($self->node, s);
 		if (node) {
-			PListNode* plist = allocate_wrapper();
-			if (plist) {
-				plist->node = node;
-				plist->should_keep_plist = 1;
-			}
-			return plist;
-			}
+			return allocate_wrapper(node, 1);
+		}
 		return NULL;
 	}
 
 	PListNode* get_array_nth_el(unsigned int n) {
 		plist_t node = plist_get_array_nth_el($self->node, n);
 		if (node) {
-			PListNode* plist = allocate_wrapper();
-			if (plist) {
-				plist->node = node;
-				plist->should_keep_plist = 1;
-			}
-			return plist;
+			return allocate_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -221,12 +210,7 @@ typedef struct {
 	PListNode* get_dict_el_from_key(char *key) {
 		plist_t node = plist_get_dict_el_from_key($self->node, key);
 		if (node) {
-			PListNode* plist = allocate_wrapper();
-			if (plist) {
-				plist->node = node;
-				plist->should_keep_plist = 1;
-			}
-			return plist;
+			return allocate_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -246,10 +230,20 @@ typedef struct {
 	}
 
 	void from_xml (char* xml) {
+		if (!$self->should_keep_plist) {
+			plist_free($self->node);
+		}
+		$self->node = NULL;
+		$self->should_keep_plist = 0;
 		plist_from_xml(xml, strlen(xml), &$self->node);
 	}
 
 	void from_bin (char* data, uint64_t len) {
+		if (!$self->should_keep_plist) {
+			plist_free($self->node);
+		}
+		$self->node = NULL;
+		$self->should_keep_plist = 0;
 		plist_from_bin(data, len, &$self->node);
 	}
 };
