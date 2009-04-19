@@ -22,6 +22,7 @@ PListNode *allocate_wrapper(plist_t plist, char should_keep_plist) {
  %}
 
 %include "stdint.i"
+%include "cstring.i"
 
 /* Parse the header file to generate wrappers */
 typedef enum {
@@ -39,8 +40,6 @@ typedef enum {
 } plist_type;
 
 typedef struct {
-	plist_t node;
-	char should_keep_plist;
 } PListNode;
 
 %extend PListNode {             // Attach these functions to struct Vector
@@ -60,19 +59,19 @@ typedef struct {
 		return node;
 	}
 
-	PListNode(char* xml) {
-		plist_t plist = NULL;
-		plist_from_xml(xml, strlen(xml), &plist);
-		if (plist)
-			return allocate_wrapper( plist, 0 );
-		return NULL;
-	}
-
-	PListNode(char* bin, uint64_t len) {
-		plist_t plist = NULL;
-		plist_from_bin(bin, len, &plist);
-		if (plist)
-			return allocate_wrapper( plist, 0 );
+	%cstring_input_binary(char *data, uint64_t len);
+	PListNode(char *data, uint64_t len) {
+		//first check input
+		if (len > 8) {
+			plist_t plist = NULL;
+			if (memcmp(data, "bplist00", 8) == 0) {
+				plist_from_bin(data, len, &plist);
+			} else {
+				plist_from_xml(data, len, &plist);
+			}
+			if (plist)
+				return allocate_wrapper( plist, 0 );
+		}
 		return NULL;
 	}
 
@@ -114,8 +113,9 @@ typedef struct {
 		plist_add_sub_real_el($self->node, d);
 	}
 
-	void add_sub_data(char* v, uint64_t l) {
-		plist_add_sub_data_el($self->node, v, l);
+	%cstring_input_binary(char *data, uint64_t len);
+	void add_sub_data(char *data, uint64_t len) {
+		plist_add_sub_data_el($self->node, data, len);
 	}
 
 	PListNode* get_first_child() {
@@ -142,12 +142,14 @@ typedef struct {
 		return NULL;
 	}
 
+	%newobject as_key;
 	char* as_key() {
 		char* k = NULL;
 		plist_get_key_val($self->node, &k);
 		return k;
 	}
 
+	%newobject as_string;
 	char* as_string() {
 		char* s = NULL;
 		plist_get_string_val($self->node, &s);
@@ -172,11 +174,14 @@ typedef struct {
 		return d;
 	}
 
-	char* as_data() {
-		char* v;
+	%cstring_output_allocate_size(char **STRING, uint64_t *LENGTH, free(*$1));
+	void as_data(char **STRING, uint64_t *LENGTH) {
+		char* s = NULL;
 		uint64_t l;
-		plist_get_data_val($self->node, &v, &l);
-		return v;
+		plist_get_data_val($self->node, &s, &l);
+		*STRING = s;
+		*LENGTH = l;
+		return;
 	}
 
 	plist_type get_type() {
@@ -215,6 +220,7 @@ typedef struct {
 		return NULL;
 	}
 
+	%newobject to_xml;
 	char* to_xml () {
 		char* s = NULL;
 		uint32_t l;
@@ -222,22 +228,27 @@ typedef struct {
 		return s;
 	}
 
-	char* to_bin () {
+	%cstring_output_allocate_size(char **STRING, uint64_t *LENGTH, free(*$1));
+	void to_bin(char **STRING, uint64_t *LENGTH) {
 		char* s = NULL;
 		uint32_t l;
 		plist_to_bin($self->node, &s, &l);
-		return s;
+		*STRING = s;
+		*LENGTH = l;
+		return;
 	}
 
-	void from_xml (char* xml) {
+	%cstring_input_binary(char *data, uint64_t len);
+	void from_xml (char *data, uint64_t len) {
 		if (!$self->should_keep_plist) {
 			plist_free($self->node);
 		}
 		$self->node = NULL;
 		$self->should_keep_plist = 0;
-		plist_from_xml(xml, strlen(xml), &$self->node);
+		plist_from_xml(data, len, &$self->node);
 	}
 
+	%cstring_input_binary(char *data, uint64_t len);
 	void from_bin (char* data, uint64_t len) {
 		if (!$self->should_keep_plist) {
 			plist_free($self->node);
