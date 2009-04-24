@@ -413,7 +413,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 		return;
 
 	//now parse trailer
-	trailer = plist_bin + (length - BPLIST_TRL_SIZE);
+	trailer = (char*)(plist_bin + (length - BPLIST_TRL_SIZE));
 
 	offset_size = trailer[BPLIST_TRL_OFFSIZE_IDX];
 	dict_param_size = trailer[BPLIST_TRL_PARMSIZE_IDX];
@@ -431,12 +431,12 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 		return;
 
 	//parse serialized nodes
-	offset_table = plist_bin + offset_table_index;
+	offset_table = (char*)(plist_bin + offset_table_index);
 	for (i = 0; i < num_objects; i++) {
 		char *obj = NULL;
 		current_offset = UINT_TO_HOST(offset_table + i * offset_size, offset_size);
 
-		obj = plist_bin + current_offset;
+		obj = (char*)(plist_bin + current_offset);
 		nodeslist[i] = parse_bin_node(obj, dict_param_size, &obj);
 	}
 
