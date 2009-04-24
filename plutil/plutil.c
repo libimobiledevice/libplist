@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 
 	if (!options) {
 		print_usage();
+		free(filestats);
 		return 0;
 	}
 	//read input file
@@ -62,6 +63,9 @@ int main(int argc, char *argv[])
 		plist_from_xml(plist_entire, filestats->st_size, &root_node);
 		plist_to_bin(root_node, &plist_out, &size);
 	}
+	plist_free(root_node);
+	free(plist_entire);
+	free(filestats);
 
 	if (plist_out) {
 		if (options->out_file != NULL) {
@@ -74,8 +78,12 @@ int main(int argc, char *argv[])
 		//if no output file specified, write to stdout
 		else
 			fwrite(plist_out, size, sizeof(char), stdout);
+
+		free(plist_out);
 	} else
 		printf("ERROR\n");
+
+	free(options);
 	return 0;
 }
 
