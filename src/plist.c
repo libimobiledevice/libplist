@@ -368,7 +368,7 @@ void plist_add_sub_unicode_el(plist_t node, const char *val)
 void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec)
 {
 	GTimeVal val = { sec, usec };
-	plist_add_sub_element(node, PLIST_UNICODE, &val, sizeof(GTimeVal));
+	plist_add_sub_element(node, PLIST_DATE, &val, sizeof(GTimeVal));
 }
 
 void plist_get_key_val(plist_t node, char **val)
