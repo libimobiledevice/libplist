@@ -71,8 +71,6 @@ extern "C" {
 		PLIST_REAL,	/**< Real, scalar type */
 		PLIST_STRING,
 					/**< ASCII string, scalar type */
-		PLIST_UNICODE,
-					/**< Unicode strin, scalar type */
 		PLIST_ARRAY,/**< Ordered array, structured type */
 		PLIST_DICT,	/**< Unordered dictionary (key/value pair), structured type */
 		PLIST_DATE,	/**< Date, scalar type */
@@ -189,7 +187,7 @@ extern "C" {
  * (ie #PLIST_DICT or #PLIST_ARRAY).
  *
  * @param node the node to add a children to
- * @param val the string value encoded as an ASCII string (must be null terminated)
+ * @param val the string value encoded as an ASCII or UTF-8 string (must be null terminated)
  */
 	PLIST_API void plist_add_sub_string_el(plist_t node, const char *val);
 
@@ -229,15 +227,6 @@ extern "C" {
  * @param length the length of the buffer
  */
 	PLIST_API void plist_add_sub_data_el(plist_t node, const char *val, uint64_t length);
-
-/**
- * Add a subnode of type #PLIST_UNICODE to a node. The node must be of a structured type
- * (ie #PLIST_DICT or #PLIST_ARRAY).
- *
- * @param node the node to add a children to
- * @param val the unicode string encoded in UTF-8 (must be null terminated)
- */
-	PLIST_API void plist_add_sub_unicode_el(plist_t node, const char *val);
 
 /**
  * Add a subnode of type #PLIST_DATE to a node. The node must be of a structured type
@@ -280,7 +269,7 @@ extern "C" {
  *
  * @param node the node
  * @param val a pointer to a C-string. This function allocates the memory,
- *            caller is responsible for freeing it.
+ *            caller is responsible for freeing it. Data is UTF-8 encoded.
  */
 	PLIST_API void plist_get_string_val(plist_t node, char **val);
 
@@ -320,16 +309,6 @@ extern "C" {
  *            caller is responsible for freeing it.
  */
 	PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length);
-
-/**
- * Get the value of a #PLIST_UNICODE node.
- * This function does nothing if node is not of type #PLIST_UNICODE
- *
- * @param node the node
- * @param val a pointer to a C-string. This function allocates the memory,
- *            caller is responsible for freeing it. Data is UTF-8 encoded.
- */
-	PLIST_API void plist_get_unicode_val(plist_t node, char **val);
 
 /**
  * Get the value of a #PLIST_DATE node.

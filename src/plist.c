@@ -53,9 +53,6 @@ static void plist_free_node(GNode * node, gpointer none)
 		case PLIST_STRING:
 			free(data->strval);
 			break;
-		case PLIST_UNICODE:
-			free(data->unicodeval);
-			break;
 		case PLIST_DATA:
 			free(data->buff);
 			break;
@@ -90,10 +87,6 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 		//only structured types are allowed to have nulll value
 		if (value || (!value && (type == PLIST_DICT || type == PLIST_ARRAY))) {
 
-			glong len = 0;
-			glong items_read = 0;
-			glong items_written = 0;
-			GError *error = NULL;
 			plist_t subnode = NULL;
 
 			//now handle value
@@ -114,11 +107,6 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 			case PLIST_KEY:
 			case PLIST_STRING:
 				data->strval = strdup((char *) value);
-				break;
-			case PLIST_UNICODE:
-				len = strlen((char *) value);
-				data->unicodeval = g_utf8_to_utf16((char *) value, len, &items_read, &items_written, &error);
-				data->length = items_written;
 				break;
 			case PLIST_DATA:
 				data->buff = (uint8_t*)malloc(length);
@@ -210,9 +198,6 @@ static char compare_node_value(plist_type type, plist_data_t data, const void *v
 	case PLIST_STRING:
 		res = !strcmp(data->strval, ((char *) value));
 		break;
-	case PLIST_UNICODE:
-		res = !memcpy(data->unicodeval, value, length);
-		break;
 	case PLIST_DATA:
 		res = !memcmp(data->buff, (char *) value, length);
 		break;
@@ -262,11 +247,6 @@ plist_t plist_find_node_by_string(plist_t plist, const char *value)
 
 static void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length)
 {
-	//for unicode
-	glong len = 0;
-	glong items_read = 0;
-	glong items_written = 0;
-	GError *error = NULL;
 	plist_data_t data = NULL;
 
 	if (!node)
@@ -290,10 +270,6 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
 	case PLIST_KEY:
 	case PLIST_STRING:
 		*((char **) value) = strdup(data->strval);
-		break;
-	case PLIST_UNICODE:
-		len = data->length;
-		*((char **) value) = g_utf16_to_utf8(data->unicodeval, len, &items_read, &items_written, &error);
 		break;
 	case PLIST_DATA:
 		*((uint8_t **) value) = (uint8_t *) malloc(*length * sizeof(uint8_t));
@@ -360,11 +336,6 @@ void plist_add_sub_data_el(plist_t node, const char *val, uint64_t length)
 	plist_add_sub_element(node, PLIST_DATA, val, length);
 }
 
-void plist_add_sub_unicode_el(plist_t node, const char *val)
-{
-	plist_add_sub_element(node, PLIST_UNICODE, val, strlen(val));
-}
-
 void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec)
 {
 	GTimeVal val = { sec, usec };
@@ -423,15 +394,6 @@ void plist_get_data_val(plist_t node, char **val, uint64_t * length)
 		plist_get_type_and_value(node, &type, (void *) val, length);
 }
 
-void plist_get_unicode_val(plist_t node, char **val)
-{
-	plist_type type = plist_get_node_type(node);
-	uint64_t length = 0;
-	if (PLIST_UNICODE == type)
-		plist_get_type_and_value(node, &type, (void *) val, &length);
-	assert(length == strlen(*val));
-}
-
 void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
 {
 	plist_type type = plist_get_node_type(node);
@@ -473,11 +435,6 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 	case PLIST_KEY:
 	case PLIST_STRING:
 		if (!strcmp(val_a->strval, val_b->strval))
-			return TRUE;
-		else
-			return FALSE;
-	case PLIST_UNICODE:
-		if (!memcmp(val_a->unicodeval, val_b->unicodeval, val_a->length))
 			return TRUE;
 		else
 			return FALSE;

@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <libxml/tree.h>
+
 #include <plist/plist.h>
 #include "plist.h"
 
@@ -184,13 +186,28 @@ static plist_t parse_unicode_node(char *bnode, uint64_t size)
 {
 	plist_data_t data = plist_new_plist_data();
 	uint64_t i = 0;
-	data->type = PLIST_UNICODE;
-	data->unicodeval = (gunichar2 *) malloc(sizeof(gunichar2) * (size + 1));
-	memcpy(data->unicodeval, bnode, sizeof(gunichar2) * size);
-	data->unicodeval[sizeof(gunichar2) * size] = '\0';
-	data->length = size;
-	for (i = 0; i <= size; i++)
-		byte_convert((uint8_t*)(data->unicodeval + i), sizeof(gunichar2));
+	gunichar2 *unicodestr = NULL;
+	gchar *tmpstr = NULL;
+	int type = 0;
+	glong items_read = 0;
+	glong items_written = 0;
+	GError *error = NULL;
+
+	data->type = PLIST_STRING;
+	unicodestr = (gunichar2 *) malloc(sizeof(gunichar2) * size);
+	memcpy(unicodestr, bnode, sizeof(gunichar2) * size);
+	for (i = 0; i < size; i++)
+		byte_convert((uint8_t*)(unicodestr + i), sizeof(gunichar2));
+
+	tmpstr = g_utf16_to_utf8(unicodestr, size, &items_read, &items_written, &error);
+	free(unicodestr);
+
+	data->type = PLIST_STRING;
+	data->strval = (char *) malloc(sizeof(char) * (items_written + 1));
+	memcpy(data->strval, tmpstr, items_written);
+	data->strval[items_written] = '\0';
+	data->length = strlen(data->strval);
+	g_free(tmpstr);
 	return g_node_new(data);
 }
 
@@ -364,10 +381,6 @@ static gpointer copy_plist_data(gconstpointer src, gpointer data)
 	case PLIST_STRING:
 		dstdata->strval = strdup(srcdata->strval);
 		break;
-	case PLIST_UNICODE:
-		dstdata->unicodeval = (gunichar2 *) malloc(srcdata->length * sizeof(gunichar2));
-		memcpy(dstdata->unicodeval, srcdata->unicodeval, srcdata->length * sizeof(gunichar2));
-		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
 		dstdata->buff = (uint8_t *) malloc(sizeof(uint8_t *) * srcdata->length);
@@ -519,10 +532,6 @@ static guint plist_data_hash(gconstpointer key)
 	case PLIST_STRING:
 		buff = data->strval;
 		size = strlen(buff);
-		break;
-	case PLIST_UNICODE:
-		buff = (char *) data->unicodeval;
-		size = data->length;
 		break;
 	case PLIST_DATA:
 	case PLIST_ARRAY:
@@ -752,6 +761,13 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 	uint64_t *offsets = NULL;
 	uint8_t pad[6] = { 0, 0, 0, 0, 0, 0 };
 	uint8_t trailer[BPLIST_TRL_SIZE];
+	//for string
+	glong len = 0;
+	int type = 0;
+	glong items_read = 0;
+	glong items_written = 0;
+	GError *error = NULL;
+	gunichar2 *unicodestr = NULL;
 
 	//check for valid input
 	if (!plist || !plist_bin || *plist_bin || !length)
@@ -806,10 +822,16 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
 		case PLIST_KEY:
 		case PLIST_STRING:
-			write_string(bplist_buff, data->strval);
-			break;
-		case PLIST_UNICODE:
-			write_unicode(bplist_buff, data->unicodeval, data->length);
+			len = strlen(data->strval);
+			type = xmlDetectCharEncoding(data->strval, len);
+			if (XML_CHAR_ENCODING_UTF8 == type) {
+				unicodestr = g_utf8_to_utf16(data->strval, len, &items_read, &items_written, &error);
+				write_unicode(bplist_buff, unicodestr, items_written);
+				g_free(unicodestr);
+			}
+			else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
+				write_string(bplist_buff, data->strval);
+			}
 			break;
 		case PLIST_DATA:
 			write_data(bplist_buff, data->buff, data->length);

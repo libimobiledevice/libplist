@@ -126,12 +126,6 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	//for base64
 	gchar *valtmp = NULL;
 
-	//for unicode
-	glong len = 0;
-	glong items_read = 0;
-	glong items_written = 0;
-	GError *error = NULL;
-
 	uint32_t i = 0;
 
 	if (!node)
@@ -163,12 +157,6 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 	case PLIST_STRING:
 		tag = XPLIST_STRING;
 		val = g_strdup(node_data->strval);
-		break;
-
-	case PLIST_UNICODE:
-		tag = XPLIST_STRING;
-		len = node_data->length;
-		val = g_utf16_to_utf8(node_data->unicodeval, len, &items_read, &items_written, &error);
 		break;
 
 	case PLIST_KEY:
@@ -233,11 +221,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 	plist_t subnode = NULL;
 
 	//for string
-	unsigned char *tmp = NULL;
 	glong len = 0;
-	glong items_read = 0;
-	glong items_written = 0;
-	GError *error = NULL;
 	int type = 0;
 
 	if (!xml_node)
@@ -301,16 +285,11 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 		if (!xmlStrcmp(node->name, XPLIST_STRING)) {
 			xmlChar *strval = xmlNodeGetContent(node);
 			len = strlen((char *) strval);
-			items_read = 0;
-			items_written = 0;
-			error = NULL;
 			type = xmlDetectCharEncoding(strval, len);
 
-			if (XML_CHAR_ENCODING_UTF8 == type) {
-				data->unicodeval = g_utf8_to_utf16((char *) strval, len, &items_read, &items_written, &error);
-				data->type = PLIST_UNICODE;
-				data->length = items_written;
-			} else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
+			if (XML_CHAR_ENCODING_UTF8 == type ||
+				XML_CHAR_ENCODING_ASCII == type ||
+				XML_CHAR_ENCODING_NONE == type) {
 				data->strval = strdup((char *) strval);
 				data->type = PLIST_STRING;
 				data->length = strlen(data->strval);

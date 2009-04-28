@@ -36,7 +36,6 @@ struct plist_data_s {
 		uint64_t intval;
 		double realval;
 		char *strval;
-		gunichar2 *unicodeval;
 		uint8_t *buff;
 		GTimeVal timeval;
 	};
