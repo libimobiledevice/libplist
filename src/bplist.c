@@ -80,7 +80,7 @@ static void byte_convert(uint8_t * address, size_t size)
 static uint32_t uint24_from_be(char *buff)
 {
 	uint32_t ret = 0;
-	char *tmp = (char*) &ret;
+	char *tmp = (char *) &ret;
 	memcpy(tmp + 1, buff, 3 * sizeof(char));
 	byte_convert(tmp, sizeof(uint32_t));
 	return ret;
@@ -137,13 +137,13 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 	size = 1 << size;			// make length less misleading
 	switch (size) {
 	case sizeof(float):
-		floatval = *(float*)bnode;
-		byte_convert((uint8_t*)&floatval, sizeof(float));
+		floatval = *(float *) bnode;
+		byte_convert((uint8_t *) & floatval, sizeof(float));
 		data->realval = floatval;
 		break;
 	case sizeof(double):
-		data->realval = *(double*)bnode;
-		byte_convert((uint8_t*)&(data->realval), sizeof(double));
+		data->realval = *(double *) bnode;
+		byte_convert((uint8_t *) & (data->realval), sizeof(double));
 		break;
 	default:
 		free(data);
@@ -197,7 +197,7 @@ static plist_t parse_unicode_node(char *bnode, uint64_t size)
 	unicodestr = (gunichar2 *) malloc(sizeof(gunichar2) * size);
 	memcpy(unicodestr, bnode, sizeof(gunichar2) * size);
 	for (i = 0; i < size; i++)
-		byte_convert((uint8_t*)(unicodestr + i), sizeof(gunichar2));
+		byte_convert((uint8_t *) (unicodestr + i), sizeof(gunichar2));
 
 	tmpstr = g_utf16_to_utf8(unicodestr, size, &items_read, &items_written, &error);
 	free(unicodestr);
@@ -426,7 +426,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 		return;
 
 	//now parse trailer
-	trailer = (char*)(plist_bin + (length - BPLIST_TRL_SIZE));
+	trailer = (char *) (plist_bin + (length - BPLIST_TRL_SIZE));
 
 	offset_size = trailer[BPLIST_TRL_OFFSIZE_IDX];
 	dict_param_size = trailer[BPLIST_TRL_PARMSIZE_IDX];
@@ -444,12 +444,12 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 		return;
 
 	//parse serialized nodes
-	offset_table = (char*)(plist_bin + offset_table_index);
+	offset_table = (char *) (plist_bin + offset_table_index);
 	for (i = 0; i < num_objects; i++) {
 		char *obj = NULL;
 		current_offset = UINT_TO_HOST(offset_table + i * offset_size, offset_size);
 
-		obj = (char*)(plist_bin + current_offset);
+		obj = (char *) (plist_bin + current_offset);
 		nodeslist[i] = parse_bin_node(obj, dict_param_size, &obj);
 	}
 
@@ -734,7 +734,7 @@ static void write_dict(GByteArray * bplist, GNode * node, GHashTable * ref_table
 		memcpy(buff + i * dict_param_size, &idx1, dict_param_size);
 		byte_convert(buff + i * dict_param_size, dict_param_size);
 
-		idx2 = *(uint64_t *)(g_hash_table_lookup(ref_table, cur->next));
+		idx2 = *(uint64_t *) (g_hash_table_lookup(ref_table, cur->next));
 		memcpy(buff + (i + size) * dict_param_size, &idx2, dict_param_size);
 		byte_convert(buff + (i + size) * dict_param_size, dict_param_size);
 	}
@@ -828,8 +828,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 				unicodestr = g_utf8_to_utf16(data->strval, len, &items_read, &items_written, &error);
 				write_unicode(bplist_buff, unicodestr, items_written);
 				g_free(unicodestr);
-			}
-			else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
+			} else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
 				write_string(bplist_buff, data->strval);
 			}
 			break;

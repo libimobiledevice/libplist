@@ -109,7 +109,7 @@ static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *
 				data->strval = strdup((char *) value);
 				break;
 			case PLIST_DATA:
-				data->buff = (uint8_t*)malloc(length);
+				data->buff = (uint8_t *) malloc(length);
 				memcpy(data->buff, value, length);
 				break;
 			case PLIST_DATE:
@@ -138,6 +138,28 @@ void plist_free(plist_t plist)
 	g_node_destroy(plist);
 }
 
+static void plist_copy_node(GNode * node, gpointer parent_node)
+{
+	plist_t newnode = NULL;
+	plist_data_t data = plist_get_data(node);
+	plist_data_t newdata = plist_new_plist_data();
+
+	assert(data);				// plist should always have data
+
+	memcpy(newdata, data, sizeof(struct plist_data_s));
+	newnode = plist_new_node(newdata);
+
+	if (parent_node) {
+		g_node_append(parent_node, newnode);
+	}
+	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_copy_node, newnode);
+}
+
+plist_t plist_copy(plist_t node)
+{
+	plist_copy_node(node, NULL);
+}
+
 plist_t plist_get_first_child(plist_t node)
 {
 	return (plist_t) g_node_first_child((GNode *) node);
@@ -160,7 +182,7 @@ plist_t plist_get_array_nth_el(plist_t node, uint32_t n)
 		uint32_t i = 0;
 		plist_t temp = plist_get_first_child(node);
 
-		while ( i <= n && temp) {
+		while (i <= n && temp) {
 			if (i == n)
 				ret = temp;
 			temp = plist_get_next_sibling(temp);
@@ -465,5 +487,96 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
 
 char plist_compare_node_value(plist_t node_l, plist_t node_r)
 {
-	return plist_data_compare( node_l , node_r );
+	return plist_data_compare(node_l, node_r);
+}
+
+static plist_t plist_set_element_val(plist_t node, plist_type type, const void *value, uint64_t length)
+{
+	//free previous allocated buffer
+	plist_data_t data = plist_get_data(node);
+	assert(data);				// a node should always have data attached
+
+	switch (data->type) {
+	case PLIST_KEY:
+	case PLIST_STRING:
+		free(data->strval);
+		data->strval = NULL;
+		break;
+	case PLIST_DATA:
+		free(data->buff);
+		data->buff = NULL;
+		break;
+	default:
+		break;
+	}
+
+	//now handle value
+
+	data->type = type;
+	data->length = length;
+
+	switch (type) {
+	case PLIST_BOOLEAN:
+		data->boolval = *((char *) value);
+		break;
+	case PLIST_UINT:
+		data->intval = *((uint64_t *) value);
+		break;
+	case PLIST_REAL:
+		data->realval = *((double *) value);
+		break;
+	case PLIST_KEY:
+	case PLIST_STRING:
+		data->strval = strdup((char *) value);
+		break;
+	case PLIST_DATA:
+		data->buff = (uint8_t *) malloc(length);
+		memcpy(data->buff, value, length);
+		break;
+	case PLIST_DATE:
+		data->timeval.tv_sec = ((GTimeVal *) value)->tv_sec;
+		data->timeval.tv_usec = ((GTimeVal *) value)->tv_usec;
+		break;
+	case PLIST_ARRAY:
+	case PLIST_DICT:
+	default:
+		break;
+	}
+}
+
+
+void plist_set_key_val(plist_t node, const char *val)
+{
+	plist_set_element_val(node, PLIST_KEY, val, strlen(val));
+}
+
+void plist_set_string_val(plist_t node, const char *val)
+{
+	plist_set_element_val(node, PLIST_STRING, val, strlen(val));
+}
+
+void plist_set_bool_val(plist_t node, uint8_t val)
+{
+	plist_set_element_val(node, PLIST_BOOLEAN, &val, sizeof(uint8_t));
+}
+
+void plist_set_uint_val(plist_t node, uint64_t val)
+{
+	plist_set_element_val(node, PLIST_UINT, &val, sizeof(uint64_t));
+}
+
+void plist_set_real_val(plist_t node, double val)
+{
+	plist_set_element_val(node, PLIST_REAL, &val, sizeof(double));
+}
+
+void plist_set_data_val(plist_t node, const char *val, uint64_t length)
+{
+	plist_set_element_val(node, PLIST_DATA, val, length);
+}
+
+void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
+{
+	GTimeVal val = { sec, usec };
+	plist_set_element_val(node, PLIST_DATE, &val, sizeof(GTimeVal));
 }

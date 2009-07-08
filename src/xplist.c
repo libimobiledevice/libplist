@@ -257,7 +257,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 
 		if (!xmlStrcmp(node->name, XPLIST_INT)) {
 			xmlChar *strval = xmlNodeGetContent(node);
-			data->intval = g_ascii_strtoull((char *)strval, NULL, 0);
+			data->intval = g_ascii_strtoull((char *) strval, NULL, 0);
 			data->type = PLIST_UINT;
 			data->length = 8;
 			xmlFree(strval);
@@ -266,7 +266,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 
 		if (!xmlStrcmp(node->name, XPLIST_REAL)) {
 			xmlChar *strval = xmlNodeGetContent(node);
-			data->realval = atof((char *)strval);
+			data->realval = atof((char *) strval);
 			data->type = PLIST_REAL;
 			data->length = 8;
 			xmlFree(strval);
@@ -287,9 +287,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			len = strlen((char *) strval);
 			type = xmlDetectCharEncoding(strval, len);
 
-			if (XML_CHAR_ENCODING_UTF8 == type ||
-				XML_CHAR_ENCODING_ASCII == type ||
-				XML_CHAR_ENCODING_NONE == type) {
+			if (XML_CHAR_ENCODING_UTF8 == type || XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type) {
 				data->strval = strdup((char *) strval);
 				data->type = PLIST_STRING;
 				data->length = strlen(data->strval);
@@ -311,7 +309,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 			xmlChar *strval = xmlNodeGetContent(node);
 			gsize size = 0;
 			guchar *dec = g_base64_decode((char *) strval, &size);
-			data->buff = (uint8_t*) malloc( size * sizeof(uint8_t));
+			data->buff = (uint8_t *) malloc(size * sizeof(uint8_t));
 			memcpy(data->buff, dec, size * sizeof(uint8_t));
 			g_free(dec);
 			data->length = size;

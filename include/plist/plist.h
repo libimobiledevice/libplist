@@ -109,6 +109,15 @@ extern "C" {
  */
 	PLIST_API void plist_free(plist_t plist);
 
+/**
+ * Return a copy of passed node and it's children
+ *
+ * @param plist the plist to copy
+ * @return copied plist
+ */
+	PLIST_API plist_t plist_copy(plist_t node);
+
+
 /********************************************
  *                                          *
  *            Tree navigation               *
@@ -320,6 +329,77 @@ extern "C" {
  */
 	PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
 
+
+/********************************************
+ *                                          *
+ *                Setters                   *
+ *                                          *
+ ********************************************/
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_KEY
+ *
+ * @param node the node
+ * @param val the key value
+ */
+	PLIST_API void plist_set_key_val(plist_t node, const char *val);
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_STRING
+ *
+ * @param node the node
+ * @param val the string value
+ */
+	PLIST_API void plist_set_string_val(plist_t node, const char *val);
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_BOOLEAN
+ *
+ * @param node the node
+ * @param val the boolean value
+ */
+	PLIST_API void plist_set_bool_val(plist_t node, uint8_t val);
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_UINT
+ *
+ * @param node the node
+ * @param val the unsigned integer value
+ */
+	PLIST_API void plist_set_uint_val(plist_t node, uint64_t val);
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_REAL
+ *
+ * @param node the node
+ * @param val the real value
+ */
+	PLIST_API void plist_set_real_val(plist_t node, double val);
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_DATA
+ *
+ * @param node the node
+ * @param val the binary buffer
+ * @param length the length of the buffer
+ */
+	PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length);
+
+/**
+ * Set the value of a node.
+ * Forces type of node to #PLIST_DATE
+ *
+ * @param node the node
+ * @param sec the number of seconds since 01/01/2001
+ * @param usec the number of microseconds
+ */
+	PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec);
 
 
 /********************************************
