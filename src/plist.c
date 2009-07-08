@@ -46,6 +46,7 @@ plist_data_t plist_new_plist_data(void)
 
 static void plist_free_node(GNode * node, gpointer none)
 {
+	g_node_unlink(node);
 	plist_data_t data = plist_get_data(node);
 	if (data) {
 		switch (data->type) {
