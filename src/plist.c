@@ -139,7 +139,7 @@ void plist_free(plist_t plist)
 	g_node_destroy(plist);
 }
 
-static void plist_copy_node(GNode * node, gpointer parent_node)
+static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
 {
 	plist_t newnode = NULL;
 	plist_data_t data = plist_get_data(node);
@@ -150,15 +150,21 @@ static void plist_copy_node(GNode * node, gpointer parent_node)
 	memcpy(newdata, data, sizeof(struct plist_data_s));
 	newnode = plist_new_node(newdata);
 
-	if (parent_node) {
-		g_node_append(parent_node, newnode);
+	if (*(plist_t*)parent_node_ptr) {
+		g_node_append(*(plist_t*)parent_node_ptr, newnode);
 	}
-	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_copy_node, newnode);
+	else {
+		*(plist_t*)parent_node_ptr = newnode;
+	}
+
+	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_copy_node, &newnode);
 }
 
 plist_t plist_copy(plist_t node)
 {
-	plist_copy_node(node, NULL);
+	plist_t copied = NULL;
+	plist_copy_node(node, &copied);
+	return copied;
 }
 
 plist_t plist_get_first_child(plist_t node)
