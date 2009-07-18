@@ -117,6 +117,31 @@ typedef struct {
 		plist_add_sub_data_el($self->node, data, len);
 	}
 
+	void set_as_key(char* k) {
+		plist_set_key_val($self->node, k);
+	}
+
+	void set_as_string(char* s) {
+		plist_set_string_val($self->node, s);
+	}
+
+	void set_as_bool(char b) {
+		plist_set_bool_val($self->node, b);
+	}
+
+	void set_as_uint(uint64_t i) {
+		plist_set_uint_val($self->node, i);
+	}
+
+	void set_as_real(double d) {
+		plist_set_real_val($self->node, d);
+	}
+
+	%cstring_input_binary(char *data, uint64_t len);
+	void set_as_data(char *data, uint64_t len) {
+		plist_set_data_val($self->node, data, len);
+	}
+
 	PListNode* get_first_child() {
 		plist_t node = plist_get_first_child( $self->node );
 		if (node) {
