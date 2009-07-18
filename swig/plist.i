@@ -9,7 +9,7 @@ typedef struct {
 	char should_keep_plist;
 } PListNode;
 
-PListNode *allocate_wrapper(plist_t plist, char should_keep_plist) {
+PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
 	PListNode* wrapper = (PListNode*) malloc(sizeof(PListNode));
 	if (wrapper) {
 		memset(wrapper, 0, sizeof(PListNode));
@@ -46,10 +46,10 @@ typedef struct {
 		PListNode* node = NULL;
 		switch (t) {
 			case PLIST_ARRAY :
-				node = allocate_wrapper( plist_new_array(), 0 );
+				node = allocate_plist_wrapper( plist_new_array(), 0 );
 				break;
 			case PLIST_DICT :
-				node = allocate_wrapper( plist_new_dict(), 0 );
+				node = allocate_plist_wrapper( plist_new_dict(), 0 );
 				break;
 			default :
 				node = NULL;
@@ -69,7 +69,7 @@ typedef struct {
 				plist_from_xml(data, len, &plist);
 			}
 			if (plist)
-				return allocate_wrapper( plist, 0 );
+				return allocate_plist_wrapper( plist, 0 );
 		}
 		return NULL;
 	}
@@ -120,7 +120,7 @@ typedef struct {
 	PListNode* get_first_child() {
 		plist_t node = plist_get_first_child( $self->node );
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -128,7 +128,7 @@ typedef struct {
 	PListNode* get_next_sibling() {
 		plist_t node = plist_get_next_sibling( $self->node );
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -136,7 +136,7 @@ typedef struct {
 	PListNode* get_prev_sibling() {
 		plist_t node = plist_get_prev_sibling( $self->node );
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -144,7 +144,7 @@ typedef struct {
 	PListNode* get_parent() {
 		plist_t node = plist_get_parent( $self->node );
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -198,7 +198,7 @@ typedef struct {
 	PListNode* find_node_by_key(char *s) {
 		plist_t node = plist_find_node_by_key($self->node, s);
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -206,7 +206,7 @@ typedef struct {
 	PListNode* find_node_by_string(char* s) {
 		plist_t node = plist_find_node_by_string($self->node, s);
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -214,7 +214,7 @@ typedef struct {
 	PListNode* get_array_nth_el(unsigned int n) {
 		plist_t node = plist_get_array_nth_el($self->node, n);
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
@@ -222,7 +222,7 @@ typedef struct {
 	PListNode* get_dict_el_from_key(char *key) {
 		plist_t node = plist_get_dict_el_from_key($self->node, key);
 		if (node) {
-			return allocate_wrapper(node, 1);
+			return allocate_plist_wrapper(node, 1);
 		}
 		return NULL;
 	}
