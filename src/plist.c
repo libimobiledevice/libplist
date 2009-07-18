@@ -195,6 +195,11 @@ plist_t plist_get_prev_sibling(plist_t node)
 	return (plist_t) g_node_prev_sibling((GNode *) node);
 }
 
+plist_t plist_get_parent(plist_t node)
+{
+	return node ? (plist_t) ((GNode *) node)->parent : NULL;
+}
+
 plist_t plist_get_array_nth_el(plist_t node, uint32_t n)
 {
 	plist_t ret = NULL;

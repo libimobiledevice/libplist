@@ -141,6 +141,14 @@ typedef struct {
 		return NULL;
 	}
 
+	PListNode* get_parent() {
+		plist_t node = plist_get_parent( $self->node );
+		if (node) {
+			return allocate_wrapper(node, 1);
+		}
+		return NULL;
+	}
+
 	%newobject as_key;
 	char* as_key() {
 		char* k = NULL;

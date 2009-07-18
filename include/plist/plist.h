@@ -148,6 +148,13 @@ extern "C" {
 	PLIST_API plist_t plist_get_prev_sibling(plist_t node);
 
 /**
+ * Get the parent of a node
+ *
+ * @param node the parent (NULL if node is root)
+ */
+	PLIST_API plist_t plist_get_parent(plist_t node);
+
+/**
  * Get the nth child of a #PLIST_ARRAY node.
  *
  * @param node the node of type #PLIST_ARRAY
