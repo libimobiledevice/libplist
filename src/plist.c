@@ -150,11 +150,12 @@ static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
 	memcpy(newdata, data, sizeof(struct plist_data_s));
 
 	plist_type node_type = plist_get_node_type(node);
-	if (node_type == PLIST_DATA || node_type == PLIST_STRING) {
+	if (node_type == PLIST_DATA || node_type == PLIST_STRING || node_type == PLIST_KEY) {
 		switch (node_type) {
 		case PLIST_DATA:
 			newdata->buff = (uint8_t *) malloc(data->length);
 			memcpy(newdata->buff, data->buff, data->length);
+		case PLIST_KEY:
 		case PLIST_STRING:
 			newdata->strval = strdup((char *) data->strval);
 		default:
