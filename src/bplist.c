@@ -271,6 +271,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 				plist_data_t data = plist_new_plist_data();
 				data->type = PLIST_BOOLEAN;
 				data->boolval = TRUE;
+				data->length = 1;
 				return g_node_new(data);
 			}
 
@@ -279,6 +280,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
 				plist_data_t data = plist_new_plist_data();
 				data->type = PLIST_BOOLEAN;
 				data->boolval = FALSE;
+				data->length = 1;
 				return g_node_new(data);
 			}
 
