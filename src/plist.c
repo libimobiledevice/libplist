@@ -268,15 +268,15 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
 	if (node && PLIST_DICT == plist_get_node_type(node)) {
 
 		plist_t current = NULL;
-		for (current = plist_get_first_child(node);
+		for (current = (plist_t)g_node_first_child(node);
 			current;
-			current = plist_get_next_sibling(plist_get_next_sibling(current))) {
+			current = (plist_t)g_node_next_sibling(g_node_next_sibling(current))) {
 
 			assert( PLIST_KEY == plist_get_node_type(current) );
 			plist_data_t data = plist_get_data(current);
 
 			if (data && !strcmp(key, data->strval)) {
-				ret = plist_get_next_sibling(current);
+				ret = (plist_t)g_node_next_sibling(current);
 				break;
 			}
 		}
@@ -284,7 +284,7 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
 	return ret;
 }
 
-void plist_dict_set_item(plist_t node, plist_t item, const char* key)
+void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
 	if (node && PLIST_DICT == plist_get_node_type(node)) {
 		plist_t old_item = plist_dict_get_item(node, key);
@@ -297,7 +297,7 @@ void plist_dict_set_item(plist_t node, plist_t item, const char* key)
 	return;
 }
 
-void plist_dict_insert_item(plist_t node, plist_t item, const char* key)
+void plist_dict_insert_item(plist_t node, const char* key, plist_t item)
 {
 	if (node && PLIST_DICT == plist_get_node_type(node)) {
 		g_node_append(node, plist_new_key(key));
@@ -357,7 +357,7 @@ static plist_t plist_find_node(plist_t plist, plist_type type, const void *value
 	if (!plist)
 		return NULL;
 
-	for (current = plist_get_first_child(plist); current; current = plist_get_next_sibling(current)) {
+	for (current = (plist_t)g_node_first_child(plist); current; current = (plist_t)g_node_next_sibling(current)) {
 
 		plist_data_t data = plist_get_data(current);
 
@@ -657,6 +657,7 @@ void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 }
 
 //DEPRECATED API BELOW
+
 
 static plist_t plist_add_sub_element(plist_t node, plist_type type, const void *value, uint64_t length)
 {

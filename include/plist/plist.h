@@ -262,7 +262,7 @@ extern "C" {
  * @param item the new item associated to key
  * @param key the identifier of the item to get. Assert if identifier is not present.
  */
-	PLIST_API void plist_dict_set_item(plist_t node, plist_t item, const char* key);
+	PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item);
 
 /**
  * Insert a new item at position n in a #PLIST_DICT node.
@@ -271,7 +271,7 @@ extern "C" {
  * @param item the new item to insert
  * @param key The identifier of the item to insert. Assert if identifier already present.
  */
-	PLIST_API void plist_dict_insert_item(plist_t node, plist_t item, const char* key);
+	PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
 
 /**
  * Remove an existing position in a #PLIST_DICT node.
@@ -657,7 +657,6 @@ extern "C" {
  * @param usec the number of microseconds
  */
 	PLIST_API void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec);
-
 
 /*@}*/
 
