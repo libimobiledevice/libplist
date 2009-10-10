@@ -64,7 +64,7 @@ extern "C" {
 /**
  * The plist dictionary iterator.
  */
-	typedef uint32_t *plist_dict_iter;
+	typedef void *plist_dict_iter;
 
 /**
  * The enumeration of plist node types.

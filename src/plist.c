@@ -264,24 +264,24 @@ void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 {
 	if (iter && *iter == NULL) {
 		*iter = malloc(sizeof(uint32_t));
-		**iter = 0;
+		*(uint32_t*)*iter = 0;
 	}
 	return;
 }
 
 void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val)
 {
-	if (node && PLIST_DICT == plist_get_node_type(node) && *iter < g_node_n_children(node) / 2) {
+	if (node && PLIST_DICT == plist_get_node_type(node) && *(uint32_t*)iter < g_node_n_children(node) / 2) {
 
 		if (key) {
-			plist_get_key_val((plist_t)g_node_nth_child(node, 2 * (*iter)), key);
+			plist_get_key_val((plist_t)g_node_nth_child(node, 2 * (*(uint32_t*)iter)), key);
 		}
 
 		if (val) {
-			*val = (plist_t) g_node_nth_child(node, 2 * (*iter) + 1);
+			*val = (plist_t) g_node_nth_child(node, 2 * (*(uint32_t*)iter) + 1);
 		}
 
-		*iter += 2;
+		*(uint32_t*)iter += 2;
 	}
 	return;
 }
