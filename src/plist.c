@@ -278,7 +278,7 @@ void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_
 		}
 
 		if (val) {
-			val = (plist_t) g_node_nth_child(node, 2 * (*iter) + 1);
+			*val = (plist_t) g_node_nth_child(node, 2 * (*iter) + 1);
 		}
 
 		*iter += 2;
