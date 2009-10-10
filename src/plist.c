@@ -212,6 +212,14 @@ plist_t plist_array_get_item(plist_t node, uint32_t n)
 	return ret;
 }
 
+uint32_t plist_array_get_item_index(plist_t node)
+{
+	plist_t father = plist_get_parent(node);
+	if (PLIST_ARRAY == plist_get_node_type(father)) {
+		return g_node_child_position(father, node);
+	}
+}
+
 void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
 {
 	if (node && PLIST_ARRAY == plist_get_node_type(node)) {
@@ -252,13 +260,38 @@ void plist_array_remove_item(plist_t node, uint32_t n)
 	return;
 }
 
-uint32_t plist_dict_get_size(plist_t node)
+void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 {
-	uint32_t ret = 0;
-	if (node && PLIST_DICT == plist_get_node_type(node)) {
-		ret = g_node_n_children(node) / 2;
+	if (iter && *iter == NULL) {
+		*iter = malloc(sizeof(uint32_t));
+		**iter = 0;
 	}
-	return ret;
+	return;
+}
+
+void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val)
+{
+	if (node && PLIST_DICT == plist_get_node_type(node) && *iter < g_node_n_children(node) / 2) {
+
+		if (key) {
+			plist_get_key_val((plist_t)g_node_nth_child(node, 2 * (*iter)), key);
+		}
+
+		if (val) {
+			val = (plist_t) g_node_nth_child(node, 2 * (*iter) + 1);
+		}
+
+		*iter += 2;
+	}
+	return;
+}
+
+void plist_dict_get_item_key(plist_t node, char **key)
+{
+	plist_t father = plist_get_parent(node);
+	if (PLIST_DICT == plist_get_node_type(father)) {
+		plist_get_key_val( (plist_t) g_node_prev_sibling(node), key);
+	}
 }
 
 plist_t plist_dict_get_item(plist_t node, const char* key)

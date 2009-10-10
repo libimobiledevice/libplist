@@ -62,6 +62,11 @@ extern "C" {
 	typedef void *plist_t;
 
 /**
+ * The plist dictionary iterator.
+ */
+	typedef uint32_t *plist_dict_iter;
+
+/**
  * The enumeration of plist node types.
  */
 	typedef enum {
@@ -196,6 +201,14 @@ extern "C" {
 	PLIST_API plist_t plist_array_get_item(plist_t node, uint32_t n);
 
 /**
+ * Get the index of an item. item must be a member of a #PLIST_ARRAY node.
+ *
+ * @param node the node
+ * @return the node index
+ */
+	PLIST_API uint32_t plist_array_get_item_index(plist_t node);
+
+/**
  * Set the nth item in a #PLIST_ARRAY node.
  * The previous item at index n will be freed using #plist_free
  *
@@ -238,12 +251,31 @@ extern "C" {
  ********************************************/
 
 /**
- * Get size of a #PLIST_DICT node.
+ * Create iterator of a #PLIST_DICT node.
+ * The allocated iterator shoult be freed with tandard free function
  *
  * @param node the node of type #PLIST_DICT
- * @return size of the #PLIST_DICT node
+ * @param iter iterator of the #PLIST_DICT node
  */
-	PLIST_API uint32_t plist_dict_get_size(plist_t node);
+	PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter);
+
+/**
+ * Increment iterator of a #PLIST_DICT node.
+ *
+ * @param node the node of type #PLIST_DICT
+ * @param iter iterator of the dictionary
+ * @param key a location to store the key, or NULL.
+ * @param val a location to store the value, or NULL.
+ */
+	PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
+
+/**
+ * Get key associated to an item. Item must be member of a dictionary
+ *
+ * @param node the node
+ * @param key a location to store the key.
+ */
+	PLIST_API void plist_dict_get_item_key(plist_t node, char **key);
 
 /**
  * Get the nth item in a #PLIST_DICT node.
