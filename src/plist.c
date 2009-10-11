@@ -267,6 +267,15 @@ void plist_array_remove_item(plist_t node, uint32_t n)
 	return;
 }
 
+uint32_t plist_dict_get_size(plist_t node)
+{
+	uint32_t ret = 0;
+	if (node && PLIST_DICT == plist_get_node_type(node)) {
+		ret = g_node_n_children(node);
+	}
+	return ret;
+}
+
 void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 {
 	if (iter && *iter == NULL) {

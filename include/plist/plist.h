@@ -251,6 +251,14 @@ extern "C" {
  ********************************************/
 
 /**
+ * Get size of a #PLIST_DICT node.
+ *
+ * @param node the node of type #PLIST_DICT
+ * @return size of the #PLIST_DICT node
+ */
+	PLIST_API uint32_t plist_dict_get_size(plist_t node);
+
+/**
  * Create iterator of a #PLIST_DICT node.
  * The allocated iterator shoult be freed with tandard free function
  *
