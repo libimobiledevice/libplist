@@ -44,10 +44,8 @@ plist_data_t plist_new_plist_data(void)
 	return data;
 }
 
-static void plist_free_node(GNode * node, gpointer none)
+static void plist_free_data(plist_data_t data)
 {
-	g_node_unlink(node);
-	plist_data_t data = plist_get_data(node);
 	if (data) {
 		switch (data->type) {
 		case PLIST_KEY:
@@ -62,6 +60,13 @@ static void plist_free_node(GNode * node, gpointer none)
 		}
 		free(data);
 	}
+}
+
+static void plist_free_node(GNode * node, gpointer none)
+{
+	g_node_unlink(node);
+	plist_data_t data = plist_get_data(node);
+	plist_free_data(data);
 	node->data = NULL;
 	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_free_node, NULL);
 }
@@ -661,6 +666,33 @@ static plist_t plist_set_element_val(plist_t node, plist_type type, const void *
 	case PLIST_DICT:
 	default:
 		break;
+	}
+}
+
+void plist_set_type(plist_t node, plist_type type)
+{
+	if ( g_node_n_children(node) == 0 ) {
+		plist_data_t data = plist_get_data(node);
+		plist_free_data( data );
+		data = plist_new_plist_data();
+		data->type = type;
+		switch(type){
+		case PLIST_BOOLEAN:
+			data->length = sizeof(uint8_t);
+			break;
+		case PLIST_UINT:
+			data->length = sizeof(uint64_t);
+			break;
+		case PLIST_REAL:
+			data->length = sizeof(double);
+			break;
+		case PLIST_DATE:
+			data->length = sizeof(GTimeVal);
+			break;
+		default:
+			data->length = 0;
+			break;
+		}
 	}
 }
 
