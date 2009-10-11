@@ -271,7 +271,7 @@ uint32_t plist_dict_get_size(plist_t node)
 {
 	uint32_t ret = 0;
 	if (node && PLIST_DICT == plist_get_node_type(node)) {
-		ret = g_node_n_children(node);
+		ret = g_node_n_children(node) / 2;
 	}
 	return ret;
 }
