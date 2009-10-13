@@ -7,10 +7,27 @@ SET(libplist_SRC
 	bplist.c
 	xplist.c )
 
+SET(libplist++_SRC
+	Node.cpp
+	Boolean.cpp
+	Integer.cpp
+	Real.cpp
+	String.cpp
+	Date.cpp
+	Data.cpp
+	Structure.cpp
+	Array.cpp
+	Dictionary.cpp
+	Utils.cpp
+	)
+
 ADD_LIBRARY( plist SHARED ${libplist_SRC} )
 TARGET_LINK_LIBRARIES( plist ${LIBXML2_LIBRARIES} ${GLIB2_LIBRARIES} )
 SET_TARGET_PROPERTIES( plist PROPERTIES VERSION ${LIBPLIST_LIBVERSION} )
 SET_TARGET_PROPERTIES( plist PROPERTIES SOVERSION ${LIBPLIST_SOVERSION} )
+
+ADD_LIBRARY( plist++ SHARED ${libplist++_SRC} )
+TARGET_LINK_LIBRARIES( plist++ plist )
 
 INSTALL(TARGETS plist
  RUNTIME DESTINATION bin COMPONENT lib
