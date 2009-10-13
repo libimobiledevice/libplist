@@ -408,37 +408,36 @@ static char compare_node_value(plist_type type, plist_data_t data, const void *v
 	return res;
 }
 
-static plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length)
+plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
 {
-	plist_t current = NULL;
+	plist_t current = plist;
+	plist_type type = PLIST_NONE;
+	uint32_t i = 0;
 
-	if (!plist)
-		return NULL;
-
-	for (current = (plist_t)g_node_first_child(plist); current; current = (plist_t)g_node_next_sibling(current)) {
-
-		plist_data_t data = plist_get_data(current);
-
-		if (data->type == type && data->length == length && compare_node_value(type, data, value, length)) {
-			return current;
+	for (i = 0; i < length && current; i++) {
+		type = plist_get_node_type(current);
+		
+		if (type == PLIST_ARRAY) {
+			uint32_t index = va_arg(v, uint32_t);
+			current = plist_array_get_item(current, index);
 		}
-		if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-			plist_t sub = plist_find_node(current, type, value, length);
-			if (sub)
-				return sub;
+		else if (type == PLIST_DICT) {
+			const char* key = va_arg(v, const char*);
+			current = plist_dict_get_item(current, key);
 		}
 	}
-	return NULL;
+	return current;
 }
 
-plist_t plist_find_node_by_key(plist_t plist, const char *value)
+plist_t plist_access_path(plist_t plist, uint32_t length, ...)
 {
-	return plist_find_node(plist, PLIST_KEY, value, strlen(value));
-}
-
-plist_t plist_find_node_by_string(plist_t plist, const char *value)
-{
-	return plist_find_node(plist, PLIST_STRING, value, strlen(value));
+	plist_t ret = NULL;
+	va_list v;
+ 
+	va_start(v, length);
+	ret = plist_access_pathv(plist, length, v);
+	va_end(v);
+	return ret;
 }
 
 static void plist_get_type_and_value(plist_t node, plist_type * type, void *value, uint64_t * length)
@@ -886,4 +885,36 @@ void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec)
 	plist_add_sub_element(node, PLIST_DATE, &val, sizeof(GTimeVal));
 }
 
+static plist_t plist_find_node(plist_t plist, plist_type type, const void *value, uint64_t length)
+{
+	plist_t current = NULL;
+
+	if (!plist)
+		return NULL;
+
+	for (current = (plist_t)g_node_first_child(plist); current; current = (plist_t)g_node_next_sibling(current)) {
+
+		plist_data_t data = plist_get_data(current);
+
+		if (data->type == type && data->length == length && compare_node_value(type, data, value, length)) {
+			return current;
+		}
+		if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
+			plist_t sub = plist_find_node(current, type, value, length);
+			if (sub)
+				return sub;
+		}
+	}
+	return NULL;
+}
+
+plist_t plist_find_node_by_key(plist_t plist, const char *value)
+{
+	return plist_find_node(plist, PLIST_KEY, value, strlen(value));
+}
+
+plist_t plist_find_node_by_string(plist_t plist, const char *value)
+{
+	return plist_find_node(plist, PLIST_STRING, value, strlen(value));
+}
 

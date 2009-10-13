@@ -48,6 +48,7 @@ extern "C" {
 #endif
 
 #include <sys/types.h>
+#include <stdarg.h>
 
 /**
  * \mainpage libplist : A library to handle Apple Property Lists
@@ -544,22 +545,25 @@ extern "C" {
  ********************************************/
 
 /**
- * Find the first encountered #PLIST_KEY node mathing that key.
+ * Get a node from its path. Each path element depends on the associated father node type.
+ * For Dictionaries, var args are casted to const char*, for arrays, var args are caster to uint32_t
  * Search is breath first order.
  *
- * @param plist the root node of the plist structure.
- * @param value the ASCII Key to match.
+ * @param plist the node to access result from.
+ * @param length length of the path to access
+ * @return the value to access.
  */
-	PLIST_API plist_t plist_find_node_by_key(plist_t plist, const char *value);
+	PLIST_API plist_t plist_access_path(plist_t plist, uint32_t length, ...);
 
 /**
- * Find the first encountered #PLIST_STRING node mathing that string.
- * Search is breath first order.
+ * Variadic version of #plist_access_path.
  *
- * @param plist the root node of the plist structure.
- * @param value the ASCII String to match.
+ * @param plist the node to access result from.
+ * @param length length of the path to access
+ * @param v list of array's index and dic'st key
+ * @return the value to access.
  */
-	PLIST_API plist_t plist_find_node_by_string(plist_t plist, const char *value);
+	PLIST_API plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v);
 
 /**
  * Compare two node values
@@ -705,6 +709,31 @@ extern "C" {
  * @param usec the number of microseconds
  */
 	PLIST_API void plist_add_sub_date_el(plist_t node, int32_t sec, int32_t usec);
+
+
+/********************************************
+ *                                          *
+ *                 Utils                    *
+ *                                          *
+ ********************************************/
+
+/**
+ * Find the first encountered #PLIST_KEY node mathing that key.
+ * Search is breath first order.
+ *
+ * @param plist the root node of the plist structure.
+ * @param value the ASCII Key to match.
+ */
+	PLIST_API plist_t plist_find_node_by_key(plist_t plist, const char *value);
+
+/**
+ * Find the first encountered #PLIST_STRING node mathing that string.
+ * Search is breath first order.
+ *
+ * @param plist the root node of the plist structure.
+ * @param value the ASCII String to match.
+ */
+	PLIST_API plist_t plist_find_node_by_string(plist_t plist, const char *value);
 
 /*@}*/
 
