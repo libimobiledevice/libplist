@@ -31,6 +31,7 @@ class Date : public Node
 {
     public :
 	Date();
+	Date(plist_t node);
 	Date(uint64_t i);
 	virtual ~Date();
 

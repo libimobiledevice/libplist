@@ -31,6 +31,7 @@ class Integer : public Node
 {
     public :
 	Integer();
+	Integer(plist_t node);
 	Integer(uint64_t i);
 	virtual ~Integer();
 

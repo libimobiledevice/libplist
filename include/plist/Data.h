@@ -32,6 +32,7 @@ class Data : public Node
 {
     public :
 	Data();
+	Data(plist_t node);
 	Data(std::vector<char>& buff);
 	virtual ~Data();
 

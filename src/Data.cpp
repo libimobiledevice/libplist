@@ -28,6 +28,10 @@ Data::Data() : Node(PLIST_DATA)
 {
 }
 
+Data::Data(plist_t node) : Node(node)
+{
+}
+
 Data::Data(std::vector<char>& buff) : Node(PLIST_DATA)
 {
     plist_set_data_val(_node, &buff[0], buff.size());

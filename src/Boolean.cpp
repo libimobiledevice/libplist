@@ -28,6 +28,10 @@ Boolean::Boolean() : Node(PLIST_BOOLEAN)
 {
 }
 
+Boolean::Boolean(plist_t node) : Node(node)
+{
+}
+
 Boolean::Boolean(bool b) : Node(PLIST_BOOLEAN)
 {
     plist_set_bool_val(_node, b);

@@ -21,6 +21,12 @@
 #include <stdlib.h>
 #include <plist/Dictionary.h>
 #include <plist/Array.h>
+#include <plist/Boolean.h>
+#include <plist/Integer.h>
+#include <plist/Real.h>
+#include <plist/String.h>
+#include <plist/Date.h>
+#include <plist/Data.h>
 
 namespace PList
 {
@@ -50,13 +56,24 @@ Dictionary::Dictionary(plist_t node) : Structure()
 		_map[std::string(key)] = new Array(subnode);
 		break;
 	    case PLIST_BOOLEAN:
+		_map[std::string(key)] = new Boolean(subnode);
+		break;
 	    case PLIST_UINT:
+		_map[std::string(key)] = new Integer(subnode);
+		break;
 	    case PLIST_REAL:
+		_map[std::string(key)] = new Real(subnode);
+		break;
 	    case PLIST_STRING:
+		_map[std::string(key)] = new String(subnode);
+		break;
 	    case PLIST_DATE:
+		_map[std::string(key)] = new Date(subnode);
+		break;
 	    case PLIST_DATA:
+		_map[std::string(key)] = new Data(subnode);
+		break;
 	    default:
-		_map[std::string(key)] = new Node(subnode);
 		break;
 	}
 	
@@ -96,13 +113,24 @@ Dictionary::Dictionary(Dictionary& d)
 		_map[std::string(key)] = new Array(subnode);
 		break;
 	    case PLIST_BOOLEAN:
+		_map[std::string(key)] = new Boolean(subnode);
+		break;
 	    case PLIST_UINT:
+		_map[std::string(key)] = new Integer(subnode);
+		break;
 	    case PLIST_REAL:
+		_map[std::string(key)] = new Real(subnode);
+		break;
 	    case PLIST_STRING:
+		_map[std::string(key)] = new String(subnode);
+		break;
 	    case PLIST_DATE:
+		_map[std::string(key)] = new Date(subnode);
+		break;
 	    case PLIST_DATA:
+		_map[std::string(key)] = new Data(subnode);
+		break;
 	    default:
-		_map[std::string(key)] = new Node(subnode);
 		break;
 	}
 	
@@ -142,13 +170,24 @@ Dictionary& Dictionary::operator=(const Dictionary& d)
 		_map[std::string(key)] = new Array(subnode);
 		break;
 	    case PLIST_BOOLEAN:
+		_map[std::string(key)] = new Boolean(subnode);
+		break;
 	    case PLIST_UINT:
+		_map[std::string(key)] = new Integer(subnode);
+		break;
 	    case PLIST_REAL:
+		_map[std::string(key)] = new Real(subnode);
+		break;
 	    case PLIST_STRING:
+		_map[std::string(key)] = new String(subnode);
+		break;
 	    case PLIST_DATE:
+		_map[std::string(key)] = new Date(subnode);
+		break;
 	    case PLIST_DATA:
+		_map[std::string(key)] = new Data(subnode);
+		break;
 	    default:
-		_map[std::string(key)] = new Node(subnode);
 		break;
 	}
 	

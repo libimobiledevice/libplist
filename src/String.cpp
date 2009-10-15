@@ -28,6 +28,10 @@ String::String() : Node(PLIST_STRING)
 {
 }
 
+String::String(plist_t node) : Node(node)
+{
+}
+
 String::String(std::string& s) : Node(PLIST_STRING)
 {
     plist_set_string_val(_node, s.c_str());

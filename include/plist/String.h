@@ -32,6 +32,7 @@ class String : public Node
 {
     public :
 	String();
+	String(plist_t node);
 	String(std::string& s);
 	virtual ~String();
 

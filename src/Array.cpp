@@ -21,6 +21,12 @@
 #include <stdlib.h>
 #include <plist/Array.h>
 #include <plist/Dictionary.h>
+#include <plist/Boolean.h>
+#include <plist/Integer.h>
+#include <plist/Real.h>
+#include <plist/String.h>
+#include <plist/Date.h>
+#include <plist/Data.h>
 
 namespace PList
 {
@@ -48,13 +54,24 @@ Array::Array(plist_t node) : Structure()
 		_array.push_back( new Array(subnode) );
 		break;
 	    case PLIST_BOOLEAN:
+		_array.push_back( new Boolean(subnode) );
+		break;
 	    case PLIST_UINT:
+		_array.push_back( new Integer(subnode) );
+		break;
 	    case PLIST_REAL:
+		_array.push_back( new Real(subnode) );
+		break;
 	    case PLIST_STRING:
+		_array.push_back( new String(subnode) );
+		break;
 	    case PLIST_DATE:
+		_array.push_back( new Date(subnode) );
+		break;
 	    case PLIST_DATA:
+		_array.push_back( new Data(subnode) );
+		break;
 	    default:
-		_array.push_back( new Node(subnode) );
 		break;
 	}
     }
@@ -85,13 +102,24 @@ Array::Array(Array& a)
 		_array.push_back( new Array(subnode) );
 		break;
 	    case PLIST_BOOLEAN:
+		_array.push_back( new Boolean(subnode) );
+		break;
 	    case PLIST_UINT:
+		_array.push_back( new Integer(subnode) );
+		break;
 	    case PLIST_REAL:
+		_array.push_back( new Real(subnode) );
+		break;
 	    case PLIST_STRING:
+		_array.push_back( new String(subnode) );
+		break;
 	    case PLIST_DATE:
+		_array.push_back( new Date(subnode) );
+		break;
 	    case PLIST_DATA:
+		_array.push_back( new Data(subnode) );
+		break;
 	    default:
-		_array.push_back( new Node(subnode) );
 		break;
 	}
     }
@@ -122,13 +150,24 @@ Array& Array::operator=(const Array& a)
 		_array.push_back( new Array(subnode) );
 		break;
 	    case PLIST_BOOLEAN:
+		_array.push_back( new Boolean(subnode) );
+		break;
 	    case PLIST_UINT:
+		_array.push_back( new Integer(subnode) );
+		break;
 	    case PLIST_REAL:
+		_array.push_back( new Real(subnode) );
+		break;
 	    case PLIST_STRING:
+		_array.push_back( new String(subnode) );
+		break;
 	    case PLIST_DATE:
+		_array.push_back( new Date(subnode) );
+		break;
 	    case PLIST_DATA:
+		_array.push_back( new Data(subnode) );
+		break;
 	    default:
-		_array.push_back( new Node(subnode) );
 		break;
 	}
     }

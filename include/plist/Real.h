@@ -31,6 +31,7 @@ class Real : public Node
 {
     public :
 	Real();
+	Real(plist_t node);
 	Real(double d);
 	virtual ~Real();
 

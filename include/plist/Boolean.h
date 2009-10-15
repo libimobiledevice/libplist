@@ -31,6 +31,7 @@ class Boolean : public Node
 {
     public :
 	Boolean();
+	Boolean(plist_t node);
 	Boolean(bool b);
 	virtual ~Boolean();
 

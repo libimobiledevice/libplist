@@ -28,6 +28,10 @@ Date::Date() : Node(PLIST_DATE)
 {
 }
 
+Date::Date(plist_t node) : Node(node)
+{
+}
+
 Date::Date(uint64_t i) : Node(PLIST_DATE)
 {
     plist_set_date_val(_node, i, 0);

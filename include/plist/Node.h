@@ -31,7 +31,6 @@ class Node
 {
     public :
 	virtual ~Node();
-	Node(plist_t node);
 	Node(Node& node);
 	Node& operator=(const Node& node);
 	
@@ -40,6 +39,7 @@ class Node
 	
     protected:
 	Node();
+	Node(plist_t node);
 	Node(plist_type type);
 	plist_t _node;
 };

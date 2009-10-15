@@ -28,6 +28,10 @@ Integer::Integer() : Node(PLIST_UINT)
 {
 }
 
+Integer::Integer(plist_t node) : Node(node)
+{
+}
+
 Integer::Integer(uint64_t i) : Node(PLIST_UINT)
 {
     plist_set_uint_val(_node, i);
