@@ -4,6 +4,8 @@
  %{
  /* Includes the header in the wrapper code */
  #include <plist/plist.h>
+ #include <plist/plist++.h>
+
 typedef struct {
 	plist_t node;
 	char should_keep_plist;
@@ -20,6 +22,34 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
 	return NULL;
 }
  %}
+
+%include "stl.i"
+
+%rename(__assign__) *::operator=;
+%rename(__getitem__) *::operator[];
+
+%ignore Boolean(plist_t);
+%ignore Integer(plist_t);
+%ignore Real(plist_t);
+%ignore String(plist_t);
+%ignore Data(plist_t);
+%ignore Date(plist_t);
+%ignore Array(plist_t);
+%ignore Dictionary(plist_t);
+
+%include <plist/Node.h>
+%include <plist/Boolean.h>
+%include <plist/Integer.h>
+%include <plist/Real.h>
+%include <plist/String.h>
+%include <plist/Data.h>
+%include <plist/Date.h>
+%include <plist/Structure.h>
+%include <plist/Array.h>
+%include <plist/Dictionary.h>
+%include <plist/Utils.h>
+
+//deprecated wrapper below
 
 %include "stdint.i"
 %include "cstring.i"
@@ -189,9 +219,9 @@ typedef struct {
 	}
 
 	char as_bool() {
-		char b;
+		uint8_t b;
 		plist_get_bool_val($self->node, &b);
-		return b;
+		return (char)b;
 	}
 
 	uint64_t as_uint() {

@@ -4,8 +4,9 @@ SET(CMAKE_SWIG_FLAGS -Werror -Wall -modern)
 
 INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_PATH} )
 
+SET_SOURCE_FILES_PROPERTIES(plist.i PROPERTIES CPLUSPLUS ON)
 SWIG_ADD_MODULE( PList python plist.i )
-SWIG_LINK_LIBRARIES( PList plist ${PYTHON_LIBRARIES} )
+SWIG_LINK_LIBRARIES( PList plist plist++ ${PYTHON_LIBRARIES} )
 
 EXEC_PROGRAM("${PYTHON_EXECUTABLE}"
     ARGS "-c 'try:\n import distutils.sysconfig; print distutils.sysconfig.get_python_lib()\nexcept: pass\n'"
