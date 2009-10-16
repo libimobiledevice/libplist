@@ -32,8 +32,12 @@ class Date : public Node
     public :
 	Date();
 	Date(plist_t node);
+	Date(Date& d);
+	Date& operator=(Date& d);
 	Date(uint64_t i);
 	virtual ~Date();
+
+	Node* Clone();
 
 	void SetValue(uint64_t i);
 	uint64_t GetValue();

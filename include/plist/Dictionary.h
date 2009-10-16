@@ -35,17 +35,19 @@ class Dictionary : public Structure
 	Dictionary();
 	Dictionary(plist_t node);
 	Dictionary(Dictionary& d);
-	Dictionary& operator=(const Dictionary& d);
+	Dictionary& operator=(Dictionary& d);
 	virtual ~Dictionary();
-	
+
+	Node* Clone();
+
 	typedef std::map<std::string,Node*>::iterator iterator;
 	
-	Node* operator[](std::string& key);
+	Node* operator[](const std::string& key);
 	iterator Begin();
 	iterator End();
-	void Insert(std::string& key, Node* node);
+	void Insert(const std::string& key, Node* node);
 	void Remove(Node* node);
-	void Remove(std::string& key);
+	void Remove(const std::string& key);
 	
     private :
 	std::map<std::string,Node*> _map;

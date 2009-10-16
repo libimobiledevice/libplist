@@ -32,8 +32,12 @@ class Real : public Node
     public :
 	Real();
 	Real(plist_t node);
+	Real(Real& d);
+	Real& operator=(Real& d);
 	Real(double d);
 	virtual ~Real();
+
+	Node* Clone();
 
 	void SetValue(double d);
 	double GetValue();

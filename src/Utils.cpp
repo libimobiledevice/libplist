@@ -54,7 +54,7 @@ static Structure* FromPlist(plist_t root)
     return ret;
 }
 
-Structure* Utils::FromXml(std::string& in)
+Structure* Utils::FromXml(const std::string& in)
 {
     plist_t root = NULL;
     plist_from_xml(in.c_str(), in.size(), &root);
@@ -62,7 +62,7 @@ Structure* Utils::FromXml(std::string& in)
     return FromPlist(root);
 }
 
-Structure* Utils::FromBin(std::vector<char>& in)
+Structure* Utils::FromBin(const std::vector<char>& in)
 {
     plist_t root = NULL;
     plist_from_bin(&in[0], in.size(), &root);

@@ -74,22 +74,6 @@ Node::~Node()
     _node = NULL;
 }
 
-Node::Node(Node& node)
-{
-    plist_free(_node);
-    _node = NULL;
-
-    _node = plist_copy(_node);
-}
-
-Node& Node::operator=(const Node& node)
-{
-    plist_free(_node);
-    _node = NULL;
-
-    _node = plist_copy(_node);
-}
-
 plist_type Node::GetType()
 {
     if (_node)
@@ -98,7 +82,7 @@ plist_type Node::GetType()
     }
 }
 
-plist_t Node::GetPlist() const
+plist_t Node::GetPlist()
 {
     return _node;
 }

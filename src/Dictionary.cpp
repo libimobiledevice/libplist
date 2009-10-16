@@ -85,7 +85,7 @@ Dictionary::Dictionary(plist_t node) : Structure()
     free(it);
 }
 
-Dictionary::Dictionary(Dictionary& d)
+Dictionary::Dictionary(PList::Dictionary& d) : Structure()
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
@@ -142,7 +142,7 @@ Dictionary::Dictionary(Dictionary& d)
     free(it);
 }
 
-Dictionary& Dictionary::operator=(const Dictionary& d)
+Dictionary& Dictionary::operator=(PList::Dictionary& d)
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
@@ -209,7 +209,12 @@ Dictionary::~Dictionary()
     _map.clear();
 }
 
-Node* Dictionary::operator[](std::string& key)
+Node* Dictionary::Clone()
+{
+    return new Dictionary(*this);
+}
+
+Node* Dictionary::operator[](const std::string& key)
 {
     return _map[key];
 }
@@ -224,13 +229,14 @@ Dictionary::iterator Dictionary::End()
     return _map.end();
 }
 
-void Dictionary::Insert(std::string& key, Node* node)
+void Dictionary::Insert(const std::string& key, Node* node)
 {
     if (node)
     {
-	plist_dict_insert_item(_node, key.c_str(), node->GetPlist());
+	Node* clone = node->Clone();
+	plist_dict_insert_item(_node, key.c_str(), clone->GetPlist());
 	delete _map[key];
-	_map[key] = node;
+	_map[key] = clone;
     }
 }
 
@@ -247,7 +253,7 @@ void Dictionary::Remove(Node* node)
     }
 }
 
-void Dictionary::Remove(std::string& key)
+void Dictionary::Remove(const std::string& key)
 {
 	plist_dict_remove_item(_node, key.c_str());
 	delete _map[key];

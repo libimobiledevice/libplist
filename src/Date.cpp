@@ -32,6 +32,16 @@ Date::Date(plist_t node) : Node(node)
 {
 }
 
+Date::Date(Date& d) : Node(PLIST_DATE)
+{
+    //TODO
+}
+
+Date& Date::operator=(PList::Date& b)
+{
+    //TODO
+}
+
 Date::Date(uint64_t i) : Node(PLIST_DATE)
 {
     plist_set_date_val(_node, i, 0);
@@ -39,6 +49,11 @@ Date::Date(uint64_t i) : Node(PLIST_DATE)
 
 Date::~Date()
 {
+}
+
+Node* Date::Clone()
+{
+    return new Date(*this);
 }
 
 void Date::SetValue(uint64_t i)

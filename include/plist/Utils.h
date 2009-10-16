@@ -30,8 +30,8 @@ namespace PList
     class Utils
     {
 	public:
-	    static Structure* FromXml(std::string& in);
-	    static Structure* FromBin(std::vector<char>& in);
+	    static Structure* FromXml(const std::string& in);
+	    static Structure* FromBin(const std::vector<char>& in);
 
 	private:
 	    Utils();

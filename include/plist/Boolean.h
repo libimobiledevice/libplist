@@ -32,8 +32,12 @@ class Boolean : public Node
     public :
 	Boolean();
 	Boolean(plist_t node);
+	Boolean(Boolean& b);
+	Boolean& operator=(Boolean& b);
 	Boolean(bool b);
 	virtual ~Boolean();
+
+	Node* Clone();
 
 	void SetValue(bool b);
 	bool GetValue();

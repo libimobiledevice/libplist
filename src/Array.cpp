@@ -77,15 +77,9 @@ Array::Array(plist_t node) : Structure()
     }
 }
 
-Array::Array(Array& a)
+Array::Array(PList::Array& a) : Structure()
 {
-    plist_free(_node);
-    for (int it = 0; it < _array.size(); it++)
-    {
-	delete _array.at(it);
-    }
     _array.clear();
-    
     _node = plist_copy(a.GetPlist());
     uint32_t size = plist_array_get_size(_node);
 
@@ -125,7 +119,7 @@ Array::Array(Array& a)
     }
 }
 
-Array& Array::operator=(const Array& a)
+Array& Array::operator=(PList::Array& a)
 {
     plist_free(_node);
     for (int it = 0; it < _array.size(); it++)
@@ -175,12 +169,16 @@ Array& Array::operator=(const Array& a)
 
 Array::~Array()
 {
-    plist_free(_node);
-    for (int it = 0; it < _array.size(); it++)
-    {
-	delete _array.at(it);
-    }
-    _array.clear();
+     for (int it = 0; it < _array.size(); it++)
+     {
+	delete (_array.at(it));
+     }
+     _array.clear();
+}
+
+Node* Array::Clone()
+{
+    return new Array(*this);
 }
 
 Node* Array::operator[](unsigned int index)
@@ -192,8 +190,9 @@ void Array::Append(Node* node)
 {
     if (node)
     {
-	plist_array_append_item(_node, node->GetPlist());
-	_array.push_back(node);
+	Node* clone = node->Clone();
+	plist_array_append_item(_node, clone->GetPlist());
+	_array.push_back(clone);
     }
 }
 
@@ -201,10 +200,11 @@ void Array::Insert(Node* node, unsigned int pos)
 {
     if (node)
     {
-	plist_array_insert_item(_node, node->GetPlist(), pos);
+	Node* clone = node->Clone();
+	plist_array_insert_item(_node, clone->GetPlist(), pos);
 	std::vector<Node*>::iterator it = _array.begin();
 	it += pos;
-	_array.insert(it, node);
+	_array.insert(it, clone);
     }
 }
 

@@ -32,8 +32,12 @@ class Integer : public Node
     public :
 	Integer();
 	Integer(plist_t node);
+	Integer(Integer& i);
+	Integer& operator=(Integer& i);
 	Integer(uint64_t i);
 	virtual ~Integer();
+
+	Node* Clone();
 
 	void SetValue(uint64_t i);
 	uint64_t GetValue();

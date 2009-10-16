@@ -33,10 +33,14 @@ class Data : public Node
     public :
 	Data();
 	Data(plist_t node);
-	Data(std::vector<char>& buff);
+	Data(Data& d);
+	Data& operator=(Data& d);
+	Data(const std::vector<char>& buff);
 	virtual ~Data();
 
-	void SetValue(std::vector<char>& buff);
+	Node* Clone();
+
+	void SetValue(const std::vector<char>& buff);
 	std::vector<char> GetValue();
 };
 

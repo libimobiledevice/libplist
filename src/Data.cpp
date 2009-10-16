@@ -32,7 +32,19 @@ Data::Data(plist_t node) : Node(node)
 {
 }
 
-Data::Data(std::vector<char>& buff) : Node(PLIST_DATA)
+Data::Data(PList::Data& d) : Node(PLIST_DATA)
+{
+    std::vector<char> b = d.GetValue();
+    plist_set_data_val(_node, &b[0], b.size());
+}
+
+Data& Data::operator=(PList::Data& b)
+{
+    plist_free(_node);
+    _node = plist_copy(b.GetPlist());
+}
+
+Data::Data(const std::vector<char>& buff) : Node(PLIST_DATA)
 {
     plist_set_data_val(_node, &buff[0], buff.size());
 }
@@ -41,7 +53,12 @@ Data::~Data()
 {
 }
 
-void Data::SetValue(std::vector<char>& buff)
+Node* Data::Clone()
+{
+    return new Data(*this);
+}
+
+void Data::SetValue(const std::vector<char>& buff)
 {
     plist_set_data_val(_node, &buff[0], buff.size());
 }

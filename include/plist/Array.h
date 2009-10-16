@@ -34,9 +34,11 @@ class Array : public Structure
 	Array();
 	Array(plist_t node);
 	Array(Array& a);
-	Array& operator=(const Array& a);
+	Array& operator=(Array& a);
 	virtual ~Array();
-	
+
+	Node* Clone();
+
 	Node* operator[](unsigned int index);
 	void Append(Node* node);
 	void Insert(Node* node, unsigned int pos);

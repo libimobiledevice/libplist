@@ -32,6 +32,17 @@ Boolean::Boolean(plist_t node) : Node(node)
 {
 }
 
+Boolean::Boolean(PList::Boolean& b) : Node(PLIST_BOOLEAN)
+{
+    plist_set_bool_val(_node, b.GetValue());
+}
+
+Boolean& Boolean::operator=(PList::Boolean& b)
+{
+    plist_free(_node);
+    _node = plist_copy(b.GetPlist());
+}
+
 Boolean::Boolean(bool b) : Node(PLIST_BOOLEAN)
 {
     plist_set_bool_val(_node, b);
@@ -39,6 +50,11 @@ Boolean::Boolean(bool b) : Node(PLIST_BOOLEAN)
 
 Boolean::~Boolean()
 {
+}
+
+Node* Boolean::Clone()
+{
+    return new Boolean(*this);
 }
 
 void Boolean::SetValue(bool b)

@@ -31,11 +31,11 @@ class Node
 {
     public :
 	virtual ~Node();
-	Node(Node& node);
-	Node& operator=(const Node& node);
-	
+
+	virtual Node* Clone() = 0;
+
 	plist_type GetType();
-	plist_t GetPlist() const;
+	plist_t GetPlist();
 	
     protected:
 	Node();
