@@ -80,7 +80,7 @@ Dictionary::Dictionary(plist_t node) : Structure()
 	subnode = NULL;
 	free(key);
 	key = NULL;
-	plist_dict_next_item(_node, it, NULL, &subnode);
+	plist_dict_next_item(_node, it, &key, &subnode);
     }
     free(it);
 }
