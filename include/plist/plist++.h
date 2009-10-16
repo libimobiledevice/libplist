@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef LIBPLIST++_H
-#define LIBPLIST++_H
+#ifndef LIBPLISTXX_H
+#define LIBPLISTXX_H
 
 #include "plist.h"
 #include "Array.h"
