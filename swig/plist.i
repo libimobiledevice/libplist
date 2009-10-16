@@ -25,6 +25,10 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
 
 %include "stl.i"
 
+namespace std {
+   %template(vectorc) vector<char>;
+};
+
 %rename(__assign__) *::operator=;
 %rename(__getitem__) *::operator[];
 
