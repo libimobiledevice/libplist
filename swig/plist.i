@@ -40,6 +40,55 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
     int length = PyString_Size($input);
     $1 = std::vector<char>(buffer, buffer + length);
 }
+
+%apply SWIGTYPE *DYNAMIC { PList::Node* };
+%apply SWIGTYPE *DYNAMIC { PList::Structure* };
+
+%{
+static swig_type_info *Node_dynamic(void **ptr)
+{
+    PList::Node* node = dynamic_cast<PList::Node *>((PList::Node *) *ptr);
+    if (node)
+    {
+	plist_type type = node->GetType();
+	switch(type)
+	{
+	    case PLIST_DICT:
+		*ptr = dynamic_cast<PList::Dictionary *>(node);
+		return SWIGTYPE_p_PList__Dictionary;
+	    case PLIST_ARRAY:
+		*ptr = dynamic_cast<PList::Array *>(node);
+		return SWIGTYPE_p_PList__Array;
+	    case PLIST_BOOLEAN:
+		*ptr = dynamic_cast<PList::Boolean *>(node);
+		return SWIGTYPE_p_PList__Boolean;
+	    case PLIST_UINT:
+		*ptr = dynamic_cast<PList::Integer *>(node);
+		return SWIGTYPE_p_PList__Integer;
+	    case PLIST_REAL:
+		*ptr = dynamic_cast<PList::Real *>(node);
+		return SWIGTYPE_p_PList__Real;
+	    case PLIST_STRING:
+		*ptr = dynamic_cast<PList::String *>(node);
+		return SWIGTYPE_p_PList__String;
+	    case PLIST_DATE:
+		*ptr = dynamic_cast<PList::Date *>(node);
+		return SWIGTYPE_p_PList__Date;
+	    case PLIST_DATA:
+		*ptr = dynamic_cast<PList::Data *>(node);
+		return SWIGTYPE_p_PList__Data;
+	    default:
+		break;
+	}
+    }
+    return 0;
+}
+%}
+
+// Register the above casting function
+DYNAMIC_CAST(SWIGTYPE_p_PList__Node, Node_dynamic);
+DYNAMIC_CAST(SWIGTYPE_p_PList__Structure, Node_dynamic);
+
 #else
 #endif
 
