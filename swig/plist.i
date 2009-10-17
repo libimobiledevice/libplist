@@ -23,11 +23,26 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
 }
  %}
 
-%include "stl.i"
+%include "std_string.i"
 
-namespace std {
-   %template(vectorc) vector<char>;
-};
+#if SWIGPYTHON
+%typemap(out) std::vector<char> {
+   $result = PyString_FromStringAndSize((const char*)&($1[0]),(int)($1.size()));
+}
+
+%typemap(in) (const std::vector<char>& v)
+{
+    if (!PyString_Check($input)) {
+	PyErr_SetString(PyExc_ValueError,"Expected a string");
+	return NULL;
+    }
+    char* buffer = PyString_AsString($input);
+    int length = PyString_Size($input);
+    $1 = std::vector<char>(buffer, buffer + length);
+}
+#else
+#endif
+
 
 %rename(__assign__) *::operator=;
 %rename(__getitem__) *::operator[];
