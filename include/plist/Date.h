@@ -23,6 +23,7 @@
 #define DATE_H
 
 #include <plist/Node.h>
+#include <ctime>
 
 namespace PList
 {
@@ -34,13 +35,13 @@ class Date : public Node
 	Date(plist_t node);
 	Date(Date& d);
 	Date& operator=(Date& d);
-	Date(uint64_t i);
+	Date(timeval t);
 	virtual ~Date();
 
 	Node* Clone();
 
-	void SetValue(uint64_t i);
-	uint64_t GetValue();
+	void SetValue(timeval t);
+	timeval GetValue();
 };
 
 };

@@ -32,19 +32,21 @@ Date::Date(plist_t node) : Node(node)
 {
 }
 
-Date::Date(Date& d) : Node(PLIST_DATE)
+Date::Date(PList::Date& d) : Node(PLIST_DATE)
 {
-    //TODO
+    timeval t = d.GetValue();
+    plist_set_date_val(_node, t.tv_sec, t.tv_usec);
 }
 
-Date& Date::operator=(PList::Date& b)
+Date& Date::operator=(PList::Date& d)
 {
-    //TODO
+    plist_free(_node);
+    _node = plist_copy(d.GetPlist());
 }
 
-Date::Date(uint64_t i) : Node(PLIST_DATE)
+Date::Date(timeval t) : Node(PLIST_DATE)
 {
-    plist_set_date_val(_node, i, 0);
+    plist_set_date_val(_node, t.tv_sec, t.tv_usec);
 }
 
 Date::~Date()
@@ -56,16 +58,17 @@ Node* Date::Clone()
     return new Date(*this);
 }
 
-void Date::SetValue(uint64_t i)
+void Date::SetValue(timeval t)
 {
-    plist_set_date_val(_node, i, 0);
+    plist_set_date_val(_node, t.tv_sec, t.tv_usec);
 }
 
-uint64_t Date::GetValue()
+timeval Date::GetValue()
 {
-    int32_t i = 0;
-    plist_get_date_val(_node, &i, &i);
-    return i;
+    int32_t tv_sec = 0;
+    int32_t tv_usec = 0;
+    plist_get_date_val(_node, &tv_sec, &tv_usec);
+    return {tv_sec, tv_usec};
 }
 
 };
