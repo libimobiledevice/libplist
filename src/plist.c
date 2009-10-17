@@ -472,8 +472,8 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
 		break;
 	case PLIST_DATE:
 		//exception : here we use memory on the stack since it is just a temporary buffer
-		(*((GTimeVal **) value))->tv_sec = data->timeval.tv_sec;
-		(*((GTimeVal **) value))->tv_usec = data->timeval.tv_usec;
+		((GTimeVal *) value)->tv_sec = data->timeval.tv_sec;
+		((GTimeVal *) value)->tv_usec = data->timeval.tv_usec;
 		break;
 	case PLIST_ARRAY:
 	case PLIST_DICT:

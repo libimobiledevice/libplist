@@ -68,7 +68,8 @@ timeval Date::GetValue()
     int32_t tv_sec = 0;
     int32_t tv_usec = 0;
     plist_get_date_val(_node, &tv_sec, &tv_usec);
-    return {tv_sec, tv_usec};
+    timeval t = {tv_sec, tv_usec};
+    return t;
 }
 
 };
