@@ -128,9 +128,28 @@ static swig_type_info *Node_dynamic(void **ptr)
 DYNAMIC_CAST(SWIGTYPE_p_PList__Node, Node_dynamic);
 DYNAMIC_CAST(SWIGTYPE_p_PList__Structure, Node_dynamic);
 
+%include "std_map.i"
+// Instantiate templates used by example
+namespace std {
+    %template(PairStringNodePtr) std::pair<string, PList::Node*>;
+    %template(MapStringNodePtr) map<string,PList::Node*>;
+}
 
 %rename(__assign__) *::operator=;
 %rename(__getitem__) *::operator[];
+%rename(__delitem__) *::Remove;
+%rename(__setitem__) PList::Dictionary::Insert;
+%rename(__deepcopy__) *::Clone;
+%rename(__len__) *::GetSize;
+%rename(get_type) *::GetType;
+%rename(set_value) *::SetValue;
+%rename(get_value) *::GetValue;
+%rename(to_xml) *::ToXml;
+%rename(to_bin) *::ToBin;
+%rename(from_xml) *::FromXml;
+%rename(from_bin) *::FromBin;
+%rename(append) *::Append;
+%rename(insert) PList::Array::Insert;
 
 %ignore GetPlist();
 %ignore Boolean(plist_t);
@@ -141,6 +160,9 @@ DYNAMIC_CAST(SWIGTYPE_p_PList__Structure, Node_dynamic);
 %ignore Date(plist_t);
 %ignore Array(plist_t);
 %ignore Dictionary(plist_t);
+%ignore Begin();
+%ignore End();
+%ignore Find();
 
 %include <plist/Node.h>
 %include <plist/Boolean.h>
@@ -153,6 +175,96 @@ DYNAMIC_CAST(SWIGTYPE_p_PList__Structure, Node_dynamic);
 %include <plist/Array.h>
 %include <plist/Dictionary.h>
 %include <plist/Utils.h>
+
+
+%extend PList::Dictionary {
+
+    %newobject key_iterator(PyObject **PYTHON_SELF);
+    swig::PySwigIterator* key_iterator(PyObject **PYTHON_SELF) {
+	return swig::make_output_key_iterator(self->Begin(), self->Begin(), self->End(), *PYTHON_SELF);
+    }
+
+    %newobject value_iterator(PyObject **PYTHON_SELF);
+    swig::PySwigIterator* value_iterator(PyObject **PYTHON_SELF) {
+	return swig::make_output_value_iterator(self->Begin(), self->Begin(), self->End(), *PYTHON_SELF);
+    }
+
+    iterator iteritems()
+    {
+	return self->Begin();
+    }
+
+    bool has_key(const std::string& key) const {
+	PList::Dictionary* dict = const_cast<PList::Dictionary*>(self);
+	PList::Dictionary::iterator i = dict->Find(key);
+	return i != dict->End();
+    }
+
+    PyObject* keys() {
+	uint32_t size = self->GetSize();
+	int pysize = (size <= (uint32_t) INT_MAX) ? (int) size : -1;
+	if (pysize < 0) {
+	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	    PyErr_SetString(PyExc_OverflowError,
+			    "map size not valid in python");
+			    SWIG_PYTHON_THREAD_END_BLOCK;
+			    return NULL;
+	}
+	PyObject* keyList = PyList_New(pysize);
+	PList::Dictionary::iterator i = self->Begin();
+	for (int j = 0; j < pysize; ++i, ++j) {
+	    PyList_SET_ITEM(keyList, j, swig::from(i->first));
+	}
+	return keyList;
+    }
+
+    PyObject* values() {
+	uint32_t size = self->GetSize();
+	int pysize = (size <= (uint32_t) INT_MAX) ? (int) size : -1;
+	if (pysize < 0) {
+	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	    PyErr_SetString(PyExc_OverflowError,
+			    "map size not valid in python");
+			    SWIG_PYTHON_THREAD_END_BLOCK;
+			    return NULL;
+	}
+	PyObject* valList = PyList_New(pysize);
+	PList::Dictionary::iterator i = self->Begin();
+	for (int j = 0; j < pysize; ++i, ++j) {
+	    PList::Node *second = i->second;
+	    PyObject *down = SWIG_NewPointerObj(SWIG_as_voidptr(second), SWIG_TypeDynamicCast(SWIGTYPE_p_PList__Node, SWIG_as_voidptrptr(&second)), 0 |  0 );
+	    PyList_SET_ITEM(valList, j, down);
+	}
+	return valList;
+    }
+
+    PyObject* items() {
+	uint32_t size = self->GetSize();
+	int pysize = (size <= (uint32_t) INT_MAX) ? (int) size : -1;
+	if (pysize < 0) {
+	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	    PyErr_SetString(PyExc_OverflowError,
+			    "map size not valid in python");
+			    SWIG_PYTHON_THREAD_END_BLOCK;
+			    return NULL;
+	}
+	PyObject* itemList = PyList_New(pysize);
+	PList::Dictionary::iterator i = self->Begin();
+	for (int j = 0; j < pysize; ++i, ++j) {
+	    PyObject *item = PyTuple_New(2);
+	    PList::Node *second = i->second;
+	    PyObject *down = SWIG_NewPointerObj(SWIG_as_voidptr(second), SWIG_TypeDynamicCast(SWIGTYPE_p_PList__Node, SWIG_as_voidptrptr(&second)), 0 |  0 );
+	    PyTuple_SetItem(item, 0, swig::from(i->first));
+	    PyTuple_SetItem(item, 1, down);
+	    PyList_SET_ITEM(itemList, j, item);
+	}
+	return itemList;
+    }
+
+    %pythoncode {def __iter__(self): return self.key_iterator()}
+    %pythoncode {def iterkeys(self): return self.key_iterator()}
+    %pythoncode {def itervalues(self): return self.value_iterator()}
+}
 
 //deprecated wrapper below
 
