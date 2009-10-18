@@ -6,6 +6,10 @@
  #include <plist/plist.h>
  #include <plist/plist++.h>
 
+#include <ctime>
+//for datetime in python
+#include <datetime.h>
+
 typedef struct {
 	plist_t node;
 	char should_keep_plist;
@@ -39,6 +43,40 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
     char* buffer = PyString_AsString($input);
     int length = PyString_Size($input);
     $1 = std::vector<char>(buffer, buffer + length);
+}
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) timeval {
+    PyDateTime_IMPORT;
+    $1 = PyDateTime_Check($input) ? 1 : 0;
+}
+
+%typemap(out) timeval {
+    struct tm* t = gmtime ( &$1.tv_sec );
+    if (t)
+    {
+	PyDateTime_IMPORT;
+	$result = PyDateTime_FromDateAndTime(t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, $1.tv_usec);
+    }
+}
+
+%typemap(in) (timeval t)
+{
+    PyDateTime_IMPORT;
+    if (!PyDateTime_Check($input)) {
+	PyErr_SetString(PyExc_ValueError,"Expected a datetime");
+	return NULL;
+    }
+    struct tm t = {
+	PyDateTime_DATE_GET_SECOND($input),
+	PyDateTime_DATE_GET_MINUTE($input),
+	PyDateTime_DATE_GET_HOUR($input),
+	PyDateTime_GET_DAY($input),
+	PyDateTime_GET_MONTH($input)-1,
+	PyDateTime_GET_YEAR($input)-1900,
+	0,0,0
+    };
+    timeval ret = {(int)mktime(&t), PyDateTime_DATE_GET_MICROSECOND($input)};
+    $1 = ret;
 }
 
 %apply SWIGTYPE *DYNAMIC { PList::Node* };
