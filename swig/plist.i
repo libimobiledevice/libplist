@@ -6,10 +6,6 @@
  #include <plist/plist.h>
  #include <plist/plist++.h>
 
-#include <ctime>
-//for datetime in python
-#include <datetime.h>
-
 typedef struct {
 	plist_t node;
 	char should_keep_plist;
@@ -29,21 +25,25 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
 
 %include "std_string.i"
 
-#if SWIGPYTHON
+
 %typemap(out) std::vector<char> {
-   $result = PyString_FromStringAndSize((const char*)&($1[0]),(int)($1.size()));
+   $result = SWIG_FromCharPtrAndSize((const char*)&($1[0]),(int)($1.size()));
 }
 
 %typemap(in) (const std::vector<char>& v)
 {
-    if (!PyString_Check($input)) {
-	PyErr_SetString(PyExc_ValueError,"Expected a string");
-	return NULL;
-    }
-    char* buffer = PyString_AsString($input);
-    int length = PyString_Size($input);
+    char* buffer = NULL;
+    int length = 0;
+    SWIG_AsCharPtrAndSize($input, &buffer, &length, NULL);
     $1 = std::vector<char>(buffer, buffer + length);
 }
+
+#if SWIGPYTHON
+//for datetime in python
+%{
+#include <ctime>
+#include <datetime.h>
+%}
 
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) timeval {
     PyDateTime_IMPORT;
@@ -78,6 +78,7 @@ PListNode *allocate_plist_wrapper(plist_t plist, char should_keep_plist) {
     timeval ret = {(int)mktime(&t), PyDateTime_DATE_GET_MICROSECOND($input)};
     $1 = ret;
 }
+#endif
 
 %apply SWIGTYPE *DYNAMIC { PList::Node* };
 %apply SWIGTYPE *DYNAMIC { PList::Structure* };
@@ -126,9 +127,6 @@ static swig_type_info *Node_dynamic(void **ptr)
 // Register the above casting function
 DYNAMIC_CAST(SWIGTYPE_p_PList__Node, Node_dynamic);
 DYNAMIC_CAST(SWIGTYPE_p_PList__Structure, Node_dynamic);
-
-#else
-#endif
 
 
 %rename(__assign__) *::operator=;
