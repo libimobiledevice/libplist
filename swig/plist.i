@@ -135,6 +135,7 @@ namespace std {
     %template(MapStringNodePtr) map<string,PList::Node*>;
 }
 
+#if SWIGPYTHON
 %rename(__assign__) *::operator=;
 %rename(__getitem__) *::operator[];
 %rename(__delitem__) *::Remove;
@@ -150,6 +151,7 @@ namespace std {
 %rename(from_bin) *::FromBin;
 %rename(append) *::Append;
 %rename(insert) PList::Array::Insert;
+#endif
 
 %ignore GetPlist();
 %ignore Boolean(plist_t);
@@ -176,7 +178,7 @@ namespace std {
 %include <plist/Dictionary.h>
 %include <plist/Utils.h>
 
-
+#if SWIGPYTHON
 %extend PList::Dictionary {
 
     %newobject key_iterator(PyObject **PYTHON_SELF);
@@ -265,6 +267,8 @@ namespace std {
     %pythoncode {def iterkeys(self): return self.key_iterator()}
     %pythoncode {def itervalues(self): return self.value_iterator()}
 }
+#endif
+
 
 //deprecated wrapper below
 
