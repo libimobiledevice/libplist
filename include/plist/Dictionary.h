@@ -45,7 +45,8 @@ class Dictionary : public Structure
 	Node* operator[](const std::string& key);
 	iterator Begin();
 	iterator End();
-	void Insert(const std::string& key, Node* node);
+	iterator Find(const std::string& key);
+	iterator Insert(const std::string& key, Node* node);
 	void Remove(Node* node);
 	void Remove(const std::string& key);
 	

@@ -229,7 +229,12 @@ Dictionary::iterator Dictionary::End()
     return _map.end();
 }
 
-void Dictionary::Insert(const std::string& key, Node* node)
+Dictionary::iterator Dictionary::Find(const std::string& key)
+{
+    return _map.find(key);
+}
+
+Dictionary::iterator Dictionary::Insert(const std::string& key, Node* node)
 {
     if (node)
     {
@@ -237,7 +242,9 @@ void Dictionary::Insert(const std::string& key, Node* node)
 	plist_dict_insert_item(_node, key.c_str(), clone->GetPlist());
 	delete _map[key];
 	_map[key] = clone;
+	return _map.find(key);
     }
+    return iterator(NULL);
 }
 
 void Dictionary::Remove(Node* node)
@@ -249,6 +256,7 @@ void Dictionary::Remove(Node* node)
 	plist_dict_remove_item(_node, key);
 	std::string skey = key;
 	free(key);
+	_map.erase(skey);
 	delete node;
     }
 }
@@ -257,6 +265,7 @@ void Dictionary::Remove(const std::string& key)
 {
 	plist_dict_remove_item(_node, key.c_str());
 	delete _map[key];
+	_map.erase(key);
 }
 
 };
