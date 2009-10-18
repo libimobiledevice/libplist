@@ -132,6 +132,7 @@ DYNAMIC_CAST(SWIGTYPE_p_PList__Structure, Node_dynamic);
 %rename(__assign__) *::operator=;
 %rename(__getitem__) *::operator[];
 
+%ignore GetPlist();
 %ignore Boolean(plist_t);
 %ignore Integer(plist_t);
 %ignore Real(plist_t);
