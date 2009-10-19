@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef REAL_H
-#define REAL_H
+#ifndef PLIST__REAL_H
+#define PLIST__REAL_H
 
 #include <plist/Node.h>
 
@@ -45,4 +45,4 @@ class Real : public Node
 
 };
 
-#endif // REAL_H
+#endif // PLIST__REAL_H

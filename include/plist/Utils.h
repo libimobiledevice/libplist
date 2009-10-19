@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef PLIST__UTILS_H
+#define PLIST__UTILS_H
 
 #include <plist/Structure.h>
 #include <string>
@@ -39,4 +39,4 @@ namespace PList
     };
 };
 
-#endif // UTILS_H
+#endif // PLIST__UTILS_H

@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef INTEGER_H
-#define INTEGER_H
+#ifndef PLIST__INTEGER_H
+#define PLIST__INTEGER_H
 
 #include <plist/Node.h>
 
@@ -45,4 +45,4 @@ class Integer : public Node
 
 };
 
-#endif // INTEGER_H
+#endif // PLIST__INTEGER_H

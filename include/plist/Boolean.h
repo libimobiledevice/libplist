@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef BOOLEAN_H
-#define BOOLEAN_H
+#ifndef PLIST__BOOLEAN_H
+#define PLIST__BOOLEAN_H
 
 #include <plist/Node.h>
 
@@ -45,4 +45,4 @@ class Boolean : public Node
 
 };
 
-#endif // BOOLEAN_H
+#endif // PLIST__BOOLEAN_H

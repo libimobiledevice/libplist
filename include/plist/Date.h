@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef DATE_H
-#define DATE_H
+#ifndef PLIST__DATE_H
+#define PLIST__DATE_H
 
 #include <plist/Node.h>
 #include <ctime>
@@ -46,4 +46,4 @@ class Date : public Node
 
 };
 
-#endif // DATE_H
+#endif // PLIST__DATE_H

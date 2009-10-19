@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
  */
 
-#ifndef STRING_H
-#define STRING_H
+#ifndef PLIST__STRING_H
+#define PLIST__STRING_H
 
 #include <plist/Node.h>
 #include <string>
@@ -46,4 +46,4 @@ class String : public Node
 
 };
 
-#endif // STRING_H
+#endif // PLIST__STRING_H
