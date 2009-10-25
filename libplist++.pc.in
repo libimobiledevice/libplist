@@ -6,7 +6,7 @@ includedir=${CMAKE_INSTALL_PREFIX}/include
 Name: libplist++
 Description: C++ binding of libplist
 Version: ${LIBPLIST_VERSION}
-Requires: libplist-2.0 >= ${LIBPLIST_VERSION}
+Requires: libplist >= ${LIBPLIST_VERSION}
 Libs: -L${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} -lplist++
 Cflags: -I${CMAKE_INSTALL_PREFIX}/include
 
