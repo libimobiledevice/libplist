@@ -179,15 +179,20 @@ namespace std {
 %include <plist/Utils.h>
 
 #if SWIGPYTHON
+
+#if SWIG_VERSION <= 0x010336
+#define SwigPyIterator PySwigIterator
+#endif
+
 %extend PList::Dictionary {
 
     %newobject key_iterator(PyObject **PYTHON_SELF);
-    swig::PySwigIterator* key_iterator(PyObject **PYTHON_SELF) {
+    swig::SwigPyIterator* key_iterator(PyObject **PYTHON_SELF) {
 	return swig::make_output_key_iterator(self->Begin(), self->Begin(), self->End(), *PYTHON_SELF);
     }
 
     %newobject value_iterator(PyObject **PYTHON_SELF);
-    swig::PySwigIterator* value_iterator(PyObject **PYTHON_SELF) {
+    swig::SwigPyIterator* value_iterator(PyObject **PYTHON_SELF) {
 	return swig::make_output_value_iterator(self->Begin(), self->Begin(), self->End(), *PYTHON_SELF);
     }
 
@@ -267,6 +272,8 @@ namespace std {
     %pythoncode {def iterkeys(self): return self.key_iterator()}
     %pythoncode {def itervalues(self): return self.value_iterator()}
 }
+
+#undef SwigPyIterator
 #endif
 
 
