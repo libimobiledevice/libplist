@@ -89,18 +89,18 @@ static Structure* ImportStruct(plist_t root)
     return ret;
 }
 
-Structure* Utils::FromXml(const std::string& in)
+Structure* Utils::FromXml(const std::string& xml)
 {
     plist_t root = NULL;
-    plist_from_xml(in.c_str(), in.size(), &root);
+    plist_from_xml(xml.c_str(), xml.size(), &root);
 
     return ImportStruct(root);
 }
 
-Structure* Utils::FromBin(const std::vector<char>& in)
+Structure* Utils::FromBin(const std::vector<char>& bin)
 {
     plist_t root = NULL;
-    plist_from_bin(&in[0], in.size(), &root);
+    plist_from_bin(&bin[0], bin.size(), &root);
 
     return ImportStruct(root);
 

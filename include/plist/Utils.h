@@ -31,8 +31,8 @@ namespace PList
     {
 	public:
             static Node* FromPlist(plist_t node, Node* parent = NULL);
-	    static Structure* FromXml(const std::string& in);
-	    static Structure* FromBin(const std::vector<char>& in);
+	    static Structure* FromXml(const std::string& xml);
+	    static Structure* FromBin(const std::vector<char>& bin);
 
 	private:
 	    Utils();
