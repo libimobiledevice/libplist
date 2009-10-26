@@ -32,8 +32,8 @@ namespace PList
 class Dictionary : public Structure
 {
     public :
-	Dictionary();
-	Dictionary(plist_t node);
+        Dictionary(Node* parent = NULL);
+        Dictionary(plist_t node, Node* parent = NULL);
 	Dictionary(Dictionary& d);
 	Dictionary& operator=(Dictionary& d);
 	virtual ~Dictionary();

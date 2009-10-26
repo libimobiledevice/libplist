@@ -24,11 +24,11 @@
 namespace PList
 {
 
-Data::Data() : Node(PLIST_DATA)
+Data::Data(Node* parent) : Node(PLIST_DATA, parent)
 {
 }
 
-Data::Data(plist_t node) : Node(node)
+Data::Data(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 

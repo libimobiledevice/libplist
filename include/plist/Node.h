@@ -33,15 +33,18 @@ class Node
 	virtual ~Node();
 
 	virtual Node* Clone() = 0;
+	Node * GetParent();
+        void SetParent(Node* parent);
 
 	plist_type GetType();
 	plist_t GetPlist();
 	
     protected:
-	Node();
-	Node(plist_t node);
-	Node(plist_type type);
+        Node(Node* parent = NULL);
+        Node(plist_t node, Node* parent = NULL);
+        Node(plist_type type, Node* parent = NULL);
 	plist_t _node;
+        Node* _parent;
 };
 
 };

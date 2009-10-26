@@ -20,22 +20,16 @@
 
 #include <stdlib.h>
 #include <plist/Dictionary.h>
-#include <plist/Array.h>
-#include <plist/Boolean.h>
-#include <plist/Integer.h>
-#include <plist/Real.h>
-#include <plist/String.h>
-#include <plist/Date.h>
-#include <plist/Data.h>
+#include <plist/Utils.h>
 
 namespace PList
 {
 
-Dictionary::Dictionary() : Structure(PLIST_DICT)
+Dictionary::Dictionary(Node* parent) : Structure(PLIST_DICT, parent)
 {
 }
 
-Dictionary::Dictionary(plist_t node) : Structure()
+Dictionary::Dictionary(plist_t node, Node* parent) : Structure(parent)
 {
     _node = node;
     plist_dict_iter it = NULL;
@@ -46,36 +40,7 @@ Dictionary::Dictionary(plist_t node) : Structure()
     plist_dict_next_item(_node, it, &key, &subnode);
     while (subnode)
     {
-	plist_type subtype = plist_get_node_type(subnode);
-	switch(subtype)
-	{
-	    case PLIST_DICT:
-		_map[std::string(key)] = new Dictionary(subnode);
-		break;
-	    case PLIST_ARRAY:
-		_map[std::string(key)] = new Array(subnode);
-		break;
-	    case PLIST_BOOLEAN:
-		_map[std::string(key)] = new Boolean(subnode);
-		break;
-	    case PLIST_UINT:
-		_map[std::string(key)] = new Integer(subnode);
-		break;
-	    case PLIST_REAL:
-		_map[std::string(key)] = new Real(subnode);
-		break;
-	    case PLIST_STRING:
-		_map[std::string(key)] = new String(subnode);
-		break;
-	    case PLIST_DATE:
-		_map[std::string(key)] = new Date(subnode);
-		break;
-	    case PLIST_DATA:
-		_map[std::string(key)] = new Data(subnode);
-		break;
-	    default:
-		break;
-	}
+        _map[std::string(key)] = Utils::FromPlist(subnode, this);
 	
 	subnode = NULL;
 	free(key);
@@ -103,36 +68,7 @@ Dictionary::Dictionary(PList::Dictionary& d) : Structure()
     plist_dict_next_item(_node, it, &key, &subnode);
     while (subnode)
     {
-	plist_type subtype = plist_get_node_type(subnode);
-	switch(subtype)
-	{
-	    case PLIST_DICT:
-		_map[std::string(key)] = new Dictionary(subnode);
-		break;
-	    case PLIST_ARRAY:
-		_map[std::string(key)] = new Array(subnode);
-		break;
-	    case PLIST_BOOLEAN:
-		_map[std::string(key)] = new Boolean(subnode);
-		break;
-	    case PLIST_UINT:
-		_map[std::string(key)] = new Integer(subnode);
-		break;
-	    case PLIST_REAL:
-		_map[std::string(key)] = new Real(subnode);
-		break;
-	    case PLIST_STRING:
-		_map[std::string(key)] = new String(subnode);
-		break;
-	    case PLIST_DATE:
-		_map[std::string(key)] = new Date(subnode);
-		break;
-	    case PLIST_DATA:
-		_map[std::string(key)] = new Data(subnode);
-		break;
-	    default:
-		break;
-	}
+        _map[std::string(key)] = Utils::FromPlist(subnode, this);
 	
 	subnode = NULL;
 	free(key);
@@ -160,36 +96,7 @@ Dictionary& Dictionary::operator=(PList::Dictionary& d)
     plist_dict_next_item(_node, it, &key, &subnode);
     while (subnode)
     {
-	plist_type subtype = plist_get_node_type(subnode);
-	switch(subtype)
-	{
-	    case PLIST_DICT:
-		_map[std::string(key)] = new Dictionary(subnode);
-		break;
-	    case PLIST_ARRAY:
-		_map[std::string(key)] = new Array(subnode);
-		break;
-	    case PLIST_BOOLEAN:
-		_map[std::string(key)] = new Boolean(subnode);
-		break;
-	    case PLIST_UINT:
-		_map[std::string(key)] = new Integer(subnode);
-		break;
-	    case PLIST_REAL:
-		_map[std::string(key)] = new Real(subnode);
-		break;
-	    case PLIST_STRING:
-		_map[std::string(key)] = new String(subnode);
-		break;
-	    case PLIST_DATE:
-		_map[std::string(key)] = new Date(subnode);
-		break;
-	    case PLIST_DATA:
-		_map[std::string(key)] = new Data(subnode);
-		break;
-	    default:
-		break;
-	}
+        _map[std::string(key)] = Utils::FromPlist(subnode, this);
 	
 	subnode = NULL;
 	free(key);
@@ -239,6 +146,7 @@ Dictionary::iterator Dictionary::Insert(const std::string& key, Node* node)
     if (node)
     {
 	Node* clone = node->Clone();
+        clone->SetParent(this);
 	plist_dict_insert_item(_node, key.c_str(), clone->GetPlist());
 	delete _map[key];
 	_map[key] = clone;

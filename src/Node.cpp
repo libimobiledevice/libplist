@@ -24,15 +24,15 @@
 namespace PList
 {
 
-Node::Node()
+Node::Node(Node* parent) : _parent(parent)
 {
 }
 
-Node::Node(plist_t node) : _node(node)
+Node::Node(plist_t node, Node* parent) : _node(node), _parent(parent)
 {
 }
 
-Node::Node(plist_type type)
+Node::Node(plist_type type, Node* parent) : _parent(parent)
 {
     _node = NULL;
     
@@ -72,6 +72,7 @@ Node::~Node()
 {
     plist_free(_node);
     _node = NULL;
+    _parent = NULL;
 }
 
 plist_type Node::GetType()
@@ -86,4 +87,15 @@ plist_t Node::GetPlist()
 {
     return _node;
 }
+
+Node* Node::GetParent()
+{
+    return _parent;
+}
+
+void Node::SetParent(Node* parent)
+{
+    _parent = parent;
+}
+
 };

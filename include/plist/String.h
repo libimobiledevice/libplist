@@ -31,8 +31,8 @@ namespace PList
 class String : public Node
 {
     public :
-	String();
-	String(plist_t node);
+        String(Node* parent = NULL);
+        String(plist_t node, Node* parent = NULL);
 	String(String& s);
 	String& operator=(String& s);
 	String(const std::string& s);

@@ -40,8 +40,8 @@ class Structure : public Node
 	std::vector<char> ToBin();
 	
     protected:
-	Structure();
-	Structure(plist_type type);
+        Structure(Node* parent = NULL);
+        Structure(plist_type type, Node* parent = NULL);
 
     private:
 	Structure(Structure& s);

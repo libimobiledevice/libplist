@@ -31,8 +31,8 @@ namespace PList
 class Data : public Node
 {
     public :
-	Data();
-	Data(plist_t node);
+        Data(Node* parent = NULL);
+        Data(plist_t node, Node* parent = NULL);
 	Data(Data& d);
 	Data& operator=(Data& d);
 	Data(const std::vector<char>& buff);

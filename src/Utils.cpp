@@ -22,35 +22,70 @@
 #include <plist/Utils.h>
 #include <plist/Dictionary.h>
 #include <plist/Array.h>
+#include <plist/Boolean.h>
+#include <plist/Integer.h>
+#include <plist/Real.h>
+#include <plist/String.h>
+#include <plist/Data.h>
+#include <plist/Date.h>
 
 namespace PList
 {
 
-static Structure* FromPlist(plist_t root)
+Node* Utils::FromPlist(plist_t node, Node* parent)
 {
-    Structure* ret = NULL;
-    if (root)
+    Node* ret = NULL;
+    if (node)
     {
-	plist_type type = plist_get_node_type(root);
+        plist_type type = plist_get_node_type(node);
 	switch(type)
 	{
 	    case PLIST_DICT:
-		ret = new Dictionary(root);
+                ret = new Dictionary(node, parent);
 		break;
 	    case PLIST_ARRAY:
-		ret = new Array(root);
+                ret = new Array(node, parent);
 		break;
 	    case PLIST_BOOLEAN:
+                ret = new Boolean(node, parent);
+                break;
 	    case PLIST_UINT:
+                ret = new Integer(node, parent);
+                break;
 	    case PLIST_REAL:
+                ret = new Real(node, parent);
+                break;
 	    case PLIST_STRING:
+                ret = new String(node, parent);
+                break;
 	    case PLIST_DATE:
+                ret = new Date(node, parent);
+                break;
 	    case PLIST_DATA:
+                ret = new Data(node, parent);
+                break;
 	    default:
-		plist_free(root);
+                plist_free(node);
 		break;
 	}
     }
+    return ret;
+}
+
+static Structure* ImportStruct(plist_t root)
+{
+    Structure* ret = NULL;
+    plist_type type = plist_get_node_type(root);
+
+    if (PLIST_ARRAY == type || PLIST_DICT == type)
+    {
+        ret = static_cast<Structure*>(Utils::FromPlist(root));
+    }
+    else
+    {
+        plist_free(root);
+    }
+
     return ret;
 }
 
@@ -59,7 +94,7 @@ Structure* Utils::FromXml(const std::string& in)
     plist_t root = NULL;
     plist_from_xml(in.c_str(), in.size(), &root);
 
-    return FromPlist(root);
+    return ImportStruct(root);
 }
 
 Structure* Utils::FromBin(const std::vector<char>& in)
@@ -67,7 +102,7 @@ Structure* Utils::FromBin(const std::vector<char>& in)
     plist_t root = NULL;
     plist_from_bin(&in[0], in.size(), &root);
 
-    return FromPlist(root);
+    return ImportStruct(root);
 
 }
 

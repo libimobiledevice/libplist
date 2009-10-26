@@ -30,8 +30,8 @@ namespace PList
 class Integer : public Node
 {
     public :
-	Integer();
-	Integer(plist_t node);
+        Integer(Node* parent = NULL);
+        Integer(plist_t node, Node* parent = NULL);
 	Integer(Integer& i);
 	Integer& operator=(Integer& i);
 	Integer(uint64_t i);

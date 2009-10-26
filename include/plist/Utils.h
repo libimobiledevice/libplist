@@ -30,6 +30,7 @@ namespace PList
     class Utils
     {
 	public:
+            static Node* FromPlist(plist_t node, Node* parent = NULL);
 	    static Structure* FromXml(const std::string& in);
 	    static Structure* FromBin(const std::vector<char>& in);
 

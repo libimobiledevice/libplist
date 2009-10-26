@@ -20,23 +20,17 @@
 
 #include <stdlib.h>
 #include <plist/Array.h>
-#include <plist/Dictionary.h>
-#include <plist/Boolean.h>
-#include <plist/Integer.h>
-#include <plist/Real.h>
-#include <plist/String.h>
-#include <plist/Date.h>
-#include <plist/Data.h>
+#include <plist/Utils.h>
 
 namespace PList
 {
 
-Array::Array() : Structure(PLIST_ARRAY)
+Array::Array(Node* parent) : Structure(PLIST_ARRAY, parent)
 {
     _array.clear();
 }
 
-Array::Array(plist_t node) : Structure()
+Array::Array(plist_t node, Node* parent) : Structure(parent)
 {
     _node = node;
     uint32_t size = plist_array_get_size(_node);
@@ -44,36 +38,7 @@ Array::Array(plist_t node) : Structure()
     for (uint32_t i = 0; i < size; i++)
     {
 	plist_t subnode = plist_array_get_item(_node, i);
-	plist_type subtype = plist_get_node_type(subnode);
-	switch(subtype)
-	{
-	    case PLIST_DICT:
-		_array.push_back( new Dictionary(subnode) );
-		break;
-	    case PLIST_ARRAY:
-		_array.push_back( new Array(subnode) );
-		break;
-	    case PLIST_BOOLEAN:
-		_array.push_back( new Boolean(subnode) );
-		break;
-	    case PLIST_UINT:
-		_array.push_back( new Integer(subnode) );
-		break;
-	    case PLIST_REAL:
-		_array.push_back( new Real(subnode) );
-		break;
-	    case PLIST_STRING:
-		_array.push_back( new String(subnode) );
-		break;
-	    case PLIST_DATE:
-		_array.push_back( new Date(subnode) );
-		break;
-	    case PLIST_DATA:
-		_array.push_back( new Data(subnode) );
-		break;
-	    default:
-		break;
-	}
+        _array.push_back(  Utils::FromPlist(subnode, this) );
     }
 }
 
@@ -86,36 +51,7 @@ Array::Array(PList::Array& a) : Structure()
     for (uint32_t i = 0; i < size; i++)
     {
 	plist_t subnode = plist_array_get_item(_node, i);
-	plist_type subtype = plist_get_node_type(subnode);
-	switch(subtype)
-	{
-	    case PLIST_DICT:
-		_array.push_back( new Dictionary(subnode) );
-		break;
-	    case PLIST_ARRAY:
-		_array.push_back( new Array(subnode) );
-		break;
-	    case PLIST_BOOLEAN:
-		_array.push_back( new Boolean(subnode) );
-		break;
-	    case PLIST_UINT:
-		_array.push_back( new Integer(subnode) );
-		break;
-	    case PLIST_REAL:
-		_array.push_back( new Real(subnode) );
-		break;
-	    case PLIST_STRING:
-		_array.push_back( new String(subnode) );
-		break;
-	    case PLIST_DATE:
-		_array.push_back( new Date(subnode) );
-		break;
-	    case PLIST_DATA:
-		_array.push_back( new Data(subnode) );
-		break;
-	    default:
-		break;
-	}
+        _array.push_back(  Utils::FromPlist(subnode, this) );
     }
 }
 
@@ -134,36 +70,7 @@ Array& Array::operator=(PList::Array& a)
     for (uint32_t i = 0; i < size; i++)
     {
 	plist_t subnode = plist_array_get_item(_node, i);
-	plist_type subtype = plist_get_node_type(subnode);
-	switch(subtype)
-	{
-	    case PLIST_DICT:
-		_array.push_back( new Dictionary(subnode) );
-		break;
-	    case PLIST_ARRAY:
-		_array.push_back( new Array(subnode) );
-		break;
-	    case PLIST_BOOLEAN:
-		_array.push_back( new Boolean(subnode) );
-		break;
-	    case PLIST_UINT:
-		_array.push_back( new Integer(subnode) );
-		break;
-	    case PLIST_REAL:
-		_array.push_back( new Real(subnode) );
-		break;
-	    case PLIST_STRING:
-		_array.push_back( new String(subnode) );
-		break;
-	    case PLIST_DATE:
-		_array.push_back( new Date(subnode) );
-		break;
-	    case PLIST_DATA:
-		_array.push_back( new Data(subnode) );
-		break;
-	    default:
-		break;
-	}
+        _array.push_back(  Utils::FromPlist(subnode, this) );
     }
 }
 
@@ -191,6 +98,7 @@ void Array::Append(Node* node)
     if (node)
     {
 	Node* clone = node->Clone();
+        clone->SetParent(this);
 	plist_array_append_item(_node, clone->GetPlist());
 	_array.push_back(clone);
     }
@@ -201,6 +109,7 @@ void Array::Insert(Node* node, unsigned int pos)
     if (node)
     {
 	Node* clone = node->Clone();
+        clone->SetParent(this);
 	plist_array_insert_item(_node, clone->GetPlist(), pos);
 	std::vector<Node*>::iterator it = _array.begin();
 	it += pos;

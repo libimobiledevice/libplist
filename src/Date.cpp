@@ -24,11 +24,11 @@
 namespace PList
 {
 
-Date::Date() : Node(PLIST_DATE)
+Date::Date(Node* parent) : Node(PLIST_DATE, parent)
 {
 }
 
-Date::Date(plist_t node) : Node(node)
+Date::Date(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 

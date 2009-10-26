@@ -24,11 +24,11 @@
 namespace PList
 {
 
-String::String() : Node(PLIST_STRING)
+String::String(Node* parent) : Node(PLIST_STRING, parent)
 {
 }
 
-String::String(plist_t node) : Node(node)
+String::String(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 

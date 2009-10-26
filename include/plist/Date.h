@@ -31,8 +31,8 @@ namespace PList
 class Date : public Node
 {
     public :
-	Date();
-	Date(plist_t node);
+        Date(Node* parent = NULL);
+        Date(plist_t node, Node* parent = NULL);
 	Date(Date& d);
 	Date& operator=(Date& d);
 	Date(timeval t);

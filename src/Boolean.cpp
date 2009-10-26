@@ -24,11 +24,11 @@
 namespace PList
 {
 
-Boolean::Boolean() : Node(PLIST_BOOLEAN)
+Boolean::Boolean(Node* parent) : Node(PLIST_BOOLEAN, parent)
 {
 }
 
-Boolean::Boolean(plist_t node) : Node(node)
+Boolean::Boolean(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 

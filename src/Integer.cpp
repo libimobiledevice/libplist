@@ -24,11 +24,11 @@
 namespace PList
 {
 
-Integer::Integer() : Node(PLIST_UINT)
+Integer::Integer(Node* parent) : Node(PLIST_UINT, parent)
 {
 }
 
-Integer::Integer(plist_t node) : Node(node)
+Integer::Integer(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 

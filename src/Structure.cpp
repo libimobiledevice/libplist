@@ -24,10 +24,10 @@
 namespace PList
 {
 
-Structure::Structure() : Node()
+Structure::Structure(Node* parent) : Node(parent)
 {
 }
-Structure::Structure(plist_type type) : Node(type)
+Structure::Structure(plist_type type, Node* parent) : Node(type, parent)
 {
 }
 

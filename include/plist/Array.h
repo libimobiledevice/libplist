@@ -31,8 +31,8 @@ namespace PList
 class Array : public Structure
 {
     public :
-	Array();
-	Array(plist_t node);
+        Array(Node* parent = NULL);
+        Array(plist_t node, Node* parent = NULL);
 	Array(Array& a);
 	Array& operator=(Array& a);
 	virtual ~Array();

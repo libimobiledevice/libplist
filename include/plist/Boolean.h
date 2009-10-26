@@ -30,8 +30,8 @@ namespace PList
 class Boolean : public Node
 {
     public :
-	Boolean();
-	Boolean(plist_t node);
+        Boolean(Node* parent = NULL);
+        Boolean(plist_t node, Node* parent = NULL);
 	Boolean(Boolean& b);
 	Boolean& operator=(Boolean& b);
 	Boolean(bool b);

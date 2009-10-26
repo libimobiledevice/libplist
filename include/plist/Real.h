@@ -30,8 +30,8 @@ namespace PList
 class Real : public Node
 {
     public :
-	Real();
-	Real(plist_t node);
+        Real(Node* parent = NULL);
+        Real(plist_t node, Node* parent = NULL);
 	Real(Real& d);
 	Real& operator=(Real& d);
 	Real(double d);

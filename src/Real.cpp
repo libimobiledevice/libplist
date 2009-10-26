@@ -24,11 +24,11 @@
 namespace PList
 {
 
-Real::Real() : Node(PLIST_REAL)
+Real::Real(Node* parent) : Node(PLIST_REAL, parent)
 {
 }
 
-Real::Real(plist_t node) : Node(node)
+Real::Real(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
