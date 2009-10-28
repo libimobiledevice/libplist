@@ -25,6 +25,10 @@
 #include <plist/Node.h>
 #include <ctime>
 
+#ifdef _MSC_VER
+#include <Winsock2.h>
+#endif
+
 namespace PList
 {
 

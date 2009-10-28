@@ -42,6 +42,7 @@ Date& Date::operator=(PList::Date& d)
 {
     plist_free(_node);
     _node = plist_copy(d.GetPlist());
+    return *this;
 }
 
 Date::Date(timeval t) : Node(PLIST_DATE)

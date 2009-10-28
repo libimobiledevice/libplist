@@ -41,6 +41,7 @@ String& String::operator=(PList::String& s)
 {
     plist_free(_node);
     _node = plist_copy(s.GetPlist());
+    return *this;
 }
 
 String::String(const std::string& s) : Node(PLIST_STRING)

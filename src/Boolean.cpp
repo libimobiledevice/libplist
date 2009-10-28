@@ -41,6 +41,7 @@ Boolean& Boolean::operator=(PList::Boolean& b)
 {
     plist_free(_node);
     _node = plist_copy(b.GetPlist());
+    return *this;
 }
 
 Boolean::Boolean(bool b) : Node(PLIST_BOOLEAN)
@@ -66,7 +67,7 @@ bool Boolean::GetValue()
 {
     uint8_t b = 0;
     plist_get_bool_val(_node, &b);
-    return b;
+    return b != 0 ;
 }
 
 };

@@ -79,8 +79,9 @@ plist_type Node::GetType()
 {
     if (_node)
     {
-	return plist_get_node_type(_node);
+	    return plist_get_node_type(_node);
     }
+    return PLIST_NONE;
 }
 
 plist_t Node::GetPlist()

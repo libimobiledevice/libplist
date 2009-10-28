@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <libxml/tree.h>
+#include <libxml/encoding.h>
 
 #include <plist/plist.h>
 #include "plist.h"

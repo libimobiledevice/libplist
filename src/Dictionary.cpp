@@ -104,6 +104,7 @@ Dictionary& Dictionary::operator=(PList::Dictionary& d)
 	plist_dict_next_item(_node, it, NULL, &subnode);
     }
     free(it);
+    return *this;
 }
 
 Dictionary::~Dictionary()

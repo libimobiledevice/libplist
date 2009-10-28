@@ -41,6 +41,7 @@ Real& Real::operator=(PList::Real& d)
 {
     plist_free(_node);
     _node = plist_copy(d.GetPlist());
+    return *this;
 }
 
 Real::Real(double d) : Node(PLIST_REAL)

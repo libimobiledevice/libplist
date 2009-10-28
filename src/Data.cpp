@@ -42,6 +42,7 @@ Data& Data::operator=(PList::Data& b)
 {
     plist_free(_node);
     _node = plist_copy(b.GetPlist());
+    return *this;
 }
 
 Data::Data(const std::vector<char>& buff) : Node(PLIST_DATA)

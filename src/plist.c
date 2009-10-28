@@ -64,8 +64,9 @@ static void plist_free_data(plist_data_t data)
 
 static void plist_free_node(GNode * node, gpointer none)
 {
+    plist_data_t data = NULL;
 	g_node_unlink(node);
-	plist_data_t data = plist_get_data(node);
+	data = plist_get_data(node);
 	plist_free_data(data);
 	node->data = NULL;
 	g_node_children_foreach(node, G_TRAVERSE_ALL, plist_free_node, NULL);
@@ -161,6 +162,7 @@ void plist_free(plist_t plist)
 
 static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
 {
+    plist_type node_type = PLIST_NONE;
 	plist_t newnode = NULL;
 	plist_data_t data = plist_get_data(node);
 	plist_data_t newdata = plist_new_plist_data();
@@ -169,7 +171,7 @@ static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
 
 	memcpy(newdata, data, sizeof(struct plist_data_s));
 
-	plist_type node_type = plist_get_node_type(node);
+	node_type = plist_get_node_type(node);
 	if (node_type == PLIST_DATA || node_type == PLIST_STRING || node_type == PLIST_KEY) {
 		switch (node_type) {
 		case PLIST_DATA:
@@ -225,6 +227,7 @@ uint32_t plist_array_get_item_index(plist_t node)
 	if (PLIST_ARRAY == plist_get_node_type(father)) {
 		return g_node_child_position(father, node);
 	}
+    return 0;
 }
 
 void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
@@ -330,8 +333,8 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
 			current;
 			current = (plist_t)g_node_next_sibling(g_node_next_sibling(current))) {
 
-			assert( PLIST_KEY == plist_get_node_type(current) );
 			plist_data_t data = plist_get_data(current);
+            assert( PLIST_KEY == plist_get_node_type(current) );
 
 			if (data && !strcmp(key, data->strval)) {
 				ret = (plist_t)g_node_next_sibling(current);
@@ -623,7 +626,7 @@ char plist_compare_node_value(plist_t node_l, plist_t node_r)
 	return plist_data_compare(node_l, node_r);
 }
 
-static plist_t plist_set_element_val(plist_t node, plist_type type, const void *value, uint64_t length)
+static void plist_set_element_val(plist_t node, plist_type type, const void *value, uint64_t length)
 {
 	//free previous allocated buffer
 	plist_data_t data = plist_get_data(node);

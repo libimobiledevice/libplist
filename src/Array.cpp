@@ -58,7 +58,7 @@ Array::Array(PList::Array& a) : Structure()
 Array& Array::operator=(PList::Array& a)
 {
     plist_free(_node);
-    for (int it = 0; it < _array.size(); it++)
+    for (unsigned int it = 0; it < _array.size(); it++)
     {
 	delete _array.at(it);
     }
@@ -72,11 +72,12 @@ Array& Array::operator=(PList::Array& a)
 	plist_t subnode = plist_array_get_item(_node, i);
         _array.push_back(  Utils::FromPlist(subnode, this) );
     }
+    return *this;
 }
 
 Array::~Array()
 {
-     for (int it = 0; it < _array.size(); it++)
+     for (unsigned int it = 0; it < _array.size(); it++)
      {
 	delete (_array.at(it));
      }

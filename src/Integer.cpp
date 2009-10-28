@@ -41,6 +41,7 @@ Integer& Integer::operator=(PList::Integer& i)
 {
     plist_free(_node);
     _node = plist_copy(i.GetPlist());
+    return *this;
 }
 
 Integer::Integer(uint64_t i) : Node(PLIST_UINT)

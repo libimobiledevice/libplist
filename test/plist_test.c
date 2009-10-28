@@ -27,6 +27,11 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#ifdef _MSC_VER
+#pragma warning(disable:4996)
+#endif
+
+
 int main(int argc, char *argv[])
 {
 	FILE *iplist = NULL;
@@ -40,7 +45,6 @@ int main(int argc, char *argv[])
 	int size_out = 0;
 	int size_out2 = 0;
 	char *file_in = NULL;
-	char *file_out[512];
 	struct stat *filestats = (struct stat *) malloc(sizeof(struct stat));
 	if (argc!= 2) {
 		printf("Wrong input\n");

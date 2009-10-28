@@ -29,6 +29,11 @@
 #include <sys/stat.h>
 #include <glib.h>
 
+#ifdef _MSC_VER
+#pragma warning(disable:4996)
+#pragma warning(disable:4244)
+#endif
+
 
 struct plist_data_s {
 	union {
