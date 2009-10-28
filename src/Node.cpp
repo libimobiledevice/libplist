@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <plist/Node.h>
+#include <plist/Structure.h>
 
 namespace PList
 {
@@ -96,6 +97,16 @@ Node* Node::GetParent()
 
 void Node::SetParent(Node* parent)
 {
+    //Unlink node first
+    if ( NULL != _parent )
+    {
+        plist_type type = plist_get_node_type(_parent);
+        if (PLIST_ARRAY ==type || PLIST_DICT == type )
+        {
+            Structure* s = static_cast<Structure*>(_parent);
+            s->Remove(this);
+        }
+    }
     _parent = parent;
 }
 

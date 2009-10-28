@@ -38,6 +38,8 @@ class Structure : public Node
 
 	std::string ToXml();
 	std::vector<char> ToBin();
+
+        virtual void Remove(Node* node) = 0;
 	
     protected:
         Structure(Node* parent = NULL);
