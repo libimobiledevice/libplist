@@ -1,6 +1,7 @@
-/*
- * plist.h
- * Main include of libplist
+/**
+ * @file plist/plist.h
+ * @brief Main include of libplist
+ * \internal
  *
  * Copyright (c) 2008 Jonathan Beck All Rights Reserved.
  *
@@ -174,7 +175,7 @@ extern "C"
     /**
      * Return a copy of passed node and it's children
      *
-     * @param plist the plist to copy
+     * @param node the plist to copy
      * @return copied plist
      */
     PLIST_API plist_t plist_copy(plist_t node);
@@ -401,6 +402,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to an unallocated char buffer. This function allocates the memory,
      *            caller is responsible for freeing it.
+     * @param length the length of the buffer
      */
     PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length);
 
