@@ -8,15 +8,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #ifndef PLIST__NODE_H
@@ -29,22 +29,22 @@ namespace PList
 
 class Node
 {
-    public :
-	virtual ~Node();
+public :
+    virtual ~Node();
 
-	virtual Node* Clone() = 0;
-	Node * GetParent();
-        void SetParent(Node* parent);
+    virtual Node* Clone() = 0;
+    Node * GetParent();
+    void SetParent(Node* parent);
 
-	plist_type GetType();
-	plist_t GetPlist();
-	
-    protected:
-        Node(Node* parent = NULL);
-        Node(plist_t node, Node* parent = NULL);
-        Node(plist_type type, Node* parent = NULL);
-	plist_t _node;
-        Node* _parent;
+    plist_type GetType();
+    plist_t GetPlist();
+
+protected:
+    Node(Node* parent = NULL);
+    Node(plist_t node, Node* parent = NULL);
+    Node(plist_type type, Node* parent = NULL);
+    plist_t _node;
+    Node* _parent;
 };
 
 };

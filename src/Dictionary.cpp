@@ -7,15 +7,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <stdlib.h>
@@ -41,11 +41,11 @@ Dictionary::Dictionary(plist_t node, Node* parent) : Structure(parent)
     while (subnode)
     {
         _map[std::string(key)] = Utils::FromPlist(subnode, this);
-	
-	subnode = NULL;
-	free(key);
-	key = NULL;
-	plist_dict_next_item(_node, it, &key, &subnode);
+
+        subnode = NULL;
+        free(key);
+        key = NULL;
+        plist_dict_next_item(_node, it, &key, &subnode);
     }
     free(it);
 }
@@ -54,8 +54,8 @@ Dictionary::Dictionary(PList::Dictionary& d) : Structure()
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
-	plist_free(it->second->GetPlist());
-	delete it->second;
+        plist_free(it->second->GetPlist());
+        delete it->second;
     }
     _map.clear();
 
@@ -69,11 +69,11 @@ Dictionary::Dictionary(PList::Dictionary& d) : Structure()
     while (subnode)
     {
         _map[std::string(key)] = Utils::FromPlist(subnode, this);
-	
-	subnode = NULL;
-	free(key);
-	key = NULL;
-	plist_dict_next_item(_node, it, NULL, &subnode);
+
+        subnode = NULL;
+        free(key);
+        key = NULL;
+        plist_dict_next_item(_node, it, NULL, &subnode);
     }
     free(it);
 }
@@ -82,8 +82,8 @@ Dictionary& Dictionary::operator=(PList::Dictionary& d)
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
-	plist_free(it->second->GetPlist());
-	delete it->second;
+        plist_free(it->second->GetPlist());
+        delete it->second;
     }
     _map.clear();
 
@@ -97,11 +97,11 @@ Dictionary& Dictionary::operator=(PList::Dictionary& d)
     while (subnode)
     {
         _map[std::string(key)] = Utils::FromPlist(subnode, this);
-	
-	subnode = NULL;
-	free(key);
-	key = NULL;
-	plist_dict_next_item(_node, it, NULL, &subnode);
+
+        subnode = NULL;
+        free(key);
+        key = NULL;
+        plist_dict_next_item(_node, it, NULL, &subnode);
     }
     free(it);
     return *this;
@@ -111,8 +111,8 @@ Dictionary::~Dictionary()
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
-	plist_free(it->second->GetPlist());
-	delete it->second;
+        plist_free(it->second->GetPlist());
+        delete it->second;
     }
     _map.clear();
 }
@@ -146,12 +146,12 @@ Dictionary::iterator Dictionary::Insert(const std::string& key, Node* node)
 {
     if (node)
     {
-	Node* clone = node->Clone();
+        Node* clone = node->Clone();
         clone->SetParent(this);
-	plist_dict_insert_item(_node, key.c_str(), clone->GetPlist());
-	delete _map[key];
-	_map[key] = clone;
-	return _map.find(key);
+        plist_dict_insert_item(_node, key.c_str(), clone->GetPlist());
+        delete _map[key];
+        _map[key] = clone;
+        return _map.find(key);
     }
     return iterator(NULL);
 }
@@ -160,21 +160,21 @@ void Dictionary::Remove(Node* node)
 {
     if (node)
     {
-	char* key = NULL;
-	plist_dict_get_item_key(node->GetPlist(), &key);
-	plist_dict_remove_item(_node, key);
-	std::string skey = key;
-	free(key);
-	_map.erase(skey);
-	delete node;
+        char* key = NULL;
+        plist_dict_get_item_key(node->GetPlist(), &key);
+        plist_dict_remove_item(_node, key);
+        std::string skey = key;
+        free(key);
+        _map.erase(skey);
+        delete node;
     }
 }
 
 void Dictionary::Remove(const std::string& key)
 {
-	plist_dict_remove_item(_node, key.c_str());
-	delete _map[key];
-	_map.erase(key);
+    plist_dict_remove_item(_node, key.c_str());
+    delete _map[key];
+    _map.erase(key);
 }
 
 };

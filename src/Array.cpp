@@ -7,15 +7,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <stdlib.h>
@@ -37,7 +37,7 @@ Array::Array(plist_t node, Node* parent) : Structure(parent)
 
     for (uint32_t i = 0; i < size; i++)
     {
-	plist_t subnode = plist_array_get_item(_node, i);
+        plist_t subnode = plist_array_get_item(_node, i);
         _array.push_back(  Utils::FromPlist(subnode, this) );
     }
 }
@@ -50,7 +50,7 @@ Array::Array(PList::Array& a) : Structure()
 
     for (uint32_t i = 0; i < size; i++)
     {
-	plist_t subnode = plist_array_get_item(_node, i);
+        plist_t subnode = plist_array_get_item(_node, i);
         _array.push_back(  Utils::FromPlist(subnode, this) );
     }
 }
@@ -60,7 +60,7 @@ Array& Array::operator=(PList::Array& a)
     plist_free(_node);
     for (unsigned int it = 0; it < _array.size(); it++)
     {
-	delete _array.at(it);
+        delete _array.at(it);
     }
     _array.clear();
 
@@ -69,7 +69,7 @@ Array& Array::operator=(PList::Array& a)
 
     for (uint32_t i = 0; i < size; i++)
     {
-	plist_t subnode = plist_array_get_item(_node, i);
+        plist_t subnode = plist_array_get_item(_node, i);
         _array.push_back(  Utils::FromPlist(subnode, this) );
     }
     return *this;
@@ -77,11 +77,11 @@ Array& Array::operator=(PList::Array& a)
 
 Array::~Array()
 {
-     for (unsigned int it = 0; it < _array.size(); it++)
-     {
-	delete (_array.at(it));
-     }
-     _array.clear();
+    for (unsigned int it = 0; it < _array.size(); it++)
+    {
+        delete (_array.at(it));
+    }
+    _array.clear();
 }
 
 Node* Array::Clone()
@@ -98,10 +98,10 @@ void Array::Append(Node* node)
 {
     if (node)
     {
-	Node* clone = node->Clone();
+        Node* clone = node->Clone();
         clone->SetParent(this);
-	plist_array_append_item(_node, clone->GetPlist());
-	_array.push_back(clone);
+        plist_array_append_item(_node, clone->GetPlist());
+        _array.push_back(clone);
     }
 }
 
@@ -109,12 +109,12 @@ void Array::Insert(Node* node, unsigned int pos)
 {
     if (node)
     {
-	Node* clone = node->Clone();
+        Node* clone = node->Clone();
         clone->SetParent(this);
-	plist_array_insert_item(_node, clone->GetPlist(), pos);
-	std::vector<Node*>::iterator it = _array.begin();
-	it += pos;
-	_array.insert(it, clone);
+        plist_array_insert_item(_node, clone->GetPlist(), pos);
+        std::vector<Node*>::iterator it = _array.begin();
+        it += pos;
+        _array.insert(it, clone);
     }
 }
 
@@ -122,12 +122,12 @@ void Array::Remove(Node* node)
 {
     if (node)
     {
-	uint32_t pos = plist_array_get_item_index(node->GetPlist());
-	plist_array_remove_item(_node, pos);
-	std::vector<Node*>::iterator it = _array.begin();
-	it += pos;
-	_array.erase(it);
-	delete node;
+        uint32_t pos = plist_array_get_item_index(node->GetPlist());
+        plist_array_remove_item(_node, pos);
+        std::vector<Node*>::iterator it = _array.begin();
+        it += pos;
+        _array.erase(it);
+        delete node;
     }
 }
 

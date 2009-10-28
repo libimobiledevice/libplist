@@ -7,15 +7,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <stdlib.h>
@@ -38,36 +38,36 @@ Node* Utils::FromPlist(plist_t node, Node* parent)
     if (node)
     {
         plist_type type = plist_get_node_type(node);
-	switch(type)
-	{
-	    case PLIST_DICT:
-                ret = new Dictionary(node, parent);
-		break;
-	    case PLIST_ARRAY:
-                ret = new Array(node, parent);
-		break;
-	    case PLIST_BOOLEAN:
-                ret = new Boolean(node, parent);
-                break;
-	    case PLIST_UINT:
-                ret = new Integer(node, parent);
-                break;
-	    case PLIST_REAL:
-                ret = new Real(node, parent);
-                break;
-	    case PLIST_STRING:
-                ret = new String(node, parent);
-                break;
-	    case PLIST_DATE:
-                ret = new Date(node, parent);
-                break;
-	    case PLIST_DATA:
-                ret = new Data(node, parent);
-                break;
-	    default:
-                plist_free(node);
-		break;
-	}
+        switch (type)
+        {
+        case PLIST_DICT:
+            ret = new Dictionary(node, parent);
+            break;
+        case PLIST_ARRAY:
+            ret = new Array(node, parent);
+            break;
+        case PLIST_BOOLEAN:
+            ret = new Boolean(node, parent);
+            break;
+        case PLIST_UINT:
+            ret = new Integer(node, parent);
+            break;
+        case PLIST_REAL:
+            ret = new Real(node, parent);
+            break;
+        case PLIST_STRING:
+            ret = new String(node, parent);
+            break;
+        case PLIST_DATE:
+            ret = new Date(node, parent);
+            break;
+        case PLIST_DATA:
+            ret = new Data(node, parent);
+            break;
+        default:
+            plist_free(node);
+            break;
+        }
     }
     return ret;
 }
