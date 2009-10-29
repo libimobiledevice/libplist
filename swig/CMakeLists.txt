@@ -9,7 +9,7 @@ SWIG_ADD_MODULE( PList python plist.i )
 SWIG_LINK_LIBRARIES( PList plist plist++ ${PYTHON_LIBRARIES} )
 
 EXEC_PROGRAM("${PYTHON_EXECUTABLE}"
-    ARGS "-c 'try:\n import distutils.sysconfig; print distutils.sysconfig.get_python_lib()\nexcept: pass\n'"
+    ARGS "-c 'try:\n import distutils.sysconfig; print distutils.sysconfig.get_python_lib(plat_specific=1)\nexcept: pass\n'"
     OUTPUT_VARIABLE DISTUTILS_PYTHON_ILIBRARY_PATH
     )
 
