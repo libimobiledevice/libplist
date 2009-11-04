@@ -49,6 +49,7 @@ public :
     iterator Insert(const std::string& key, Node* node);
     void Remove(Node* node);
     void Remove(const std::string& key);
+    std::string GetNodeKey(Node* key);
 
 private :
     std::map<std::string,Node*> _map;

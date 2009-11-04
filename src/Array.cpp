@@ -22,6 +22,8 @@
 #include <plist/Array.h>
 #include <plist/Utils.h>
 
+#include <algorithm>
+
 namespace PList
 {
 
@@ -138,6 +140,12 @@ void Array::Remove(unsigned int pos)
     it += pos;
     delete _array.at(pos);
     _array.erase(it);
+}
+
+unsigned int Array::GetNodeIndex(Node* node)
+{
+    std::vector<Node*>::iterator it = std::find(_array.begin(), _array.end(), node);
+    return std::distance (_array.begin(), it);
 }
 
 };

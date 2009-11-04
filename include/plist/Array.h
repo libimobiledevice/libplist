@@ -44,6 +44,7 @@ public :
     void Insert(Node* node, unsigned int pos);
     void Remove(Node* node);
     void Remove(unsigned int pos);
+    unsigned int GetNodeIndex(Node* node);
 
 private :
     std::vector<Node*> _array;

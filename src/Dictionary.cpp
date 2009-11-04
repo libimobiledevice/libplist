@@ -177,4 +177,14 @@ void Dictionary::Remove(const std::string& key)
     _map.erase(key);
 }
 
+std::string Dictionary::GetNodeKey(Node* node)
+{
+    for (iterator it = _map.begin(); it != _map.end(); ++it)
+    {
+        if (it->second == node)
+            return it->first;
+    }
+    return "";
+}
+
 };
