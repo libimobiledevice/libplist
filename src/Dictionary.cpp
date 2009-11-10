@@ -111,7 +111,6 @@ Dictionary::~Dictionary()
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
-        plist_free(it->second->GetPlist());
         delete it->second;
     }
     _map.clear();
