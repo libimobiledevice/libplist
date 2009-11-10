@@ -52,10 +52,10 @@ struct plist_data_s
 
 typedef struct plist_data_s *plist_data_t;
 
-plist_t plist_new_node(plist_data_t data);
-plist_data_t plist_get_data(const plist_t node);
-plist_data_t plist_new_plist_data(void);
-gboolean plist_data_compare(gconstpointer a, gconstpointer b);
+G_GNUC_INTERNAL plist_t plist_new_node(plist_data_t data);
+G_GNUC_INTERNAL plist_data_t plist_get_data(const plist_t node);
+G_GNUC_INTERNAL plist_data_t plist_new_plist_data(void);
+G_GNUC_INTERNAL gboolean plist_data_compare(gconstpointer a, gconstpointer b);
 
 
 #endif
