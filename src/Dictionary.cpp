@@ -147,7 +147,7 @@ Dictionary::iterator Dictionary::Insert(const std::string& key, Node* node)
     if (node)
     {
         Node* clone = node->Clone();
-        clone->SetParent(this);
+        UpdateNodeParent(clone);
         plist_dict_insert_item(_node, key.c_str(), clone->GetPlist());
         delete _map[key];
         _map[key] = clone;

@@ -44,6 +44,7 @@ public :
 protected:
     Structure(Node* parent = NULL);
     Structure(plist_type type, Node* parent = NULL);
+    void UpdateNodeParent(Node* node);
 
 private:
     Structure(Structure& s);

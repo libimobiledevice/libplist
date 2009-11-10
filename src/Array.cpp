@@ -101,7 +101,7 @@ void Array::Append(Node* node)
     if (node)
     {
         Node* clone = node->Clone();
-        clone->SetParent(this);
+        UpdateNodeParent(clone);
         plist_array_append_item(_node, clone->GetPlist());
         _array.push_back(clone);
     }
@@ -112,7 +112,7 @@ void Array::Insert(Node* node, unsigned int pos)
     if (node)
     {
         Node* clone = node->Clone();
-        clone->SetParent(this);
+        UpdateNodeParent(clone);
         plist_array_insert_item(_node, clone->GetPlist(), pos);
         std::vector<Node*>::iterator it = _array.begin();
         it += pos;

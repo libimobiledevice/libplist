@@ -96,19 +96,4 @@ Node* Node::GetParent()
     return _parent;
 }
 
-void Node::SetParent(Node* parent)
-{
-    //Unlink node first
-    if ( NULL != _parent )
-    {
-        plist_type type = plist_get_node_type(_parent);
-        if (PLIST_ARRAY ==type || PLIST_DICT == type )
-        {
-            Structure* s = static_cast<Structure*>(_parent);
-            s->Remove(this);
-        }
-    }
-    _parent = parent;
-}
-
 };

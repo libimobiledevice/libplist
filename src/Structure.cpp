@@ -70,5 +70,20 @@ std::vector<char> Structure::ToBin()
     return ret;
 }
 
+void Structure::UpdateNodeParent(Node* node)
+{
+    //Unlink node first
+    if ( NULL != node->_parent )
+    {
+        plist_type type = plist_get_node_type(node->_parent);
+        if (PLIST_ARRAY ==type || PLIST_DICT == type )
+        {
+            Structure* s = static_cast<Structure*>(node->_parent);
+            s->Remove(node);
+        }
+    }
+    node->_parent = this;
+}
+
 };
 

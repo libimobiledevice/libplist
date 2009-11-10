@@ -33,9 +33,8 @@ public :
     virtual ~Node();
 
     virtual Node* Clone() = 0;
-    Node * GetParent();
-    void SetParent(Node* parent);
 
+    Node * GetParent();
     plist_type GetType();
     plist_t GetPlist();
 
@@ -44,7 +43,10 @@ protected:
     Node(plist_t node, Node* parent = NULL);
     Node(plist_type type, Node* parent = NULL);
     plist_t _node;
+
+private:
     Node* _parent;
+    friend class Structure;
 };
 
 };
