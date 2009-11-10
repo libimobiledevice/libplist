@@ -1,5 +1,6 @@
 
 #build the test executable
+INCLUDE_DIRECTORIES( ${GLIB2_INCLUDE_DIR} )
 
 SET(plist_test_SRC
 	plist_test.c)

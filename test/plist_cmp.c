@@ -27,9 +27,26 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <glib.h>
+
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #endif
+
+static plist_t plist_get_first_child(plist_t node)
+{
+    return (plist_t) g_node_first_child((GNode *) node);
+}
+
+static plist_t plist_get_next_sibling(plist_t node)
+{
+    return (plist_t) g_node_next_sibling((GNode *) node);
+}
+
+static plist_t plist_get_prev_sibling(plist_t node)
+{
+    return (plist_t) g_node_prev_sibling((GNode *) node);
+}
 
 char compare_plist(plist_t node_l, plist_t node_r)
 {
