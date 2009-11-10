@@ -11,7 +11,6 @@ SET( libplist_HDR
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/Real.h
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/String.h
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/Structure.h
-	${CMAKE_CURRENT_SOURCE_DIR}/plist/Utils.h
   )
 
 INSTALL( FILES ${libplist_HDR}

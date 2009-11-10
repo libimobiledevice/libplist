@@ -18,7 +18,6 @@ SET(libplist++_SRC
 	Structure.cpp
 	Array.cpp
 	Dictionary.cpp
-	Utils.cpp
 	)
 
 ADD_LIBRARY( plist SHARED ${libplist_SRC} )

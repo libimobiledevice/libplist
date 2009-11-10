@@ -159,7 +159,6 @@ namespace std {
 %include <plist/Structure.h>
 %include <plist/Array.h>
 %include <plist/Dictionary.h>
-%include <plist/Utils.h>
 
 typedef enum {
 	PLIST_BOOLEAN,

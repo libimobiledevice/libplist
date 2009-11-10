@@ -85,5 +85,39 @@ void Structure::UpdateNodeParent(Node* node)
     node->_parent = this;
 }
 
+static Structure* ImportStruct(plist_t root)
+{
+    Structure* ret = NULL;
+    plist_type type = plist_get_node_type(root);
+
+    if (PLIST_ARRAY == type || PLIST_DICT == type)
+    {
+        ret = static_cast<Structure*>(Node::FromPlist(root));
+    }
+    else
+    {
+        plist_free(root);
+    }
+
+    return ret;
+}
+
+Structure* Structure::FromXml(const std::string& xml)
+{
+    plist_t root = NULL;
+    plist_from_xml(xml.c_str(), xml.size(), &root);
+
+    return ImportStruct(root);
+}
+
+Structure* Structure::FromBin(const std::vector<char>& bin)
+{
+    plist_t root = NULL;
+    plist_from_bin(&bin[0], bin.size(), &root);
+
+    return ImportStruct(root);
+
+}
+
 };
 
