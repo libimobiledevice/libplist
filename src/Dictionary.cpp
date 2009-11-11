@@ -40,7 +40,7 @@ Dictionary::Dictionary(plist_t node, Node* parent) : Structure(parent)
     plist_dict_next_item(_node, it, &key, &subnode);
     while (subnode)
     {
-        _map[std::string(key)] = Utils::FromPlist(subnode, this);
+        _map[std::string(key)] = Node::FromPlist(subnode, this);
 
         subnode = NULL;
         free(key);
@@ -68,7 +68,7 @@ Dictionary::Dictionary(PList::Dictionary& d) : Structure()
     plist_dict_next_item(_node, it, &key, &subnode);
     while (subnode)
     {
-        _map[std::string(key)] = Utils::FromPlist(subnode, this);
+        _map[std::string(key)] = Node::FromPlist(subnode, this);
 
         subnode = NULL;
         free(key);
@@ -96,7 +96,7 @@ Dictionary& Dictionary::operator=(PList::Dictionary& d)
     plist_dict_next_item(_node, it, &key, &subnode);
     while (subnode)
     {
-        _map[std::string(key)] = Utils::FromPlist(subnode, this);
+        _map[std::string(key)] = Node::FromPlist(subnode, this);
 
         subnode = NULL;
         free(key);

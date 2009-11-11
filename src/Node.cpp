@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <plist/Node.h>
 #include <plist/Structure.h>
-#include <plist/Utils.h>
 #include <plist/Dictionary.h>
 #include <plist/Array.h>
 #include <plist/Boolean.h>

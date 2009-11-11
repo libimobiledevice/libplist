@@ -40,7 +40,7 @@ Array::Array(plist_t node, Node* parent) : Structure(parent)
     for (uint32_t i = 0; i < size; i++)
     {
         plist_t subnode = plist_array_get_item(_node, i);
-        _array.push_back(  Utils::FromPlist(subnode, this) );
+        _array.push_back(  Node::FromPlist(subnode, this) );
     }
 }
 
@@ -53,7 +53,7 @@ Array::Array(PList::Array& a) : Structure()
     for (uint32_t i = 0; i < size; i++)
     {
         plist_t subnode = plist_array_get_item(_node, i);
-        _array.push_back(  Utils::FromPlist(subnode, this) );
+        _array.push_back(  Node::FromPlist(subnode, this) );
     }
 }
 
@@ -72,7 +72,7 @@ Array& Array::operator=(PList::Array& a)
     for (uint32_t i = 0; i < size; i++)
     {
         plist_t subnode = plist_array_get_item(_node, i);
-        _array.push_back(  Utils::FromPlist(subnode, this) );
+        _array.push_back(  Node::FromPlist(subnode, this) );
     }
     return *this;
 }
