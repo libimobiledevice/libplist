@@ -72,6 +72,7 @@ static void plist_free_node(GNode * node, gpointer none)
     plist_free_data(data);
     node->data = NULL;
     g_node_children_foreach(node, G_TRAVERSE_ALL, plist_free_node, NULL);
+    g_node_destroy(node);
 }
 
 plist_t plist_new_dict(void)
@@ -159,7 +160,6 @@ void plist_free(plist_t plist)
     if (plist)
     {
         plist_free_node(plist, NULL);
-        g_node_destroy(plist);
     }
 }
 
