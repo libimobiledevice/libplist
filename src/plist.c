@@ -182,9 +182,11 @@ static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
         case PLIST_DATA:
             newdata->buff = (uint8_t *) malloc(data->length);
             memcpy(newdata->buff, data->buff, data->length);
+            break;
         case PLIST_KEY:
         case PLIST_STRING:
             newdata->strval = strdup((char *) data->strval);
+            break;
         default:
             break;
         }
