@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <plist/Array.h>
-#include <plist/Utils.h>
 
 #include <algorithm>
 

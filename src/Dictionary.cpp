@@ -20,7 +20,6 @@
 
 #include <stdlib.h>
 #include <plist/Dictionary.h>
-#include <plist/Utils.h>
 
 namespace PList
 {
