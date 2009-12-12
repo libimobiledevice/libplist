@@ -7,7 +7,7 @@
  %}
 
 %include "std_string.i"
-
+%include "stdint.i"
 
 %typemap(out) std::vector<char> {
    $result = SWIG_FromCharPtrAndSize((const char*)&($1[0]),(int)($1.size()));
