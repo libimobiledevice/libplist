@@ -196,7 +196,12 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
     {
         xmlNodeAddContent(xstruct->xml, BAD_CAST("\t"));
     }
-    child_node = xmlNewChild(xstruct->xml, NULL, tag, BAD_CAST(val));
+    if (node_data->type == PLIST_STRING) {
+        /* make sure we convert the following predefined xml entities */
+        /* < = &lt; > = &gt; ' = &apos; " = &quot; & = &amp; */
+        child_node = xmlNewTextChild(xstruct->xml, NULL, tag, BAD_CAST(val));
+    } else
+        child_node = xmlNewChild(xstruct->xml, NULL, tag, BAD_CAST(val));
     xmlNodeAddContent(xstruct->xml, BAD_CAST("\n"));
     g_free(val);
 

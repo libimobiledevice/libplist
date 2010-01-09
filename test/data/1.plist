@@ -29,5 +29,7 @@
 	<key>Some Data</key>
 	<data>
 	</data>
+	<key>Some Entities</key>
+	<string>hellow world &amp; others &lt;nodes&gt; are &quot;fun!?&apos;</string>
 </dict>
 </plist>
