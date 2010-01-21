@@ -35,15 +35,14 @@
 int main(int argc, char *argv[])
 {
     FILE *iplist = NULL;
-    FILE *oplist = NULL;
     plist_t root_node1 = NULL;
     plist_t root_node2 = NULL;
     char *plist_xml = NULL;
     char *plist_xml2 = NULL;
     char *plist_bin = NULL;
     int size_in = 0;
-    int size_out = 0;
-    int size_out2 = 0;
+    uint32_t size_out = 0;
+    uint32_t size_out2 = 0;
     char *file_in = NULL;
     struct stat *filestats = (struct stat *) malloc(sizeof(struct stat));
     if (argc!= 2)
@@ -123,7 +122,7 @@ int main(int argc, char *argv[])
     free(plist_xml2);
     free(filestats);
 
-    if (size_in != size_out2)
+    if ((uint32_t)size_in != size_out2)
     {
         printf("Size of input and output is different\n");
         printf("Input size : %i\n", size_in);

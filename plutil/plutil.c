@@ -38,7 +38,8 @@ int main(int argc, char *argv[])
     FILE *iplist = NULL;
     plist_t root_node = NULL;
     char *plist_out = NULL;
-    int size = 0;
+    uint32_t size = 0;
+    int read_size = 0;
     char *plist_entire = NULL;
     struct stat *filestats = (struct stat *) malloc(sizeof(struct stat));
     Options *options = parse_arguments(argc, argv);
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
         return 1;
     stat(options->in_file, filestats);
     plist_entire = (char *) malloc(sizeof(char) * (filestats->st_size + 1));
-    fread(plist_entire, sizeof(char), filestats->st_size, iplist);
+    read_size = fread(plist_entire, sizeof(char), filestats->st_size, iplist);
     fclose(iplist);
 
 
@@ -64,12 +65,12 @@ int main(int argc, char *argv[])
 
     if (memcmp(plist_entire, "bplist00", 8) == 0)
     {
-        plist_from_bin(plist_entire, filestats->st_size, &root_node);
+        plist_from_bin(plist_entire, read_size, &root_node);
         plist_to_xml(root_node, &plist_out, &size);
     }
     else
     {
-        plist_from_xml(plist_entire, filestats->st_size, &root_node);
+        plist_from_xml(plist_entire, read_size, &root_node);
         plist_to_bin(root_node, &plist_out, &size);
     }
     plist_free(root_node);

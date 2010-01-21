@@ -82,7 +82,7 @@ static void byte_convert(uint8_t * address, size_t size)
 static uint32_t uint24_from_be(char *buff)
 {
     uint32_t ret = 0;
-    char *tmp = (char *) &ret;
+    uint8_t *tmp = (uint8_t *) &ret;
     memcpy(tmp + 1, buff, 3 * sizeof(char));
     byte_convert(tmp, sizeof(uint32_t));
     return ret;
@@ -192,7 +192,6 @@ static plist_t parse_unicode_node(char *bnode, uint64_t size)
     uint64_t i = 0;
     gunichar2 *unicodestr = NULL;
     gchar *tmpstr = NULL;
-    int type = 0;
     glong items_read = 0;
     glong items_written = 0;
     GError *error = NULL;
@@ -858,7 +857,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         case PLIST_KEY:
         case PLIST_STRING:
             len = strlen(data->strval);
-            type = xmlDetectCharEncoding(data->strval, len);
+            type = xmlDetectCharEncoding((const unsigned char *)data->strval, len);
             if (XML_CHAR_ENCODING_UTF8 == type)
             {
                 unicodestr = g_utf8_to_utf16(data->strval, len, &items_read, &items_written, &error);

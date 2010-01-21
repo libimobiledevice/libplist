@@ -43,12 +43,7 @@ static plist_t plist_get_next_sibling(plist_t node)
     return (plist_t) g_node_next_sibling((GNode *) node);
 }
 
-static plist_t plist_get_prev_sibling(plist_t node)
-{
-    return (plist_t) g_node_prev_sibling((GNode *) node);
-}
-
-char compare_plist(plist_t node_l, plist_t node_r)
+static char compare_plist(plist_t node_l, plist_t node_r)
 {
     plist_t cur_l = NULL;
     plist_t cur_r = NULL;

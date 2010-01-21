@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <inttypes.h>
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -149,7 +150,7 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 
     case PLIST_UINT:
         tag = XPLIST_INT;
-        val = g_strdup_printf("%llu", node_data->intval);
+        val = g_strdup_printf("%"PRIu64, node_data->intval);
         break;
 
     case PLIST_REAL:

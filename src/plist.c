@@ -414,38 +414,6 @@ void plist_dict_remove_item(plist_t node, const char* key)
     return;
 }
 
-static char compare_node_value(plist_type type, plist_data_t data, const void *value, uint64_t length)
-{
-    char res = FALSE;
-    switch (type)
-    {
-    case PLIST_BOOLEAN:
-        res = data->boolval == *((char *) value) ? TRUE : FALSE;
-        break;
-    case PLIST_UINT:
-        res = data->intval == *((uint64_t *) value) ? TRUE : FALSE;
-        break;
-    case PLIST_REAL:
-        res = data->realval == *((double *) value) ? TRUE : FALSE;
-        break;
-    case PLIST_KEY:
-    case PLIST_STRING:
-        res = !strcmp(data->strval, ((char *) value));
-        break;
-    case PLIST_DATA:
-        res = !memcmp(data->buff, (char *) value, length);
-        break;
-    case PLIST_DATE:
-        res = !memcmp(&(data->timeval), value, sizeof(GTimeVal));
-        break;
-    case PLIST_ARRAY:
-    case PLIST_DICT:
-    default:
-        break;
-    }
-    return res;
-}
-
 plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
 {
     plist_t current = plist;
@@ -458,8 +426,8 @@ plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
 
         if (type == PLIST_ARRAY)
         {
-            uint32_t index = va_arg(v, uint32_t);
-            current = plist_array_get_item(current, index);
+            uint32_t n = va_arg(v, uint32_t);
+            current = plist_array_get_item(current, n);
         }
         else if (type == PLIST_DICT)
         {
