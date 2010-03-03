@@ -25,7 +25,7 @@
 #include <plist/Node.h>
 #include <ctime>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <Winsock2.h>
 #endif
 
