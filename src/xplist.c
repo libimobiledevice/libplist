@@ -373,9 +373,16 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 
     node_to_xml(plist, &root);
 
-    xmlDocDumpMemory(plist_doc, (xmlChar **) plist_xml, &size);
-    if (size >= 0)
+    xmlChar* tmp = NULL;
+    xmlDocDumpMemory(plist_doc, &tmp, &size);
+    if (size >= 0 && tmp)
+    {
+        *plist_xml = (char*)malloc(size * sizeof(char));
+	memcpy(*plist_xml, tmp, size);
         *length = size;
+	xmlFree(tmp);
+	tmp = NULL;
+    }
     xmlFreeDoc(plist_doc);
 }
 
