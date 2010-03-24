@@ -63,6 +63,22 @@ enum
     BPLIST_MASK = 0xF0
 };
 
+static void float_byte_convert(uint8_t * address, size_t size)
+{
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN && !defined (__VFP_FP__)
+    uint8_t i = 0, j = 0;
+    uint8_t tmp = 0;
+
+    for (i = 0; i < (size / 2); i++)
+    {
+        tmp = address[i];
+        j = ((size - 1) + 0) - i;
+        address[i] = address[j];
+        address[j] = tmp;
+    }
+#endif
+}
+
 static void byte_convert(uint8_t * address, size_t size)
 {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
@@ -136,23 +152,27 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
     float floatval = 0.0;
+    uint8_t* buf;
 
     size = 1 << size;			// make length less misleading
+    buf = malloc (size);
+    memcpy (buf, bnode, size);
     switch (size)
     {
     case sizeof(float):
-        floatval = *(float *) bnode;
-        byte_convert((uint8_t *) & floatval, sizeof(float));
+        float_byte_convert(buf, size);
+        floatval = *(float *) buf;
         data->realval = floatval;
         break;
     case sizeof(double):
-        data->realval = *(double *) bnode;
-        byte_convert((uint8_t *) & (data->realval), sizeof(double));
+        float_byte_convert(buf, size);
+        data->realval = *(double *) buf;
         break;
     default:
         free(data);
         return NULL;
     }
+    free (buf);
     data->type = PLIST_REAL;
     data->length = sizeof(double);
 
@@ -648,7 +668,7 @@ static void write_real(GByteArray * bplist, double val)
         float tmpval = (float) val;
         memcpy(buff + 1, &tmpval, size);
     }
-    byte_convert(buff + 1, size);
+    float_byte_convert(buff + 1, size);
     g_byte_array_append(bplist, buff, sizeof(uint8_t) + size);
     free(buff);
 }
@@ -659,7 +679,7 @@ static void write_date(GByteArray * bplist, double val)
     uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
     buff[0] = BPLIST_DATE | Log2(size);
     memcpy(buff + 1, &val, size);
-    byte_convert(buff + 1, size);
+    float_byte_convert(buff + 1, size);
     g_byte_array_append(bplist, buff, sizeof(uint8_t) + size);
     free(buff);
 }
