@@ -26,6 +26,7 @@
 #include <stdio.h>
 
 #include <inttypes.h>
+#include <locale.h>
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -371,6 +372,14 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     root_node = xmlDocGetRootElement(plist_doc);
     root.xml = root_node;
 
+    char *current_locale = setlocale(LC_NUMERIC, NULL);
+    char *saved_locale = NULL;
+    if (current_locale) {
+        saved_locale = strdup(current_locale);
+    }
+    if (saved_locale) {
+        setlocale(LC_NUMERIC, "POSIX");
+    }
     node_to_xml(plist, &root);
 
     xmlChar* tmp = NULL;
@@ -385,6 +394,11 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 	tmp = NULL;
     }
     xmlFreeDoc(plist_doc);
+
+    if (saved_locale) {
+        setlocale(LC_NUMERIC, saved_locale);
+        free(saved_locale);
+    }
 }
 
 void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
