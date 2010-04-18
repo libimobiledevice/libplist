@@ -79,6 +79,24 @@ static void float_byte_convert(uint8_t * address, size_t size)
 #endif
 }
 
+union plist_uint_ptr
+{
+    void *src;
+    uint8_t *u8ptr;
+    uint16_t *u16ptr;
+    uint32_t *u32ptr;
+    uint64_t *u64ptr;
+};
+
+#define get_unaligned(ptr)			  \
+  ({                                              \
+    struct __attribute__((packed)) {		  \
+      typeof(*(ptr)) __v;			  \
+    } *__p = (void *) (ptr);			  \
+    __p->__v;					  \
+  })
+
+
 static void byte_convert(uint8_t * address, size_t size)
 {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
@@ -95,23 +113,36 @@ static void byte_convert(uint8_t * address, size_t size)
 #endif
 }
 
-static uint32_t uint24_from_be(char *buff)
+static uint32_t uint24_from_be(union plist_uint_ptr buf)
 {
+    union plist_uint_ptr tmp;
     uint32_t ret = 0;
-    uint8_t *tmp = (uint8_t *) &ret;
-    memcpy(tmp + 1, buff, 3 * sizeof(char));
-    byte_convert(tmp, sizeof(uint32_t));
+
+    tmp.src = &ret;
+
+    memcpy(tmp.u8ptr + 1, buf.u8ptr, 3 * sizeof(char));
+
+    byte_convert(tmp.u8ptr, sizeof(uint32_t));
     return ret;
 }
 
 #define UINT_TO_HOST(x, n) \
-		(n == 8 ? GUINT64_FROM_BE( *(uint64_t *)(x) ) : \
-		(n == 4 ? GUINT32_FROM_BE( *(uint32_t *)(x) ) : \
-		(n == 3 ? uint24_from_be( (char*)x ) : \
-		(n == 2 ? GUINT16_FROM_BE( *(uint16_t *)(x) ) : \
-		*(uint8_t *)(x) ))))
+	({ \
+		union plist_uint_ptr __up; \
+		__up.src = x; \
+		(n == 8 ? GUINT64_FROM_BE( get_unaligned(__up.u64ptr) ) : \
+		(n == 4 ? GUINT32_FROM_BE( get_unaligned(__up.u32ptr) ) : \
+		(n == 3 ? uint24_from_be( __up ) : \
+		(n == 2 ? GUINT16_FROM_BE( get_unaligned(__up.u16ptr) ) : \
+		*__up.u8ptr )))); \
+	})
 
-#define be64dec(x) GUINT64_FROM_BE( *(uint64_t*)(x) )
+#define be64dec(x) \
+	({ \
+		union plist_uint_ptr __up; \
+		__up.src = x; \
+		GUINT64_FROM_BE( get_unaligned(__up.u64ptr) ); \
+	})
 
 #define get_needed_bytes(x) \
 		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
@@ -646,6 +677,11 @@ static void write_int(GByteArray * bplist, uint64_t val)
     //do not write 3bytes int node
     if (size == 3)
         size++;
+
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+    val = val << ((sizeof(uint64_t) - size) * 8);
+#endif
+
     buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
     buff[0] = BPLIST_UINT | Log2(size);
     memcpy(buff + 1, &val, size);
@@ -656,7 +692,7 @@ static void write_int(GByteArray * bplist, uint64_t val)
 
 static void write_real(GByteArray * bplist, double val)
 {
-    uint64_t size = get_real_bytes(*((uint64_t *) & val));	//cheat to know used space
+    uint64_t size = get_real_bytes(val);	//cheat to know used space
     uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
     buff[0] = BPLIST_REAL | Log2(size);
     if (size == sizeof(double))
@@ -748,6 +784,9 @@ static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_tabl
     for (i = 0, cur = node->children; cur && i < size; cur = cur->next, i++)
     {
         idx = *(uint64_t *) (g_hash_table_lookup(ref_table, cur));
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+	idx = idx << ((sizeof(uint64_t) - dict_param_size) * 8);
+#endif
         memcpy(buff + i * dict_param_size, &idx, dict_param_size);
         byte_convert(buff + i * dict_param_size, dict_param_size);
     }
@@ -783,10 +822,16 @@ static void write_dict(GByteArray * bplist, GNode * node, GHashTable * ref_table
     for (i = 0, cur = node->children; cur && i < size; cur = cur->next->next, i++)
     {
         idx1 = *(uint64_t *) (g_hash_table_lookup(ref_table, cur));
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+	idx1 = idx1 << ((sizeof(uint64_t) - dict_param_size) * 8);
+#endif
         memcpy(buff + i * dict_param_size, &idx1, dict_param_size);
         byte_convert(buff + i * dict_param_size, dict_param_size);
 
         idx2 = *(uint64_t *) (g_hash_table_lookup(ref_table, cur->next));
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+	idx2 = idx2 << ((sizeof(uint64_t) - dict_param_size) * 8);
+#endif
         memcpy(buff + (i + size) * dict_param_size, &idx2, dict_param_size);
         byte_convert(buff + (i + size) * dict_param_size, dict_param_size);
     }
@@ -916,7 +961,12 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     for (i = 0; i < num_objects; i++)
     {
         uint8_t *offsetbuff = (uint8_t *) malloc(offset_size);
-        memcpy(offsetbuff, offsets + i, offset_size);
+
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+	offsets[i] = offsets[i] << ((sizeof(uint64_t) - offset_size) * 8);
+#endif
+
+        memcpy(offsetbuff, &offsets[i], offset_size);
         byte_convert(offsetbuff, offset_size);
         g_byte_array_append(bplist_buff, offsetbuff, offset_size);
         free(offsetbuff);
