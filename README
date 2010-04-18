@@ -29,18 +29,18 @@ On Ubuntu/Debian, you can do:
 
 == Who/what/where? ==
 
-wiki:
-	http://matt.colyer.name/projects/iphone-linux/index.php?title=Main_Page
+Home:
+	http://www.libimobiledevice.org/
 
-code:
+Code:
 	git clone git://github.com/JonathanBeck/libplist.git
 
-tickets:
-	http://libiphone.lighthouseapp.com/projects/27916-libiphone/tickets?q=all
+Tickets:
+	http://libiphone.lighthouseapp.com/
 	Please tag libplist related bugs with 'libplist'
 
-mailing list:
-	http://lists.mattcolyer.com/listinfo.cgi/iphone-linux-dev-mattcolyer.com
+Mailing List:
+	http://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 
 updated:
-	2009-03-27
+	2010-04-18
