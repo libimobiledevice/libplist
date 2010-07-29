@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <libxml/encoding.h>
+#include <ctype.h>
 
 #include <plist/plist.h>
 #include "plist.h"
@@ -732,6 +733,8 @@ static void write_raw_data(GByteArray * bplist, uint8_t mark, uint8_t * val, uin
         g_byte_array_append(bplist, int_buff->data, int_buff->len);
         g_byte_array_free(int_buff, TRUE);
     }
+    //stupid unicode buffer length
+    if (BPLIST_UNICODE==mark) size *= 2;
     buff = (uint8_t *) malloc(size);
     memcpy(buff, val, size);
     g_byte_array_append(bplist, buff, size);
@@ -757,7 +760,7 @@ static void write_unicode(GByteArray * bplist, gunichar2 * val, uint64_t size)
     memcpy(buff, val, size2);
     for (i = 0; i < size; i++)
         byte_convert(buff + i * sizeof(gunichar2), sizeof(gunichar2));
-    write_raw_data(bplist, BPLIST_STRING, buff, size2);
+    write_raw_data(bplist, BPLIST_UNICODE, buff, size);
 }
 
 static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_table, uint8_t dict_param_size)
@@ -842,6 +845,20 @@ static void write_dict(GByteArray * bplist, GNode * node, GHashTable * ref_table
 
 }
 
+static int is_ascii_string(char* s, int len)
+{
+  int ret = 1, i = 0;
+  for(i = 0; i < len; i++)
+  {
+      if ( !isascii( s[i] ) )
+      {
+          ret = 0;
+          break;
+      }
+  }
+  return ret;
+}
+
 void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 {
     GPtrArray *objects = NULL;
@@ -922,16 +939,15 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         case PLIST_KEY:
         case PLIST_STRING:
             len = strlen(data->strval);
-            type = xmlDetectCharEncoding((const unsigned char *)data->strval, len);
-            if (XML_CHAR_ENCODING_UTF8 == type)
+            if ( is_ascii_string(data->strval, len) )
+            {
+                write_string(bplist_buff, data->strval);
+            }
+            else
             {
                 unicodestr = g_utf8_to_utf16(data->strval, len, &items_read, &items_written, &error);
                 write_unicode(bplist_buff, unicodestr, items_written);
                 g_free(unicodestr);
-            }
-            else if (XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type)
-            {
-                write_string(bplist_buff, data->strval);
             }
             break;
         case PLIST_DATA:
