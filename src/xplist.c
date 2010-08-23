@@ -46,7 +46,7 @@
 #define XPLIST_DICT	BAD_CAST("dict")
 
 static const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
 <plist version=\"1.0\">\n\
 </plist>\0";
 
@@ -174,7 +174,7 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
         if (node_data->length)
         {
             valtmp = g_base64_encode(node_data->buff, node_data->length);
-            val = format_string(valtmp, 60, xstruct->depth);
+            val = format_string(valtmp, 68, xstruct->depth);
             g_free(valtmp);
         }
         break;
