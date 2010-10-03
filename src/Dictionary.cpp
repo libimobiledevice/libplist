@@ -72,7 +72,7 @@ Dictionary::Dictionary(PList::Dictionary& d) : Structure()
         subnode = NULL;
         free(key);
         key = NULL;
-        plist_dict_next_item(_node, it, NULL, &subnode);
+        plist_dict_next_item(_node, it, &key, &subnode);
     }
     free(it);
 }
