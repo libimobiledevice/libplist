@@ -33,7 +33,7 @@ Home:
 	http://www.libimobiledevice.org/
 
 Code:
-	git clone git://github.com/JonathanBeck/libplist.git
+	git clone http://cgit.sukimashita.com/libplist.git/
 
 Tickets:
 	http://libiphone.lighthouseapp.com/
@@ -43,4 +43,4 @@ Mailing List:
 	http://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 
 updated:
-	2010-04-18
+	2011-02-12
