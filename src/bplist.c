@@ -761,6 +761,7 @@ static void write_unicode(GByteArray * bplist, gunichar2 * val, uint64_t size)
     for (i = 0; i < size; i++)
         byte_convert(buff + i * sizeof(gunichar2), sizeof(gunichar2));
     write_raw_data(bplist, BPLIST_UNICODE, buff, size);
+    free(buff);
 }
 
 static void write_array(GByteArray * bplist, GNode * node, GHashTable * ref_table, uint8_t dict_param_size)
