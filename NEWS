@@ -1,0 +1,89 @@
+Version 1.4
+~~~~~~~~~~~
+
+- New maintainer and source location
+- Changes:
+  * Update AUTHORS from git history
+  * Fix Unicode writing in binary plists
+  * Update plist doctype
+  * Fix Dictionary copy constructor
+  * Fix Mac OS X library install path detection
+  * Plug memory leak when writing Unicode data
+
+Version 1.3
+~~~~~~~~~~~
+
+- Changes:
+  * Endianness, alignment and type-punning fixes
+  * Fix armel floating point endianess 
+  * Allow compiling with mingw on Windows
+  * Minor bugfixes
+
+Version 1.2
+~~~~~~~~~~~
+
+- Changes:
+  * Fix xml entity conversion
+  * Silence build warnings
+
+Version 1.1
+~~~~~~~~~~~
+
+- Changes:
+  * Fix use of integer nodes within Python Bindings
+
+Version 1.0
+~~~~~~~~~~~
+
+- Changes:
+  * Bugfixes
+  * Remove deprecated API
+
+Version 0.16
+~~~~~~~~~~~~
+
+- Changes:
+  * Build fixes
+  * Fix issues with SWIG
+
+Version 0.15
+~~~~~~~~~~~~
+
+- Changes:
+  * Build fixes
+
+Version 0.14
+~~~~~~~~~~~~
+
+- Changes:
+  * Add C++ binding
+  * Refactor API
+  * Bugfixes
+
+Version 0.13
+~~~~~~~~~~~~
+
+- Changes:
+  * Add plist_copy for deep node copies
+  * Add node setter functions
+  * Unlink nodes from parent if free'd
+  * Update Python bindings
+
+Version 0.12
+~~~~~~~~~~~~
+
+- Changes:
+  * Merge ascii and unicode handling in PLIST_STRING using UTF-8
+  * Remove unicode related declaration in API (breaks API&ABI)
+  * Fix bad variable type for date elements
+  * Silence compiler warnings
+  * Plugged few memory leaks
+
+Version 0.11
+~~~~~~~~~~~~
+
+- Changes:
+  * Fix Python binding segfaults
+  * Python API additions
+  * Better binary buffer handling in Python bindings
+
