@@ -1,10 +1,14 @@
 
-INCLUDE_DIRECTORIES( ${LIBXML2_INCLUDE_DIR} ${GLIB2_INCLUDE_DIR} )
+INCLUDE_DIRECTORIES( ${LIBXML2_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/libcnary/include )
  
 
 SET(libplist_SRC
 	plist.c
+	hashtable.c
+	bytearray.c
+	ptrarray.c
 	bplist.c
+	base64.c
 	xplist.c )
 
 SET(libplist++_SRC
@@ -20,8 +24,18 @@ SET(libplist++_SRC
 	Dictionary.cpp
 	)
 
-ADD_LIBRARY( plist SHARED ${libplist_SRC} )
-TARGET_LINK_LIBRARIES( plist ${LIBXML2_LIBRARIES} ${GLIB2_LIBRARIES} )
+SET(libcnary_object_files
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/iterator.c.o
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/list.c.o
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node.c.o
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node_iterator.c.o
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node_list.c.o
+)
+
+SET_SOURCE_FILES_PROPERTIES(${libcnary_object_files} PROPERTIES EXTERNAL_OBJECT true GENERATED true)
+
+ADD_LIBRARY( plist SHARED ${libplist_SRC} ${libcnary_object_files} )
+TARGET_LINK_LIBRARIES( plist ${LIBXML2_LIBRARIES} )
 SET_TARGET_PROPERTIES( plist PROPERTIES VERSION ${LIBPLIST_LIBVERSION} )
 SET_TARGET_PROPERTIES( plist PROPERTIES SOVERSION ${LIBPLIST_SOVERSION} )
 if(APPLE)

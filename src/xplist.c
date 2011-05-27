@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <inttypes.h>
 #include <locale.h>
@@ -31,7 +32,12 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
+#include <node.h>
+#include <node_list.h>
+#include <node_iterator.h>
+
 #include "plist.h"
+#include "base64.h"
 
 #define XPLIST_TEXT	BAD_CAST("text")
 #define XPLIST_KEY	BAD_CAST("key")
@@ -61,17 +67,21 @@ static const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
  *
  * @return The formatted string.
  */
-static gchar *format_string(const char *buf, int cols, int depth)
+static char *format_string(const char *buf, size_t len, int cols, int depth)
 {
+    if (!buf || !(len > 0)) return NULL;
     int colw = depth + cols + 1;
-    int len = strlen(buf);
     int nlines = len / cols + 1;
-    gchar *new_buf = (gchar *) g_malloc0(nlines * colw + depth + 1);
+    char *new_buf = NULL;
     int i = 0;
     int j = 0;
 
     assert(cols >= 0);
     assert(depth >= 0);
+
+    new_buf = (char*) malloc(nlines * colw + depth + 1);
+    assert(new_buf != 0);
+    memset(new_buf, 0, nlines * colw + depth + 1);
 
     // Inserts new lines and tabs at appropriate locations
     for (i = 0; i < nlines; i++)
@@ -116,7 +126,7 @@ static xmlDocPtr new_xml_plist(void)
     return plist_xml;
 }
 
-static void node_to_xml(GNode * node, gpointer xml_struct)
+static void node_to_xml(node_t* node, void *xml_struct)
 {
     struct xml_node *xstruct = NULL;
     plist_data_t node_data = NULL;
@@ -125,10 +135,10 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
     char isStruct = FALSE;
 
     const xmlChar *tag = NULL;
-    gchar *val = NULL;
+    char *val = NULL;
 
     //for base64
-    gchar *valtmp = NULL;
+    char *valtmp = NULL;
 
     uint32_t i = 0;
 
@@ -151,31 +161,32 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
 
     case PLIST_UINT:
         tag = XPLIST_INT;
-        val = g_strdup_printf("%"PRIu64, node_data->intval);
+        (void)asprintf(&val, "%"PRIu64, node_data->intval);
         break;
 
     case PLIST_REAL:
         tag = XPLIST_REAL;
-        val = g_strdup_printf("%f", node_data->realval);
+        (void)asprintf(&val, "%f", node_data->realval);
         break;
 
     case PLIST_STRING:
         tag = XPLIST_STRING;
-        val = g_strdup(node_data->strval);
+        val = strdup(node_data->strval);
         break;
 
     case PLIST_KEY:
         tag = XPLIST_KEY;
-        val = g_strdup((gchar *) node_data->strval);
+        val = strdup((char*) node_data->strval);
         break;
 
     case PLIST_DATA:
         tag = XPLIST_DATA;
         if (node_data->length)
         {
-            valtmp = g_base64_encode(node_data->buff, node_data->length);
-            val = format_string(valtmp, 68, xstruct->depth);
-            g_free(valtmp);
+            size_t len = node_data->length;
+            valtmp = base64encode(node_data->buff, &len);
+            val = format_string(valtmp, len, 68, xstruct->depth);
+            free(valtmp);
         }
         break;
     case PLIST_ARRAY:
@@ -188,7 +199,18 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
         break;
     case PLIST_DATE:
         tag = XPLIST_DATE;
-        val = g_time_val_to_iso8601(&node_data->timeval);
+        {
+            time_t time = (time_t)node_data->timeval.tv_sec;
+            struct tm *btime = localtime(&time);
+            if (btime) {
+                val = (char*)malloc(24);
+                memset(val, 0, 24);
+                if (strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", btime) <= 0) {
+                    free (val);
+                    val = NULL;
+                }
+            }
+        }
         break;
     default:
         break;
@@ -205,7 +227,9 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
     } else
         child_node = xmlNewChild(xstruct->xml, NULL, tag, BAD_CAST(val));
     xmlNodeAddContent(xstruct->xml, BAD_CAST("\n"));
-    g_free(val);
+    if (val) {
+        free(val);
+    }
 
     //add return for structured types
     if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT)
@@ -214,7 +238,12 @@ static void node_to_xml(GNode * node, gpointer xml_struct)
     if (isStruct)
     {
         struct xml_node child = { child_node, xstruct->depth + 1 };
-        g_node_children_foreach(node, G_TRAVERSE_ALL, node_to_xml, &child);
+        node_iterator_t *ni = node_iterator_create(node->children);
+        node_t *ch;
+        while ((ch = node_iterator_next(ni))) {
+            node_to_xml(ch, &child);
+        }
+        node_iterator_destroy(ni);
     }
     //fix indent for structured types
     if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT)
@@ -236,7 +265,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
     plist_t subnode = NULL;
 
     //for string
-    glong len = 0;
+    long len = 0;
     int type = 0;
 
     if (!xml_node)
@@ -253,7 +282,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         data = plist_new_plist_data();
         subnode = plist_new_node(data);
         if (*plist_node)
-            g_node_append(*plist_node, subnode);
+            node_attach(*plist_node, subnode);
         else
             *plist_node = subnode;
 
@@ -276,7 +305,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!xmlStrcmp(node->name, XPLIST_INT))
         {
             xmlChar *strval = xmlNodeGetContent(node);
-            data->intval = g_ascii_strtoull((char *) strval, NULL, 0);
+            data->intval = strtoull((char*)strval, NULL, 0);
             data->type = PLIST_UINT;
             data->length = 8;
             xmlFree(strval);
@@ -296,9 +325,17 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!xmlStrcmp(node->name, XPLIST_DATE))
         {
             xmlChar *strval = xmlNodeGetContent(node);
-            g_time_val_from_iso8601((char *) strval, &data->timeval);
+            time_t time = 0;
+            if (strlen(strval) >= 11) {
+                struct tm btime;
+                memset(&btime, 0, sizeof(struct tm));
+                strptime((char*)strval, "%Y-%m-%dT%H:%M:%SZ", &btime);
+                time = mktime(&btime);
+            }
+            data->timeval.tv_sec = (long)time;
+            data->timeval.tv_usec = 0;
             data->type = PLIST_DATE;
-            data->length = sizeof(GTimeVal);
+            data->length = sizeof(struct timeval);
             xmlFree(strval);
             continue;
         }
@@ -332,11 +369,11 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!xmlStrcmp(node->name, XPLIST_DATA))
         {
             xmlChar *strval = xmlNodeGetContent(node);
-            gsize size = 0;
-            guchar *dec = g_base64_decode((char *) strval, &size);
+            size_t size = 0;
+            unsigned char *dec = base64decode((char*)strval, &size);
             data->buff = (uint8_t *) malloc(size * sizeof(uint8_t));
             memcpy(data->buff, dec, size * sizeof(uint8_t));
-            g_free(dec);
+            free(dec);
             data->length = size;
             data->type = PLIST_DATA;
             xmlFree(strval);

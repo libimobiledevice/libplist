@@ -23,11 +23,10 @@
 #define PLIST_H
 
 #include "plist/plist.h"
-
+#include "common.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <glib.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
@@ -44,7 +43,7 @@ struct plist_data_s
         double realval;
         char *strval;
         uint8_t *buff;
-        GTimeVal timeval;
+        struct timeval timeval;
     };
     uint64_t length;
     plist_type type;
@@ -52,10 +51,10 @@ struct plist_data_s
 
 typedef struct plist_data_s *plist_data_t;
 
-G_GNUC_INTERNAL plist_t plist_new_node(plist_data_t data);
-G_GNUC_INTERNAL plist_data_t plist_get_data(const plist_t node);
-G_GNUC_INTERNAL plist_data_t plist_new_plist_data(void);
-G_GNUC_INTERNAL gboolean plist_data_compare(gconstpointer a, gconstpointer b);
+_PLIST_INTERNAL plist_t plist_new_node(plist_data_t data);
+_PLIST_INTERNAL plist_data_t plist_get_data(const plist_t node);
+_PLIST_INTERNAL plist_data_t plist_new_plist_data(void);
+_PLIST_INTERNAL int plist_data_compare(const void *a, const void *b);
 
 
 #endif

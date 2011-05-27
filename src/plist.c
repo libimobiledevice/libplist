@@ -26,16 +26,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <node.h>
+#include <node_iterator.h>
+
 plist_t plist_new_node(plist_data_t data)
 {
-    return (plist_t) g_node_new(data);
+    return (plist_t) node_create(NULL, data);
 }
 
 plist_data_t plist_get_data(const plist_t node)
 {
     if (!node)
         return NULL;
-    return ((GNode *) node)->data;
+    return ((node_t*)node)->data;
 }
 
 plist_data_t plist_new_plist_data(void)
@@ -64,15 +67,22 @@ static void plist_free_data(plist_data_t data)
     }
 }
 
-static void plist_free_node(GNode * node, gpointer none)
+static void plist_free_node(node_t* node)
 {
     plist_data_t data = NULL;
-    g_node_unlink(node);
+    node_detach(node->parent, node);
     data = plist_get_data(node);
     plist_free_data(data);
     node->data = NULL;
-    g_node_children_foreach(node, G_TRAVERSE_ALL, plist_free_node, NULL);
-    g_node_destroy(node);
+
+    node_iterator_t *ni = node_iterator_create(node->children);
+    node_t *ch;
+    while ((ch = node_iterator_next(ni))) {
+        plist_free_node(ch);
+    }
+    node_iterator_destroy(ni);
+
+    node_destroy(node);
 }
 
 plist_t plist_new_dict(void)
@@ -151,7 +161,7 @@ plist_t plist_new_date(int32_t sec, int32_t usec)
     data->type = PLIST_DATE;
     data->timeval.tv_sec = sec;
     data->timeval.tv_usec = usec;
-    data->length = sizeof(GTimeVal);
+    data->length = sizeof(struct timeval);
     return plist_new_node(data);
 }
 
@@ -159,11 +169,11 @@ void plist_free(plist_t plist)
 {
     if (plist)
     {
-        plist_free_node(plist, NULL);
+        plist_free_node(plist);
     }
 }
 
-static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
+static void plist_copy_node(node_t *node, void *parent_node_ptr)
 {
     plist_type node_type = PLIST_NONE;
     plist_t newnode = NULL;
@@ -195,14 +205,19 @@ static void plist_copy_node(GNode * node, gpointer parent_node_ptr)
 
     if (*(plist_t*)parent_node_ptr)
     {
-        g_node_append(*(plist_t*)parent_node_ptr, newnode);
+        node_attach(*(plist_t*)parent_node_ptr, newnode);
     }
     else
     {
         *(plist_t*)parent_node_ptr = newnode;
     }
 
-    g_node_children_foreach(node, G_TRAVERSE_ALL, plist_copy_node, &newnode);
+    node_iterator_t *ni = node_iterator_create(node->children);
+    node_t *ch;
+    while ((ch = node_iterator_next(ni))) {
+        plist_copy_node(ch, &newnode);
+    }
+    node_iterator_destroy(ni);
 }
 
 plist_t plist_copy(plist_t node)
@@ -217,7 +232,7 @@ uint32_t plist_array_get_size(plist_t node)
     uint32_t ret = 0;
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        ret = g_node_n_children(node);
+        ret = node_n_children(node);
     }
     return ret;
 }
@@ -227,7 +242,7 @@ plist_t plist_array_get_item(plist_t node, uint32_t n)
     plist_t ret = NULL;
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        ret = (plist_t)g_node_nth_child(node, n);
+        ret = (plist_t)node_nth_child(node, n);
     }
     return ret;
 }
@@ -237,7 +252,7 @@ uint32_t plist_array_get_item_index(plist_t node)
     plist_t father = plist_get_parent(node);
     if (PLIST_ARRAY == plist_get_node_type(father))
     {
-        return g_node_child_position(father, node);
+        return node_child_position(father, node);
     }
     return 0;
 }
@@ -249,7 +264,7 @@ void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
         plist_t old_item = plist_array_get_item(node, n);
         if (old_item)
         {
-            plist_free_node(old_item, NULL);
+            plist_free_node(old_item);
             old_item = NULL;
             plist_copy_node(item, &old_item);
         }
@@ -261,7 +276,7 @@ void plist_array_append_item(plist_t node, plist_t item)
 {
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        g_node_append(node, item);
+        node_attach(node, item);
     }
     return;
 }
@@ -270,7 +285,7 @@ void plist_array_insert_item(plist_t node, plist_t item, uint32_t n)
 {
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        g_node_insert(node, n, item);
+        node_insert(node, n, item);
     }
     return;
 }
@@ -293,7 +308,7 @@ uint32_t plist_dict_get_size(plist_t node)
     uint32_t ret = 0;
     if (node && PLIST_DICT == plist_get_node_type(node))
     {
-        ret = g_node_n_children(node) / 2;
+        ret = node_n_children(node) / 2;
     }
     return ret;
 }
@@ -321,17 +336,17 @@ void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_
         *val = NULL;
     }
 
-    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_int < g_node_n_children(node))
+    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_int < node_n_children(node))
     {
 
         if (key)
         {
-            plist_get_key_val((plist_t)g_node_nth_child(node, *iter_int), key);
+            plist_get_key_val((plist_t)node_nth_child(node, *iter_int), key);
         }
 
         if (val)
         {
-            *val = (plist_t) g_node_nth_child(node, *iter_int + 1);
+            *val = (plist_t) node_nth_child(node, *iter_int + 1);
         }
 
         *iter_int += 2;
@@ -344,7 +359,7 @@ void plist_dict_get_item_key(plist_t node, char **key)
     plist_t father = plist_get_parent(node);
     if (PLIST_DICT == plist_get_node_type(father))
     {
-        plist_get_key_val( (plist_t) g_node_prev_sibling(node), key);
+        plist_get_key_val( (plist_t) node_prev_sibling(node), key);
     }
 }
 
@@ -356,9 +371,9 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
     {
 
         plist_t current = NULL;
-        for (current = (plist_t)g_node_first_child(node);
+        for (current = (plist_t)node_first_child(node);
                 current;
-                current = (plist_t)g_node_next_sibling(g_node_next_sibling(current)))
+                current = (plist_t)node_next_sibling(node_next_sibling(current)))
         {
 
             plist_data_t data = plist_get_data(current);
@@ -366,7 +381,7 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
 
             if (data && !strcmp(key, data->strval))
             {
-                ret = (plist_t)g_node_next_sibling(current);
+                ret = (plist_t)node_next_sibling(current);
                 break;
             }
         }
@@ -381,7 +396,7 @@ void plist_dict_set_item(plist_t node, const char* key, plist_t item)
         plist_t old_item = plist_dict_get_item(node, key);
         if (old_item)
         {
-            plist_free_node(old_item, NULL);
+            plist_free_node(old_item);
             old_item = NULL;
             plist_copy_node(item, &old_item);
         }
@@ -393,8 +408,8 @@ void plist_dict_insert_item(plist_t node, const char* key, plist_t item)
 {
     if (node && PLIST_DICT == plist_get_node_type(node))
     {
-        g_node_append(node, plist_new_key(key));
-        g_node_append(node, item);
+        node_attach(node, plist_new_key(key));
+        node_attach(node, item);
     }
     return;
 }
@@ -406,7 +421,7 @@ void plist_dict_remove_item(plist_t node, const char* key)
         plist_t old_item = plist_dict_get_item(node, key);
         if (old_item)
         {
-            plist_t key_node = g_node_prev_sibling(old_item);
+            plist_t key_node = node_prev_sibling(old_item);
             plist_free(key_node);
             plist_free(old_item);
         }
@@ -482,8 +497,8 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
         break;
     case PLIST_DATE:
         //exception : here we use memory on the stack since it is just a temporary buffer
-        ((GTimeVal *) value)->tv_sec = data->timeval.tv_sec;
-        ((GTimeVal *) value)->tv_usec = data->timeval.tv_usec;
+        ((struct timeval*) value)->tv_sec = data->timeval.tv_sec;
+        ((struct timeval*) value)->tv_usec = data->timeval.tv_usec;
         break;
     case PLIST_ARRAY:
     case PLIST_DICT:
@@ -494,7 +509,7 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
 
 plist_t plist_get_parent(plist_t node)
 {
-    return node ? (plist_t) ((GNode *) node)->parent : NULL;
+    return node ? (plist_t) ((node_t*) node)->parent : NULL;
 }
 
 plist_type plist_get_node_type(plist_t node)
@@ -564,15 +579,15 @@ void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
 {
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    GTimeVal val = { 0, 0 };
+    struct timeval val = { 0, 0 };
     if (PLIST_DATE == type)
         plist_get_type_and_value(node, &type, (void *) &val, &length);
-    assert(length == sizeof(GTimeVal));
+    assert(length == sizeof(struct timeval));
     *sec = val.tv_sec;
     *usec = val.tv_usec;
 }
 
-gboolean plist_data_compare(gconstpointer a, gconstpointer b)
+int plist_data_compare(const void *a, const void *b)
 {
     plist_data_t val_a = NULL;
     plist_data_t val_b = NULL;
@@ -580,7 +595,7 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
     if (!a || !b)
         return FALSE;
 
-    if (!((GNode *) a)->data || !((GNode *) b)->data)
+    if (!((node_t*) a)->data || !((node_t*) b)->data)
         return FALSE;
 
     val_a = plist_get_data((plist_t) a);
@@ -620,7 +635,7 @@ gboolean plist_data_compare(gconstpointer a, gconstpointer b)
             return FALSE;
         break;
     case PLIST_DATE:
-        if (!memcmp(&(val_a->timeval), &(val_b->timeval), sizeof(GTimeVal)))
+        if (!memcmp(&(val_a->timeval), &(val_b->timeval), sizeof(struct timeval)))
             return TRUE;
         else
             return FALSE;
@@ -681,8 +696,8 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
         memcpy(data->buff, value, length);
         break;
     case PLIST_DATE:
-        data->timeval.tv_sec = ((GTimeVal *) value)->tv_sec;
-        data->timeval.tv_usec = ((GTimeVal *) value)->tv_usec;
+        data->timeval.tv_sec = ((struct timeval*) value)->tv_sec;
+        data->timeval.tv_usec = ((struct timeval*) value)->tv_usec;
         break;
     case PLIST_ARRAY:
     case PLIST_DICT:
@@ -693,7 +708,7 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
 
 void plist_set_type(plist_t node, plist_type type)
 {
-    if ( g_node_n_children(node) == 0 )
+    if ( node_n_children(node) == 0 )
     {
         plist_data_t data = plist_get_data(node);
         plist_free_data( data );
@@ -711,7 +726,7 @@ void plist_set_type(plist_t node, plist_type type)
             data->length = sizeof(double);
             break;
         case PLIST_DATE:
-            data->length = sizeof(GTimeVal);
+            data->length = sizeof(struct timeval);
             break;
         default:
             data->length = 0;
@@ -752,7 +767,7 @@ void plist_set_data_val(plist_t node, const char *val, uint64_t length)
 
 void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 {
-    GTimeVal val = { sec, usec };
-    plist_set_element_val(node, PLIST_DATE, &val, sizeof(GTimeVal));
+    struct timeval val = { sec, usec };
+    plist_set_element_val(node, PLIST_DATE, &val, sizeof(struct timeval));
 }
 

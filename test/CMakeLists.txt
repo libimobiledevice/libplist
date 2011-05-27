@@ -1,6 +1,6 @@
 
 #build the test executable
-INCLUDE_DIRECTORIES( ${GLIB2_INCLUDE_DIR} )
+INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/libcnary/include )
 
 SET(plist_test_SRC
 	plist_test.c)
