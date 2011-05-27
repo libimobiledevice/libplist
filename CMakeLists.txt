@@ -30,6 +30,15 @@ INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include
 
 ENABLE_TESTING()
 
+IF (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libcnary/CMakeLists.txt")
+  MESSAGE(FATAL_ERROR "
+You need to checkout the 'libcnary' submodule to build libplist.
+To do so, perform the following steps in the base directory:
+  git submodule init
+  git submodule update
+Then, run cmake again.")
+ENDIF()
+
 ADD_SUBDIRECTORY( libcnary )
 ADD_SUBDIRECTORY( src )
 ADD_SUBDIRECTORY( plutil )
