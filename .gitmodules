@@ -1,0 +1,3 @@
+[submodule "libcnary"]
+	path = libcnary
+	url = git://github.com/Chronic-Dev/libcnary.git
