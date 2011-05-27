@@ -5,11 +5,16 @@ For:
 	Apple Binary and XML Property Lists
 
 You must have:
-	libglib2.0-dev
 	libxml2-dev
 	cmake
 	make
 	gcc
+
+	libcnary as a git submodule.
+	To retrieve the submodule code, you need to run:
+	  git submodule init
+	  git submodule update
+	in the base directory.
 
 Optional:
 	swig
@@ -24,7 +29,7 @@ To compile run:
 
 On Ubuntu/Debian, you can do:
 	sudo apt-get install build-essential cmake \
-          libglib2.0-dev libxml2-dev
+          libxml2-dev
 
 
 == Who/what/where? ==
@@ -43,4 +48,4 @@ Mailing List:
 	http://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 
 updated:
-	2011-02-12
+	2011-05-27
