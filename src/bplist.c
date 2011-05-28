@@ -133,6 +133,40 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
     return ret;
 }
 
+#ifndef be16toh
+#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#define be16toh(x) (x)
+#else
+#define be16toh(x) ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
+#endif
+#endif
+
+#ifndef be32toh
+#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#define be32toh(x) (x)
+#else
+#define be32toh(x) ((((x) & 0xFF000000) >> 24) \
+                    | (((x) & 0x00FF0000) >> 8) \
+                    | (((x) & 0x0000FF00) << 8) \
+                    | (((x) & 0x000000FF) << 24))
+#endif
+#endif
+
+#ifndef be64toh
+#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#define be64toh(x) (x)
+#else
+#define be64toh(x) ((((x) & 0xFF00000000000000ull) >> 56) \
+                    | (((x) & 0x00FF000000000000ull) >> 40) \
+                    | (((x) & 0x0000FF0000000000ull) >> 24) \
+                    | (((x) & 0x000000FF00000000ull) >> 8) \
+                    | (((x) & 0x00000000FF000000ull) << 8) \
+                    | (((x) & 0x0000000000FF0000ull) << 24) \
+                    | (((x) & 0x000000000000FF00ull) << 40) \
+                    | (((x) & 0x00000000000000FFull) << 56)) 
+#endif
+#endif
+
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
