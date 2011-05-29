@@ -161,12 +161,14 @@ static void node_to_xml(node_t* node, void *xml_struct)
 
     case PLIST_UINT:
         tag = XPLIST_INT;
-        (void)asprintf(&val, "%"PRIu64, node_data->intval);
+        val = (char*)malloc(64);
+        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
         break;
 
     case PLIST_REAL:
         tag = XPLIST_REAL;
-        (void)asprintf(&val, "%f", node_data->realval);
+        val = (char*)malloc(64);
+        (void)snprintf(val, 64, "%f", node_data->realval);
         break;
 
     case PLIST_STRING:
