@@ -25,11 +25,11 @@ SET(libplist++_SRC
 	)
 
 SET(libcnary_object_files
-  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/iterator.c.o
-  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/list.c.o
-  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node.c.o
-  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node_iterator.c.o
-  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node_list.c.o
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/iterator.c${CMAKE_C_OUTPUT_EXTENSION}
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/list.c${CMAKE_C_OUTPUT_EXTENSION}
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node.c${CMAKE_C_OUTPUT_EXTENSION}
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node_iterator.c${CMAKE_C_OUTPUT_EXTENSION}
+  ${CMAKE_BINARY_DIR}/libcnary/CMakeFiles/libcnary.dir/node_list.c${CMAKE_C_OUTPUT_EXTENSION}
 )
 
 SET_SOURCE_FILES_PROPERTIES(${libcnary_object_files} PROPERTIES EXTERNAL_OBJECT true GENERATED true)
