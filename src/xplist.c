@@ -260,6 +260,20 @@ static void node_to_xml(node_t* node, void *xml_struct)
     return;
 }
 
+static void parse_date(const char *strval, struct tm *btime)
+{
+    if (!btime) return;
+    memset(btime, 0, sizeof(struct tm));
+    if (!strval) return;
+#ifdef strptime
+    strptime((char*)strval, "%Y-%m-%dT%H:%M:%SZ", btime);
+#else
+    sscanf(strval, "%d-%d-%dT%d:%d:%dZ", &btime->tm_year, &btime->tm_mon, &btime->tm_mday, &btime->tm_hour, &btime->tm_min, &btime->tm_sec);
+    btime->tm_year-=1900;
+    btime->tm_mon--;
+#endif
+}
+
 static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
 {
     xmlNodePtr node = NULL;
@@ -330,8 +344,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
             time_t time = 0;
             if (strlen(strval) >= 11) {
                 struct tm btime;
-                memset(&btime, 0, sizeof(struct tm));
-                strptime((char*)strval, "%Y-%m-%dT%H:%M:%SZ", &btime);
+                parse_date((const char*)strval, &btime);
                 time = mktime(&btime);
             }
             data->timeval.tv_sec = (long)time;
