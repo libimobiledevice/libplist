@@ -4,6 +4,7 @@
  %{
  /* Includes the header in the wrapper code */
  #include <plist/plist++.h>
+ #include <cstddef>
  %}
 
 %include "std_string.i"
