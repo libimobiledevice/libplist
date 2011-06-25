@@ -10,12 +10,6 @@ You must have:
 	make
 	gcc
 
-	libcnary as a git submodule.
-	To retrieve the submodule code, you need to run:
-	  git submodule init
-	  git submodule update
-	in the base directory.
-
 Optional:
 	swig
 	python
@@ -28,8 +22,7 @@ To compile run:
 	sudo make install  # (if you want to install it into your system directories)
 
 On Ubuntu/Debian, you can do:
-	sudo apt-get install build-essential cmake \
-          libxml2-dev
+	sudo apt-get install build-essential cmake libxml2-dev
 
 
 == Who/what/where? ==
@@ -40,6 +33,9 @@ Home:
 Code:
 	git clone http://cgit.sukimashita.com/libplist.git/
 
+	libplist uses libcnary, see:
+	http://github.com/Chronic-Dev/libcnary
+
 Tickets:
 	http://libiphone.lighthouseapp.com/
 	Please tag libplist related bugs with 'libplist'
@@ -48,4 +44,4 @@ Mailing List:
 	http://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 
 updated:
-	2011-05-27
+	2011-06-25
