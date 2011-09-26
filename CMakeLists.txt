@@ -39,6 +39,10 @@ To do so, perform the following steps in the base directory:
 Then, run cmake again.")
 ENDIF()
 
+INCLUDE (TestBigEndian)
+TEST_BIG_ENDIAN(endianess)
+SET ( PLIST_BYTE_ORDER ${endianess} )
+
 ADD_SUBDIRECTORY( libcnary )
 ADD_SUBDIRECTORY( src )
 ADD_SUBDIRECTORY( plutil )
@@ -48,10 +52,6 @@ ADD_SUBDIRECTORY( test )
 IF ( SWIG_FOUND AND PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND )
 	ADD_SUBDIRECTORY( swig )
 ENDIF ( SWIG_FOUND AND PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND )
-
-INCLUDE (TestBigEndian)
-TEST_BIG_ENDIAN(endianess)
-SET ( PLIST_BYTE_ORDER ${endianess} )
 
 # add uninstall target
 CONFIGURE_FILE(	"${CMAKE_SOURCE_DIR}/cmake/modules/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
