@@ -1,3 +1,9 @@
+Version 1.7
+~~~~~~~~~~~
+
+- Changes:
+  * Fix building on Big Endian systems
+
 Version 1.6
 ~~~~~~~~~~~
 
