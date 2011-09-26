@@ -107,7 +107,8 @@ cdef class Node:
         try:
             return python_unicode.PyUnicode_DecodeUTF8(out, length, 'strict')
         finally:
-            stdlib.free(out)
+            if out != NULL:
+                stdlib.free(out)
 
     cpdef bytes to_bin(self):
         cdef:
@@ -118,7 +119,8 @@ cdef class Node:
         try:
             return python_string.PyString_FromStringAndSize(out, length)
         finally:
-            stdlib.free(out)
+            if out != NULL:
+                stdlib.free(out)
 
     property parent:
         def __get__(self):
@@ -135,7 +137,7 @@ cdef class Node:
         return str(self.get_value())
 
 cdef class Bool(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         if value is None:
             self._c_node = plist_new_bool(0)
         else:
@@ -178,7 +180,7 @@ cdef Bool Bool_factory(plist_t c_node, bint managed=True):
     return instance
 
 cdef class Integer(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         if value is None:
             self._c_node = plist_new_uint(0)
         else:
@@ -224,7 +226,7 @@ cdef Integer Integer_factory(plist_t c_node, bint managed=True):
     return instance
 
 cdef class Real(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         if value is None:
             self._c_node = plist_new_real(0.0)
         else:
@@ -272,7 +274,7 @@ cdef Real Real_factory(plist_t c_node, bint managed=True):
 from python_version cimport PY_MAJOR_VERSION
 
 cdef class String(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         cdef:
             char* c_utf8_data = NULL
             bytes utf8_data
@@ -308,7 +310,7 @@ cdef class String(Node):
         if op == 5:
             return s >= other
 
-    cpdef set_value(self, unicode value):
+    cpdef set_value(self, object value):
         cdef:
             char* c_utf8_data = NULL
             bytes utf8_data
@@ -357,7 +359,7 @@ cdef plist_t create_date_plist(value=None):
     return node
 
 cdef class Date(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         self._c_node = create_date_plist(value)
 
     def __repr__(self):
@@ -401,7 +403,7 @@ cdef Date Date_factory(plist_t c_node, bint managed=True):
     return instance
 
 cdef class Data(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         if value is None:
             self._c_node = plist_new_data(NULL, 0)
         else:
@@ -437,8 +439,10 @@ cdef class Data(Node):
         finally:
             stdlib.free(val)
 
-    cpdef set_value(self, bytes value):
-        plist_set_data_val(self._c_node, value, len(value))
+    cpdef set_value(self, object value):
+        cdef:
+            bytes py_val = value
+        plist_set_data_val(self._c_node, py_val, len(value))
 
 cdef Data Data_factory(plist_t c_node, bint managed=True):
     cdef Data instance = Data.__new__(Data)
@@ -460,7 +464,7 @@ cdef plist_t create_dict_plist(object value=None):
 cimport python_dict
 
 cdef class Dict(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         self._c_node = create_dict_plist(value)
 
     def __init__(self, value=None, *args, **kwargs):
@@ -584,7 +588,7 @@ cdef plist_t create_array_plist(object value=None):
     return node
 
 cdef class Array(Node):
-    def __cinit__(self, value=None, *args, **kwargs):
+    def __cinit__(self, object value=None, *args, **kwargs):
         self._c_node = create_array_plist(value)
 
     def __init__(self, value=None, *args, **kwargs):
@@ -623,7 +627,7 @@ cdef class Array(Node):
     cpdef list get_value(self):
         return [i.get_value() for i in self]
 
-    cpdef set_value(self, value):
+    cpdef set_value(self, object value):
         self._array = []
         plist_free(self._c_node)
         self._c_node = NULL
@@ -655,7 +659,7 @@ cdef class Array(Node):
         del self._array[index]
         plist_array_remove_item(self._c_node, index)
 
-    cpdef append(self, item):
+    cpdef append(self, object item):
         cdef Node n
 
         if isinstance(item, Node):

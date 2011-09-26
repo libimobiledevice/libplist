@@ -24,15 +24,15 @@ cdef class Real(Node):
     cpdef float get_value(self)
 
 cdef class String(Node):
-    cpdef set_value(self, unicode value)
+    cpdef set_value(self, object value)
     cpdef unicode get_value(self)
 
 cdef class Date(Node):
-    cpdef set_value(self, value)
+    cpdef set_value(self, object value)
     cpdef object get_value(self)
 
 cdef class Data(Node):
-    cpdef set_value(self, bytes value)
+    cpdef set_value(self, object value)
     cpdef bytes get_value(self)
 
 cdef class Dict(Node):
@@ -54,7 +54,7 @@ cdef class Array(Node):
     cdef void _init(self)
     cpdef set_value(self, value)
     cpdef list get_value(self)
-    cpdef append(self, item)
+    cpdef append(self, object item)
 
 cpdef object from_xml(xml)
 cpdef object from_bin(bytes bin)
