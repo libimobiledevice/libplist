@@ -697,3 +697,5 @@ cdef object plist_t_to_node(plist_t c_plist, bool managed=True):
         return Date_factory(c_plist, managed)
     if t == PLIST_DATA:
         return Data_factory(c_plist, managed)
+    if t == PLIST_NONE:
+        return None
