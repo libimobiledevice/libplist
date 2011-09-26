@@ -11,15 +11,15 @@
 %include "stdint.i"
 
 %typemap(out) std::vector<char> {
-   $result = SWIG_FromCharPtrAndSize((const char*)&($1[0]),(int)($1.size()));
+   $result = SWIG_FromCharPtrAndSize((const char*)&($1[0]),(size_t)($1.size()));
 }
 
-%typemap(in) (const std::vector<char>& v)
+%typemap(in) (const std::vector<char>&)
 {
     char* buffer = NULL;
-    int length = 0;
+    size_t length = 0;
     SWIG_AsCharPtrAndSize($input, &buffer, &length, NULL);
-    $1 = std::vector<char>(buffer, buffer + length);
+    $1 = new std::vector<char>(buffer, buffer + length - 1);
 }
 
 #if SWIGPYTHON
