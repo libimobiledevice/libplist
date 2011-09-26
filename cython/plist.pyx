@@ -9,9 +9,8 @@ IF UNAME_MACHINE == 'x86_64':
 ELSE:
     ctypedef unsigned long long int uint64_t
 
-cimport python_unicode
-cimport python_string
-cimport stdlib
+cimport cpython
+cimport libc.stdlib
 
 cdef extern from *:
     ctypedef enum plist_type:
@@ -105,10 +104,10 @@ cdef class Node:
         plist_to_xml(self._c_node, &out, &length)
 
         try:
-            return python_unicode.PyUnicode_DecodeUTF8(out, length, 'strict')
+            return cpython.PyUnicode_DecodeUTF8(out, length, 'strict')
         finally:
             if out != NULL:
-                stdlib.free(out)
+                libc.stdlib.free(out)
 
     cpdef bytes to_bin(self):
         cdef:
@@ -117,10 +116,10 @@ cdef class Node:
         plist_to_bin(self._c_node, &out, &length)
 
         try:
-            return python_string.PyString_FromStringAndSize(out, length)
+            return cpython.PyString_FromStringAndSize(out, length)
         finally:
             if out != NULL:
-                stdlib.free(out)
+                libc.stdlib.free(out)
 
     property parent:
         def __get__(self):
@@ -147,7 +146,7 @@ cdef class Bool(Node):
         return self.get_value()
 
     def __richcmp__(self, other, op):
-        cdef bool b = self.get_value()
+        cdef bint b = self.get_value()
         if op == 0:
             return b < other
         if op == 1:
@@ -168,7 +167,7 @@ cdef class Bool(Node):
     cpdef set_value(self, object value):
         plist_set_bool_val(self._c_node, bool(value))
 
-    cpdef bool get_value(self):
+    cpdef bint get_value(self):
         cdef uint8_t value
         plist_get_bool_val(self._c_node, &value)
         return bool(value)
@@ -271,7 +270,7 @@ cdef Real Real_factory(plist_t c_node, bint managed=True):
     instance._c_node = c_node
     return instance
 
-from python_version cimport PY_MAJOR_VERSION
+from cpython cimport PY_MAJOR_VERSION
 
 cdef class String(Node):
     def __cinit__(self, object value=None, *args, **kwargs):
@@ -332,9 +331,9 @@ cdef class String(Node):
             char* c_value = NULL
         plist_get_string_val(self._c_node, &c_value)
         try:
-            return python_unicode.PyUnicode_DecodeUTF8(c_value, stdlib.strlen(c_value), 'strict')
+            return cpython.PyUnicode_DecodeUTF8(c_value, libc.stdlib.strlen(c_value), 'strict')
         finally:
-            stdlib.free(c_value)
+            libc.stdlib.free(c_value)
 
 cdef String String_factory(plist_t c_node, bint managed=True):
     cdef String instance = String.__new__(String)
@@ -435,9 +434,9 @@ cdef class Data(Node):
         plist_get_data_val(self._c_node, &val, &length)
 
         try:
-            return python_string.PyString_FromStringAndSize(val, length)
+            return cpython.PyString_FromStringAndSize(val, length)
         finally:
-            stdlib.free(val)
+            libc.stdlib.free(val)
 
     cpdef set_value(self, object value):
         cdef:
@@ -461,7 +460,7 @@ cdef plist_t create_dict_plist(object value=None):
             c_node = NULL
     return node
 
-cimport python_dict
+cimport cpython
 
 cdef class Dict(Node):
     def __cinit__(self, object value=None, *args, **kwargs):
@@ -475,18 +474,18 @@ cdef class Dict(Node):
         cdef char* key = NULL
         cdef plist_t subnode = NULL
 
-        self._map = python_dict.PyDict_New()
+        self._map = cpython.PyDict_New()
 
         plist_dict_new_iter(self._c_node, &it);
         plist_dict_next_item(self._c_node, it, &key, &subnode);
 
         while subnode is not NULL:
-            python_dict.PyDict_SetItem(self._map, key, plist_t_to_node(subnode, False))
+            cpython.PyDict_SetItem(self._map, key, plist_t_to_node(subnode, False))
             subnode = NULL
-            stdlib.free(key)
+            libc.stdlib.free(key)
             key = NULL
             plist_dict_next_item(self._c_node, it, &key, &subnode);
-        stdlib.free(it)
+        libc.stdlib.free(it)
 
     def __dealloc__(self):
         self._map = None
@@ -507,13 +506,13 @@ cdef class Dict(Node):
             return d >= other
 
     def __len__(self):
-        return python_dict.PyDict_Size(self._map)
+        return cpython.PyDict_Size(self._map)
 
     def __repr__(self):
         return '<Dict: %s>' % self._map
 
     cpdef dict get_value(self):
-        cdef dict result = python_dict.PyDict_New()
+        cdef dict result = cpython.PyDict_New()
         return dict([(key, value.get_value()) for key, value in self.items()])
         return result
 
@@ -527,26 +526,26 @@ cdef class Dict(Node):
     def __iter__(self):
         return self._map.__iter__()
 
-    cpdef bool has_key(self, key):
+    cpdef bint has_key(self, key):
         return self._map.has_key(key)
 
     cpdef object get(self, key, default=None):
         return self._map.get(key, default)
 
     cpdef list keys(self):
-        return python_dict.PyDict_Keys(self._map)
+        return cpython.PyDict_Keys(self._map)
 
     cpdef object iterkeys(self):
         return self._map.iterkeys()
 
     cpdef list items(self):
-        return python_dict.PyDict_Items(self._map)
+        return cpython.PyDict_Items(self._map)
 
     cpdef object iteritems(self):
         return self._map.iteritems()
 
     cpdef list values(self):
-        return python_dict.PyDict_Values(self._map)
+        return cpython.PyDict_Values(self._map)
         return self._map.values()
 
     cpdef object itervalues(self):
@@ -566,7 +565,7 @@ cdef class Dict(Node):
         self._map[key] = n
 
     def __delitem__(self, key):
-        python_dict.PyDict_DelItem(self._map, key)
+        cpython.PyDict_DelItem(self._map, key)
         plist_dict_remove_item(self._c_node, key)
 
 cdef Dict Dict_factory(plist_t c_node, bint managed=True):

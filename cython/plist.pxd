@@ -13,7 +13,7 @@ cdef class Node:
 
 cdef class Bool(Node):
     cpdef set_value(self, object value)
-    cpdef bool get_value(self)
+    cpdef bint get_value(self)
     
 cdef class Integer(Node):
     cpdef set_value(self, object value)
@@ -40,7 +40,7 @@ cdef class Dict(Node):
     cdef void _init(self)
     cpdef set_value(self, dict value)
     cpdef dict get_value(self)
-    cpdef bool has_key(self, key)
+    cpdef bint has_key(self, key)
     cpdef object get(self, key, default=*)
     cpdef list keys(self)
     cpdef list items(self)
