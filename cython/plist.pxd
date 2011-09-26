@@ -1,25 +1,26 @@
 cdef extern from "plist/plist.h":
     ctypedef void *plist_t
     ctypedef void *plist_dict_iter
+    void plist_free(plist_t node)
 
 cdef class Node:
     cdef plist_t _c_node
     cdef bool _c_managed
     cpdef object __deepcopy__(self, memo=*)
-    cpdef bytes to_xml(self)
+    cpdef unicode to_xml(self)
     cpdef bytes to_bin(self)
     cpdef object copy(self)
 
 cdef class Bool(Node):
-    cpdef set_value(self, value)
+    cpdef set_value(self, object value)
     cpdef bool get_value(self)
     
 cdef class Integer(Node):
-    cpdef set_value(self, value)
+    cpdef set_value(self, object value)
     cpdef int get_value(self)
 
 cdef class Real(Node):
-    cpdef set_value(self, value)
+    cpdef set_value(self, object value)
     cpdef float get_value(self)
 
 cdef class String(Node):
