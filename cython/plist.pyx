@@ -461,7 +461,6 @@ cdef class Dict(Node):
 
     def __dealloc__(self):
         self._map = None
-        Node.__dealloc__(self)
 
     def __richcmp__(self, other, op):
         cdef dict d = self.get_value()
@@ -564,6 +563,7 @@ cdef class Array(Node):
         self._init()
 
     cdef void _init(self):
+        self._array = []
         cdef uint32_t size = plist_array_get_size(self._c_node)
         cdef plist_t subnode = NULL
 
