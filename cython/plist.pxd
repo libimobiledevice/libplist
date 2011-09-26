@@ -5,7 +5,7 @@ cdef extern from "plist/plist.h":
 
 cdef class Node:
     cdef plist_t _c_node
-    cdef bool _c_managed
+    cdef bint _c_managed
     cpdef object __deepcopy__(self, memo=*)
     cpdef unicode to_xml(self)
     cpdef bytes to_bin(self)
@@ -59,5 +59,5 @@ cdef class Array(Node):
 cpdef object from_xml(xml)
 cpdef object from_bin(bytes bin)
 
-cdef object plist_t_to_node(plist_t c_plist, bool managed=*)
+cdef object plist_t_to_node(plist_t c_plist, bint managed=*)
 cdef plist_t native_to_plist_t(object native)

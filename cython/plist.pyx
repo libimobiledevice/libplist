@@ -171,7 +171,7 @@ cdef class Bool(Node):
         plist_get_bool_val(self._c_node, &value)
         return bool(value)
 
-cdef Bool Bool_factory(plist_t c_node, bool managed=True):
+cdef Bool Bool_factory(plist_t c_node, bint managed=True):
     cdef Bool instance = Bool.__new__(Bool)
     instance._c_managed = managed
     instance._c_node = c_node
@@ -217,7 +217,7 @@ cdef class Integer(Node):
         plist_get_uint_val(self._c_node, &value)
         return value
 
-cdef Integer Integer_factory(plist_t c_node, bool managed=True):
+cdef Integer Integer_factory(plist_t c_node, bint managed=True):
     cdef Integer instance = Integer.__new__(Integer)
     instance._c_managed = managed
     instance._c_node = c_node
@@ -263,7 +263,7 @@ cdef class Real(Node):
         plist_get_real_val(self._c_node, &value)
         return value
 
-cdef Real Real_factory(plist_t c_node, bool managed=True):
+cdef Real Real_factory(plist_t c_node, bint managed=True):
     cdef Real instance = Real.__new__(Real)
     instance._c_managed = managed
     instance._c_node = c_node
@@ -285,7 +285,7 @@ cdef class String(Node):
                 value.decode('ascii') # trial decode
                 utf8_data = value.decode('ascii')
             else:
-                raise ValueError("requires text input, got %s" % type(value))
+                raise ValueError("Requires unicode input, got %s" % type(value))
             c_utf8_data = utf8_data
             self._c_node = plist_new_string(c_utf8_data)
 
@@ -321,7 +321,7 @@ cdef class String(Node):
                 value.decode('ascii') # trial decode
                 utf8_data = value.decode('ascii')
             else:
-                raise ValueError("requires text input, got %s" % type(value))
+                raise ValueError("Requires unicode input, got %s" % type(value))
             c_utf8_data = utf8_data
             plist_set_string_val(self._c_node, c_utf8_data)
 
@@ -334,7 +334,7 @@ cdef class String(Node):
         finally:
             stdlib.free(c_value)
 
-cdef String String_factory(plist_t c_node, bool managed=True):
+cdef String String_factory(plist_t c_node, bint managed=True):
     cdef String instance = String.__new__(String)
     instance._c_managed = managed
     instance._c_node = c_node
@@ -386,7 +386,7 @@ cdef class Date(Node):
         plist_get_date_val(self._c_node, &secs, &usecs)
         return ints_to_datetime(secs, usecs)
 
-    cpdef set_value(self, value):
+    cpdef set_value(self, object value):
         cdef int32_t secs
         cdef int32_t usecs
         if not check_datetime(value):
@@ -394,7 +394,7 @@ cdef class Date(Node):
         datetime_to_ints(value, &secs, &usecs)
         plist_set_date_val(self._c_node, secs, usecs)
 
-cdef Date Date_factory(plist_t c_node, bool managed=True):
+cdef Date Date_factory(plist_t c_node, bint managed=True):
     cdef Date instance = Date.__new__(Date)
     instance._c_managed = managed
     instance._c_node = c_node
@@ -440,13 +440,13 @@ cdef class Data(Node):
     cpdef set_value(self, bytes value):
         plist_set_data_val(self._c_node, value, len(value))
 
-cdef Data Data_factory(plist_t c_node, bool managed=True):
+cdef Data Data_factory(plist_t c_node, bint managed=True):
     cdef Data instance = Data.__new__(Data)
     instance._c_managed = managed
     instance._c_node = c_node
     return instance
 
-cdef plist_t create_dict_plist(value=None):
+cdef plist_t create_dict_plist(object value=None):
     cdef plist_t node = NULL
     cdef plist_t c_node = NULL
     node = plist_new_dict()
@@ -565,14 +565,14 @@ cdef class Dict(Node):
         python_dict.PyDict_DelItem(self._map, key)
         plist_dict_remove_item(self._c_node, key)
 
-cdef Dict Dict_factory(plist_t c_node, bool managed=True):
+cdef Dict Dict_factory(plist_t c_node, bint managed=True):
     cdef Dict instance = Dict.__new__(Dict)
     instance._c_managed = managed
     instance._c_node = c_node
     instance._init()
     return instance
 
-cdef plist_t create_array_plist(value=None):
+cdef plist_t create_array_plist(object value=None):
     cdef plist_t node = NULL
     cdef plist_t c_node = NULL
     node = plist_new_array()
@@ -666,7 +666,7 @@ cdef class Array(Node):
         plist_array_append_item(self._c_node, n._c_node)
         self._array.append(n)
 
-cdef Array Array_factory(plist_t c_node, bool managed=True):
+cdef Array Array_factory(plist_t c_node, bint managed=True):
     cdef Array instance = Array.__new__(Array)
     instance._c_managed = managed
     instance._c_node = c_node
@@ -707,7 +707,7 @@ cdef plist_t native_to_plist_t(object native):
     if check_datetime(native):
         return create_date_plist(native)
 
-cdef object plist_t_to_node(plist_t c_plist, bool managed=True):
+cdef object plist_t_to_node(plist_t c_plist, bint managed=True):
     cdef plist_type t = plist_get_node_type(c_plist)
     if t == PLIST_BOOLEAN:
         return Bool_factory(c_plist, managed)
