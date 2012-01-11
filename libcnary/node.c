@@ -104,7 +104,7 @@ int node_detach(node_t* parent, node_t* child) {
 
 int node_insert(node_t* parent, unsigned int index, node_t* child)
 {
-	if (!parent || !child) return;
+	if (!parent || !child) return -1;
 	child->isLeaf = TRUE;
 	child->isRoot = FALSE;
 	child->parent = parent;
@@ -209,7 +209,7 @@ int node_child_position(struct node_t* parent, node_t* child)
 node_t* node_copy_deep(node_t* node, copy_func_t copy_func)
 {
 	if (!node) return NULL;
-	void *data;
+	void *data = NULL;
 	if (copy_func) {
 		data = copy_func(node->data);
 	}
