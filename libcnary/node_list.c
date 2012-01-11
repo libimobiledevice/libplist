@@ -59,7 +59,10 @@ int node_list_add(node_list_t* list, node_t* node) {
 	node->prev = last;
 
 	// Set the next element of our old "last" element
-	last->next = node;
+	if (last) {
+		// but only if the node list is not empty
+		last->next = node;
+	}
 
 	// Set the lists prev to the new last element
 	list->end = node;
@@ -129,6 +132,9 @@ int node_list_remove(node_list_t* list, node_t* node) {
 				node->prev->next = newnode;
 				if (newnode) {
 					newnode->prev = node->prev;
+				} else {
+					// last element in the list
+					list->end = node->prev;
 				}
 			} else {
 				// we just removed the first element
