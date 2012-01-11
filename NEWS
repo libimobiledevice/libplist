@@ -1,3 +1,11 @@
+Version 1.8
+~~~~~~~~~~~
+
+- Changes:
+  * Add cython bindings
+  * Fix error in swig bindings
+  * Fix memory corruption in libcnary
+
 Version 1.7
 ~~~~~~~~~~~
 
