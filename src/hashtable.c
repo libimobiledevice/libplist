@@ -55,7 +55,6 @@ void hash_table_destroy(hashtable_t *ht)
 void hash_table_insert(hashtable_t* ht, void *key, void *value)
 {
 	if (!ht || !key) return;
-	int i;
 
 	unsigned int hash = ht->hash_func(key);
 

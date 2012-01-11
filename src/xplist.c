@@ -342,7 +342,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         {
             xmlChar *strval = xmlNodeGetContent(node);
             time_t time = 0;
-            if (strlen(strval) >= 11) {
+            if (strlen((const char*)strval) >= 11) {
                 struct tm btime;
                 parse_date((const char*)strval, &btime);
                 time = mktime(&btime);

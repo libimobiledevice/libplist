@@ -740,12 +740,6 @@ static void serialize_plist(node_t* node, void* data)
     return;
 }
 
-static int free_index(void* key, void* value, void* user_data)
-{
-    free((uint64_t *) value);
-    return TRUE;
-}
-
 #define Log2(x) (x == 8 ? 3 : (x == 4 ? 2 : (x == 2 ? 1 : 0)))
 
 static void write_int(bytearray_t * bplist, uint64_t val)
@@ -998,7 +992,6 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     uint8_t trailer[BPLIST_TRL_SIZE];
     //for string
     long len = 0;
-    int type = 0;
     long items_read = 0;
     long items_written = 0;
     uint16_t *unicodestr = NULL;
@@ -1087,7 +1080,6 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     }
 
     //free intermediate objects
-    //hash_table_foreach_remove(ref_table, free_index, NULL);
     ptr_array_free(objects);
     hash_table_destroy(ref_table);
 

@@ -104,9 +104,9 @@ static int base64decode_block(unsigned char *target, const char *data, size_t da
 
 unsigned char *base64decode(const char *buf, size_t *size)
 {
-	if (!buf) return;
+	if (!buf) return NULL;
 	size_t len = strlen(buf);
-	if (len <= 0) return;
+	if (len <= 0) return NULL;
 	unsigned char *outbuf = (unsigned char*)malloc((len/4)*3+3);
 
 	unsigned char *line;
@@ -114,7 +114,7 @@ unsigned char *base64decode(const char *buf, size_t *size)
 
 	line = (unsigned char*)strtok((char*)buf, "\r\n\t ");
 	while (line) {
-		p+=base64decode_block(outbuf+p, line, strlen((char*)line));
+		p+=base64decode_block(outbuf+p, (const char*)line, strlen((char*)line));
 
 		// get next line of base64 encoded block
 		line = (unsigned char*)strtok(NULL, "\r\n\t ");
