@@ -521,12 +521,12 @@ static void* copy_plist_data(const void* src)
         break;
     case PLIST_DATA:
     case PLIST_ARRAY:
-        dstdata->buff = (uint8_t *) malloc(sizeof(uint8_t *) * srcdata->length);
-        memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t *) * srcdata->length);
+        dstdata->buff = (uint8_t*) malloc(sizeof(uint8_t) * srcdata->length);
+        memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t) * srcdata->length);
         break;
     case PLIST_DICT:
-        dstdata->buff = (uint8_t *) malloc(sizeof(uint8_t *) * srcdata->length * 2);
-        memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t *) * srcdata->length * 2);
+        dstdata->buff = (uint8_t*) malloc(sizeof(uint8_t) * srcdata->length * 2);
+        memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t) * srcdata->length * 2);
         break;
     default:
         break;
