@@ -283,8 +283,8 @@ cdef class String(Node):
             if isinstance(value, unicode):
                 utf8_data = value.encode('utf-8')
             elif (PY_MAJOR_VERSION < 3) and isinstance(value, str):
-                value.decode('ascii') # trial decode
-                utf8_data = value.decode('ascii')
+                value.encode('ascii') # trial decode
+                utf8_data = value.encode('ascii')
             else:
                 raise ValueError("Requires unicode input, got %s" % type(value))
             c_utf8_data = utf8_data
@@ -319,8 +319,8 @@ cdef class String(Node):
             if isinstance(value, unicode):
                 utf8_data = value.encode('utf-8')
             elif (PY_MAJOR_VERSION < 3) and isinstance(value, str):
-                value.decode('ascii') # trial decode
-                utf8_data = value.decode('ascii')
+                value.encode('ascii') # trial decode
+                utf8_data = value.encode('ascii')
             else:
                 raise ValueError("Requires unicode input, got %s" % type(value))
             c_utf8_data = utf8_data
@@ -331,7 +331,7 @@ cdef class String(Node):
             char* c_value = NULL
         plist_get_string_val(self._c_node, &c_value)
         try:
-            return cpython.PyUnicode_DecodeUTF8(c_value, libc.stdlib.strlen(c_value), 'strict')
+            return cpython.PyUnicode_DecodeUTF8(c_value, len(c_value), 'strict')
         finally:
             libc.stdlib.free(c_value)
 
