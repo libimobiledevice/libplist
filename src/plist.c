@@ -67,10 +67,10 @@ static void plist_free_data(plist_data_t data)
     }
 }
 
-static void plist_free_node(node_t* node)
+static int plist_free_node(node_t* node)
 {
     plist_data_t data = NULL;
-    node_detach(node->parent, node);
+    int index = node_detach(node->parent, node);
     data = plist_get_data(node);
     plist_free_data(data);
     node->data = NULL;
@@ -83,6 +83,8 @@ static void plist_free_node(node_t* node)
     node_iterator_destroy(ni);
 
     node_destroy(node);
+
+    return index;
 }
 
 plist_t plist_new_dict(void)
@@ -264,9 +266,12 @@ void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
         plist_t old_item = plist_array_get_item(node, n);
         if (old_item)
         {
-            plist_free_node(old_item);
-            old_item = NULL;
-            plist_copy_node(item, &old_item);
+            int idx = plist_free_node(old_item);
+	    if (idx < 0) {
+		node_attach(node, item);
+	    } else {
+		node_insert(node, idx, item);
+	    }
         }
     }
     return;
@@ -393,12 +398,15 @@ void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
     if (node && PLIST_DICT == plist_get_node_type(node))
     {
-        plist_t old_item = plist_dict_get_item(node, key);
+        node_t* old_item = plist_dict_get_item(node, key);
         if (old_item)
         {
-            plist_free_node(old_item);
-            old_item = NULL;
-            plist_copy_node(item, &old_item);
+            int idx = plist_free_node(old_item);
+	    if (idx < 0) {
+		node_attach(node, item);
+	    } else {
+		node_insert(node, idx, item);
+	    }
         }
     }
     return;
