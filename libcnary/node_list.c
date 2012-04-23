@@ -124,6 +124,7 @@ int node_list_remove(node_list_t* list, node_t* node) {
 	if (!list || !node) return -1;
 	if (list->count == 0) return -1;
 
+	int index = 0;
 	node_t* n;
 	for (n = list->begin; n; n = n->next) {
 		if (node == n) {
@@ -144,8 +145,9 @@ int node_list_remove(node_list_t* list, node_t* node) {
 				list->begin = newnode;
 			}
 			list->count--;
-			return 0;
+			return index;
 		}
+		index++;
 	}	
 	return -1;
 }

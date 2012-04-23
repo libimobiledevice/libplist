@@ -95,11 +95,12 @@ int node_attach(node_t* parent, node_t* child) {
 }
 
 int node_detach(node_t* parent, node_t* child) {
-	if (!parent || !child) return 0;
-	if (node_list_remove(parent->children, child) == 0) {
+	if (!parent || !child) return -1;
+	int index = node_list_remove(parent->children, child);
+	if (index >= 0) {
 		parent->count--;
 	}
-	return 0;
+	return index;
 }
 
 int node_insert(node_t* parent, unsigned int index, node_t* child)
