@@ -24,6 +24,7 @@
 
 #include <plist/Node.h>
 #include <ctime>
+#include <sys/time.h>
 
 namespace PList
 {
