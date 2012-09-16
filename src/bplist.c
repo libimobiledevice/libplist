@@ -63,7 +63,8 @@ enum
     BPLIST_DATA = 0x40,
     BPLIST_STRING = 0x50,
     BPLIST_UNICODE = 0x60,
-    BPLIST_UID = 0x70,
+    BPLIST_UNK_0x70 = 0x70,
+    BPLIST_UID = 0x80,
     BPLIST_ARRAY = 0xA0,
     BPLIST_SET = 0xC0,
     BPLIST_DICT = 0xD0,
@@ -375,6 +376,31 @@ static plist_t parse_array_node(char *bnode, uint64_t size, uint32_t ref_size)
     return node_create(NULL, data);
 }
 
+static plist_t parse_uid_node(char *bnode, uint8_t size, char **next_object)
+{
+    plist_data_t data = plist_new_plist_data();
+
+    size = 1 << size;			// make length less misleading
+    switch (size)
+    {
+    case sizeof(uint8_t):
+    case sizeof(uint16_t):
+    case sizeof(uint32_t):
+    case sizeof(uint64_t):
+        memcpy(&data->intval, bnode, size);
+        data->intval = UINT_TO_HOST(&data->intval, size);
+        break;
+    default:
+        free(data);
+        return NULL;
+    };
+
+    *next_object = bnode + size;
+    data->type = PLIST_UID;
+    data->length = sizeof(uint64_t);
+
+    return node_create(NULL, data);
+}
 
 
 static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_object)
@@ -464,7 +490,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
         }
         return parse_unicode_node(object, size);
 
-    case BPLIST_UID:
+    case BPLIST_UNK_0x70:
     case BPLIST_ARRAY:
         if (0x0F == size)
         {
@@ -475,6 +501,9 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
             plist_free(size_node);
         }
         return parse_array_node(object, size, dict_size);
+
+    case BPLIST_UID:
+        return parse_uid_node(object, size, next_object);
 
     case BPLIST_SET:
     case BPLIST_DICT:
@@ -527,6 +556,9 @@ static void* copy_plist_data(const void* src)
     case PLIST_DICT:
         dstdata->buff = (uint8_t*) malloc(sizeof(uint8_t) * srcdata->length * 2);
         memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t) * srcdata->length * 2);
+        break;
+    case PLIST_UID:
+        dstdata->intval = srcdata->intval;
         break;
     default:
         break;
@@ -672,6 +704,7 @@ static unsigned int plist_data_hash(const void* key)
     case PLIST_BOOLEAN:
     case PLIST_UINT:
     case PLIST_REAL:
+    case PLIST_UID:
         buff = (char *) &data->intval;	//works also for real as we use an union
         size = 8;
         break;
@@ -916,6 +949,26 @@ static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_tabl
 
 }
 
+static void write_uid(bytearray_t * bplist, uint64_t val)
+{
+    uint64_t size = get_needed_bytes(val);
+    uint8_t *buff = NULL;
+    //do not write 3bytes int node
+    if (size == 3)
+        size++;
+
+#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+    val = val << ((sizeof(uint64_t) - size) * 8);
+#endif
+
+    buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
+    buff[0] = BPLIST_UID | Log2(size);
+    memcpy(buff + 1, &val, size);
+    byte_convert(buff + 1, size);
+    byte_array_append(bplist, buff, sizeof(uint8_t) + size);
+    free(buff);
+}
+
 static int is_ascii_string(char* s, int len)
 {
   int ret = 1, i = 0;
@@ -1073,6 +1126,9 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
             break;
         case PLIST_DATE:
             write_date(bplist_buff, data->timeval.tv_sec + (double) data->timeval.tv_usec / 1000000);
+            break;
+        case PLIST_UID:
+            write_uid(bplist_buff, data->intval);
             break;
         default:
             break;

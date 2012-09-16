@@ -83,6 +83,7 @@ extern "C"
         PLIST_DATE,	/**< Date, scalar type */
         PLIST_DATA,	/**< Binary data, scalar type */
         PLIST_KEY,	/**< Key in dictionaries (ASCII String), scalar type */
+        PLIST_UID,      /**< Special type used for 'keyed encoding' */
         PLIST_NONE	/**< No type */
     } plist_type;
 
@@ -164,6 +165,15 @@ extern "C"
      * @sa #plist_type
      */
     PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec);
+
+    /**
+     * Create a new plist_t type #PLIST_UID
+     *
+     * @param val the unsigned integer value
+     * @return the created item
+     * @sa #plist_type
+     */
+    PLIST_API plist_t plist_new_uid(uint64_t val);
 
     /**
      * Destruct a plist_t node and all its children recursively
@@ -416,6 +426,15 @@ extern "C"
      */
     PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
 
+    /**
+     * Get the value of a #PLIST_UID node.
+     * This function does nothing if node is not of type #PLIST_UID
+     *
+     * @param node the node
+     * @param val a pointer to a uint64_t variable.
+     */
+    PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val);
+
 
     /********************************************
      *                                          *
@@ -495,6 +514,15 @@ extern "C"
      * @param usec the number of microseconds
      */
     PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec);
+
+    /**
+     * Set the value of a node.
+     * Forces type of node to #PLIST_UID
+     *
+     * @param node the node
+     * @param val the unsigned integer value
+     */
+    PLIST_API void plist_set_uid_val(plist_t node, uint64_t val);
 
 
     /********************************************

@@ -138,6 +138,15 @@ plist_t plist_new_uint(uint64_t val)
     return plist_new_node(data);
 }
 
+plist_t plist_new_uid(uint64_t val)
+{
+    plist_data_t data = plist_new_plist_data();
+    data->type = PLIST_UID;
+    data->intval = val;
+    data->length = sizeof(uint64_t);
+    return plist_new_node(data);
+}
+
 plist_t plist_new_real(double val)
 {
     plist_data_t data = plist_new_plist_data();
@@ -490,6 +499,7 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
         *((char *) value) = data->boolval;
         break;
     case PLIST_UINT:
+    case PLIST_UID:
         *((uint64_t *) value) = data->intval;
         break;
     case PLIST_REAL:
@@ -567,6 +577,15 @@ void plist_get_uint_val(plist_t node, uint64_t * val)
     assert(length == sizeof(uint64_t));
 }
 
+void plist_get_uid_val(plist_t node, uint64_t * val)
+{
+    plist_type type = plist_get_node_type(node);
+    uint64_t length = 0;
+    if (PLIST_UID == type)
+        plist_get_type_and_value(node, &type, (void *) val, &length);
+    assert(length == sizeof(uint64_t));
+}
+
 void plist_get_real_val(plist_t node, double *val)
 {
     plist_type type = plist_get_node_type(node);
@@ -617,6 +636,7 @@ int plist_data_compare(const void *a, const void *b)
     case PLIST_BOOLEAN:
     case PLIST_UINT:
     case PLIST_REAL:
+    case PLIST_UID:
         if (val_a->intval == val_b->intval)	//it is an union so this is sufficient
             return TRUE;
         else
@@ -690,6 +710,7 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
         data->boolval = *((char *) value);
         break;
     case PLIST_UINT:
+    case PLIST_UID:
         data->intval = *((uint64_t *) value);
         break;
     case PLIST_REAL:
@@ -728,6 +749,7 @@ void plist_set_type(plist_t node, plist_type type)
             data->length = sizeof(uint8_t);
             break;
         case PLIST_UINT:
+        case PLIST_UID:
             data->length = sizeof(uint64_t);
             break;
         case PLIST_REAL:
@@ -761,6 +783,11 @@ void plist_set_bool_val(plist_t node, uint8_t val)
 void plist_set_uint_val(plist_t node, uint64_t val)
 {
     plist_set_element_val(node, PLIST_UINT, &val, sizeof(uint64_t));
+}
+
+void plist_set_uid_val(plist_t node, uint64_t val)
+{
+    plist_set_element_val(node, PLIST_UID, &val, sizeof(uint64_t));
 }
 
 void plist_set_real_val(plist_t node, double val)
