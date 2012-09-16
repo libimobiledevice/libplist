@@ -650,6 +650,8 @@ int plist_data_compare(const void *a, const void *b)
             return FALSE;
 
     case PLIST_DATA:
+        if (val_a->length != val_b->length)
+            return FALSE;
         if (!memcmp(val_a->buff, val_b->buff, val_a->length))
             return TRUE;
         else
