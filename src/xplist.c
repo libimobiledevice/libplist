@@ -312,6 +312,7 @@ static void parse_date(const char *strval, struct tm *btime)
     btime->tm_year-=1900;
     btime->tm_mon--;
 #endif
+    btime->tm_isdst=-1;
 }
 
 static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
