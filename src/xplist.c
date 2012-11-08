@@ -336,6 +336,10 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!node)
             break;
 
+        if (!xmlStrcmp(node->name, BAD_CAST("comment"))) {
+            continue;
+        }
+
         data = plist_new_plist_data();
         subnode = plist_new_node(data);
         if (*plist_node)
