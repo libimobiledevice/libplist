@@ -266,6 +266,15 @@ static void node_to_xml(node_t* node, void *xml_struct)
     if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT)
         xmlNodeAddContent(child_node, BAD_CAST("\n"));
 
+    //make sure we don't produce <data/> if it's empty
+    if ((node_data->type == PLIST_DATA) && !val) {
+        xmlNodeAddContent(child_node, BAD_CAST("\n"));
+        for (i = 0; i < xstruct->depth; i++)
+        {
+            xmlNodeAddContent(child_node, BAD_CAST("\t"));
+        }
+    }
+
     if (isStruct)
     {
         struct xml_node child = { child_node, xstruct->depth + 1 };
