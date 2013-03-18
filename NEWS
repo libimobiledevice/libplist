@@ -1,3 +1,16 @@
+Version 1.9
+~~~~~~~~~~~
+
+- Changes:
+  * Add support for handling UID node types
+  * Fix crash when converting plists containing comments
+  * Fix Bug in plist_data_compare()
+  * Fix DST handling for PLIST_DATE
+  * Fix plist_dict_set_item() and plist_array_set_item()
+  * Fix cython String plist handling
+  * Fix invalid memory access in copy_plist_data()
+  * Fix several compiler warnings
+
 Version 1.8
 ~~~~~~~~~~~
 
