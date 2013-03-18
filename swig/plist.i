@@ -91,6 +91,9 @@ static swig_type_info *Node_dynamic(void **ptr)
 	    case PLIST_REAL:
 		*ptr = dynamic_cast<PList::Real *>(node);
 		return SWIGTYPE_p_PList__Real;
+	    case PLIST_KEY:
+		*ptr = dynamic_cast<PList::Key *>(node);
+		return SWIGTYPE_p_PList__Key;
 	    case PLIST_STRING:
 		*ptr = dynamic_cast<PList::String *>(node);
 		return SWIGTYPE_p_PList__String;
@@ -154,6 +157,7 @@ namespace std {
 %include <plist/Boolean.h>
 %include <plist/Integer.h>
 %include <plist/Real.h>
+%include <plist/Key.h>
 %include <plist/String.h>
 %include <plist/Data.h>
 %include <plist/Date.h>
