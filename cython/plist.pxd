@@ -19,6 +19,10 @@ cdef class Integer(Node):
     cpdef set_value(self, object value)
     cpdef int get_value(self)
 
+cdef class Key(Node):
+    cpdef set_value(self, object value)
+    cpdef int get_value(self)
+
 cdef class Real(Node):
     cpdef set_value(self, object value)
     cpdef float get_value(self)
