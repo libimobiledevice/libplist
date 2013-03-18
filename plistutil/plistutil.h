@@ -1,5 +1,5 @@
 /*
- * plutil.h
+ * plistutil.h
  * header for plist convertion tool
  *
  * Copyright (c) 2008 Zach C. All Rights Reserved.

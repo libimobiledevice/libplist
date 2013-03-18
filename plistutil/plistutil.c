@@ -1,5 +1,5 @@
 /*
- * plutil.C
+ * plistutil.c
  * source for plist convertion tool
  *
  * Copyright (c) 2008 Zach C. All Rights Reserved.
@@ -21,7 +21,7 @@
 
 
 #include "plist/plist.h"
-#include "plutil.h"
+#include "plistutil.h"
 
 #include <stdio.h>
 #include <stdlib.h>
