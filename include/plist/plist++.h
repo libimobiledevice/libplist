@@ -31,6 +31,7 @@
 #include "Integer.h"
 #include "Node.h"
 #include "Real.h"
+#include "Key.h"
 #include "String.h"
 #include "Structure.h"
 
