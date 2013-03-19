@@ -1,3 +1,5 @@
+from libc.stdint cimport *
+
 cdef extern from "plist/plist.h":
     ctypedef void *plist_t
     ctypedef void *plist_dict_iter
@@ -14,10 +16,10 @@ cdef class Node:
 cdef class Bool(Node):
     cpdef set_value(self, object value)
     cpdef bint get_value(self)
-    
+
 cdef class Integer(Node):
     cpdef set_value(self, object value)
-    cpdef int get_value(self)
+    cpdef uint64_t get_value(self)
 
 cdef class Key(Node):
     cpdef set_value(self, object value)

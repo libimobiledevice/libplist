@@ -180,7 +180,7 @@ cdef class Integer(Node):
             self._c_node = plist_new_uint(int(value))
 
     def __repr__(self):
-        cdef int i = self.get_value()
+        cdef uint64_t i = self.get_value()
         return '<Integer: %s>' % i
 
     def __int__(self):
@@ -207,7 +207,7 @@ cdef class Integer(Node):
     cpdef set_value(self, object value):
         plist_set_uint_val(self._c_node, int(value))
 
-    cpdef int get_value(self):
+    cpdef uint64_t get_value(self):
         cdef uint64_t value
         plist_get_uint_val(self._c_node, &value)
         return value
