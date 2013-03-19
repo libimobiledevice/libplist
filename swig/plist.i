@@ -94,6 +94,9 @@ static swig_type_info *Node_dynamic(void **ptr)
 	    case PLIST_KEY:
 		*ptr = dynamic_cast<PList::Key *>(node);
 		return SWIGTYPE_p_PList__Key;
+	    case PLIST_UID:
+		*ptr = dynamic_cast<PList::Uid *>(node);
+		return SWIGTYPE_p_PList__Uid;	
 	    case PLIST_STRING:
 		*ptr = dynamic_cast<PList::String *>(node);
 		return SWIGTYPE_p_PList__String;
@@ -144,6 +147,8 @@ namespace std {
 %ignore Boolean(plist_t);
 %ignore Integer(plist_t);
 %ignore Real(plist_t);
+%ignore Key(plist_t);
+%ignore Uid(plist_t);
 %ignore String(plist_t);
 %ignore Data(plist_t);
 %ignore Date(plist_t);
@@ -158,6 +163,7 @@ namespace std {
 %include <plist/Integer.h>
 %include <plist/Real.h>
 %include <plist/Key.h>
+%include <plist/Uid.h>
 %include <plist/String.h>
 %include <plist/Data.h>
 %include <plist/Date.h>
@@ -175,6 +181,7 @@ typedef enum {
 	PLIST_DATE,
 	PLIST_DATA,
 	PLIST_KEY,
+	PLIST_UID,
 	PLIST_NONE
 } plist_type;
 
