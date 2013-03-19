@@ -779,7 +779,7 @@ cdef object plist_t_to_node(plist_t c_plist, bint managed=True):
     if t == PLIST_UINT:
         return Integer_factory(c_plist, managed)
     if t == PLIST_KEY:
-        return Integer_factory(c_plist, managed)
+        return Key_factory(c_plist, managed)
     if t == PLIST_REAL:
         return Real_factory(c_plist, managed)
     if t == PLIST_STRING:
