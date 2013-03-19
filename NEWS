@@ -1,3 +1,16 @@
+Version 1.10
+~~~~~~~~~~~~
+
+- Changes:
+  * Renamed plutil to plistutil to not mask Apple's plutil
+  * Fixed cython bindings (broken in 1.9) 
+  * Added support for PLIST_UID node types to C++, cython, and swig bindings
+
+- Important Note:
+  * Support for swig python bindings will be dropped with future releases.
+    The bindings will be kept in the source tree for now, but we suggest
+    to update your python code to use the cython bindings instead.
+
 Version 1.9
 ~~~~~~~~~~~
 
