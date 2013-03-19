@@ -21,6 +21,10 @@ cdef class Integer(Node):
     cpdef set_value(self, object value)
     cpdef uint64_t get_value(self)
 
+cdef class Uid(Node):
+    cpdef set_value(self, object value)
+    cpdef uint64_t get_value(self)
+
 cdef class Key(Node):
     cpdef set_value(self, object value)
     cpdef unicode get_value(self)

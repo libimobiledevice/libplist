@@ -13,6 +13,7 @@ cdef extern from *:
         PLIST_DATE,
         PLIST_DATA,
         PLIST_KEY,
+        PLIST_UID,
         PLIST_NONE
 
     plist_t plist_new_bool(uint8_t val)
@@ -34,6 +35,10 @@ cdef extern from *:
     plist_t plist_new_key(char *val)
     void plist_get_key_val(plist_t node, char **val)
     void plist_set_key_val(plist_t node, char *val)
+
+    plist_t plist_new_uid(uint64_t val)
+    void plist_get_uid_val(plist_t node, uint64_t *val)
+    void plist_set_uid_val(plist_t node, uint64_t val)
 
     plist_t plist_new_string(char *val)
     void plist_get_string_val(plist_t node, char **val)
@@ -260,6 +265,52 @@ cdef class Real(Node):
 
 cdef Real Real_factory(plist_t c_node, bint managed=True):
     cdef Real instance = Real.__new__(Real)
+    instance._c_managed = managed
+    instance._c_node = c_node
+    return instance
+
+cdef class Uid(Node):
+    def __cinit__(self, object value=None, *args, **kwargs):
+        if value is None:
+            self._c_node = plist_new_uid(0)
+        else:
+            self._c_node = plist_new_uid(int(value))
+
+    def __repr__(self):
+        cdef uint64_t i = self.get_value()
+        return '<Uid: %s>' % i
+
+    def __int__(self):
+        return self.get_value()
+
+    def __float__(self):
+        return float(self.get_value())
+
+    def __richcmp__(self, other, op):
+        cdef int i = self.get_value()
+        if op == 0:
+            return i < other
+        if op == 1:
+            return i <= other
+        if op == 2:
+            return i == other
+        if op == 3:
+            return i != other
+        if op == 4:
+            return i > other
+        if op == 5:
+            return i >= other
+
+    cpdef set_value(self, object value):
+        plist_set_uid_val(self._c_node, int(value))
+
+    cpdef uint64_t get_value(self):
+        cdef uint64_t value
+        plist_get_uid_val(self._c_node, &value)
+        return value
+
+cdef Uid Uid_factory(plist_t c_node, bint managed=True):
+    cdef Uid instance = Uid.__new__(Uid)
     instance._c_managed = managed
     instance._c_node = c_node
     return instance
