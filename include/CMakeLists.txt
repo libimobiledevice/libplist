@@ -11,6 +11,7 @@ SET( libplist_HDR
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/Real.h
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/String.h
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/Key.h
+	${CMAKE_CURRENT_SOURCE_DIR}/plist/Uid.h
 	${CMAKE_CURRENT_SOURCE_DIR}/plist/Structure.h
   )
 

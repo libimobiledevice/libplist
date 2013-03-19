@@ -1,8 +1,8 @@
 /*
- * plist++.h
- * Main include of libplist C++ binding
+ * Uid.h
+ * Uid node type for C++ binding
  *
- * Copyright (c) 2009 Jonathan Beck All Rights Reserved.
+ * Copyright (c) 2012 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,21 +19,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef LIBPLISTXX_H
-#define LIBPLISTXX_H
+#ifndef PLIST__UID_H
+#define PLIST__UID_H
 
-#include "plist.h"
-#include "Array.h"
-#include "Boolean.h"
-#include "Data.h"
-#include "Date.h"
-#include "Dictionary.h"
-#include "Integer.h"
-#include "Node.h"
-#include "Real.h"
-#include "Key.h"
-#include "Uid.h"
-#include "String.h"
-#include "Structure.h"
+#include <plist/Node.h>
 
-#endif
+namespace PList
+{
+
+class Uid : public Node
+{
+public :
+    Uid(Node* parent = NULL);
+    Uid(plist_t node, Node* parent = NULL);
+    Uid(Uid& i);
+    Uid& operator=(Uid& i);
+    Uid(uint64_t i);
+    virtual ~Uid();
+
+    Node* Clone();
+
+    void SetValue(uint64_t i);
+    uint64_t GetValue();
+};
+
+};
+
+#endif // PLIST__UID_H

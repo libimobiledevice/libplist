@@ -20,6 +20,7 @@ SET(libplist++_SRC
 	Date.cpp
 	Data.cpp
 	Key.cpp
+	Uid.cpp
 	Structure.cpp
 	Array.cpp
 	Dictionary.cpp

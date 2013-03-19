@@ -28,6 +28,7 @@
 #include <plist/Real.h>
 #include <plist/String.h>
 #include <plist/Key.h>
+#include <plist/Uid.h>
 #include <plist/Data.h>
 #include <plist/Date.h>
 
@@ -64,6 +65,9 @@ Node::Node(plist_type type, Node* parent) : _parent(parent)
         _node = plist_new_string("");
         plist_set_key_val(_node, "");
         break;
+    case PLIST_UID:
+	_node = plist_new_uid(0);
+	break;
     case PLIST_DATA:
         _node = plist_new_data(NULL,0);
         break;
@@ -136,6 +140,9 @@ Node* Node::FromPlist(plist_t node, Node* parent)
             break;
         case PLIST_KEY:
             ret = new Key(node, parent);
+            break;
+        case PLIST_UID:
+            ret = new Uid(node, parent);
             break;
         case PLIST_DATE:
             ret = new Date(node, parent);
