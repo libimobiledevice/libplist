@@ -41,6 +41,10 @@ cdef extern from *:
     void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 
+    plist_t plist_new_key(char *val)
+    void plist_get_key_val(plist_t node, char **val)
+    void plist_set_key_val(plist_t node, char *val)
+
     plist_t plist_new_string(char *val)
     void plist_get_string_val(plist_t node, char **val)
     void plist_set_string_val(plist_t node, char *val)
@@ -271,6 +275,77 @@ cdef Real Real_factory(plist_t c_node, bint managed=True):
     return instance
 
 from cpython cimport PY_MAJOR_VERSION
+
+cdef class Key(Node):
+    def __cinit__(self, object value=None, *args, **kwargs):
+        cdef:
+            char* c_utf8_data = NULL
+            bytes utf8_data
+        if value is None:
+            raise ValueError("Requires a value")
+        else:
+            if isinstance(value, unicode):
+                utf8_data = value.encode('utf-8')
+            elif (PY_MAJOR_VERSION < 3) and isinstance(value, str):
+                value.encode('ascii') # trial decode
+                utf8_data = value.encode('ascii')
+            else:
+                raise ValueError("Requires unicode input, got %s" % type(value))
+            c_utf8_data = utf8_data
+            self._c_node = plist_new_string("")
+            plist_set_type(self._c_node, PLIST_KEY)
+            #plist_set_key_val(self._c_node, c_utf8_data)
+
+    def __repr__(self):
+        s = self.get_value()
+        return '<Key: %s>' % s.encode('utf-8')
+
+    def __richcmp__(self, other, op):
+        cdef unicode s = self.get_value()
+        if op == 0:
+            return s < other
+        if op == 1:
+            return s <= other
+        if op == 2:
+            return s == other
+        if op == 3:
+            return s != other
+        if op == 4:
+            return s > other
+        if op == 5:
+            return s >= other
+
+    cpdef set_value(self, object value):
+        cdef:
+            char* c_utf8_data = NULL
+            bytes utf8_data
+        if value is None:
+            plist_set_key_val(self._c_node, c_utf8_data)
+        else:
+            if isinstance(value, unicode):
+                utf8_data = value.encode('utf-8')
+            elif (PY_MAJOR_VERSION < 3) and isinstance(value, str):
+                value.encode('ascii') # trial decode
+                utf8_data = value.encode('ascii')
+            else:
+                raise ValueError("Requires unicode input, got %s" % type(value))
+            c_utf8_data = utf8_data
+            plist_set_key_val(self._c_node, c_utf8_data)
+
+    cpdef unicode get_value(self):
+        cdef:
+            char* c_value = NULL
+        plist_get_key_val(self._c_node, &c_value)
+        try:
+            return cpython.PyUnicode_DecodeUTF8(c_value, len(c_value), 'strict')
+        finally:
+            libc.stdlib.free(c_value)
+
+cdef Key Key_factory(plist_t c_node, bint managed=True):
+    cdef Key instance = Key.__new__(Key)
+    instance._c_managed = managed
+    instance._c_node = c_node
+    return instance
 
 cdef class String(Node):
     def __cinit__(self, object value=None, *args, **kwargs):

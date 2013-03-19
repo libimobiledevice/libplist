@@ -21,7 +21,7 @@ cdef class Integer(Node):
 
 cdef class Key(Node):
     cpdef set_value(self, object value)
-    cpdef int get_value(self)
+    cpdef unicode get_value(self)
 
 cdef class Real(Node):
     cpdef set_value(self, object value)
