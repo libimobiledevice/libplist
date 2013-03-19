@@ -577,9 +577,7 @@ cdef class Dict(Node):
         return '<Dict: %s>' % self._map
 
     cpdef dict get_value(self):
-        cdef dict result = cpython.PyDict_New()
         return dict([(key, value.get_value()) for key, value in self.items()])
-        return result
 
     cpdef set_value(self, dict value):
         plist_free(self._c_node)
@@ -611,7 +609,6 @@ cdef class Dict(Node):
 
     cpdef list values(self):
         return cpython.PyDict_Values(self._map)
-        return self._map.values()
 
     cpdef object itervalues(self):
         return self._map.itervalues()
