@@ -73,7 +73,10 @@ enum
 
 static void float_byte_convert(uint8_t * address, size_t size)
 {
-#if PLIST_BYTE_ORDER == PLIST_LITTLE_ENDIAN && !defined (__VFP_FP__)
+#if (PLIST_BYTE_ORDER == PLIST_LITTLE_ENDIAN \
+		&& !defined(__FLOAT_WORD_ORDER__)) \
+	|| (defined(__FLOAT_WORD_ORDER__) \
+		&& __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)
     uint8_t i = 0, j = 0;
     uint8_t tmp = 0;
 
