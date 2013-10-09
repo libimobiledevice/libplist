@@ -111,13 +111,14 @@ unsigned char *base64decode(const char *buf, size_t *size)
 
 	unsigned char *line;
 	int p = 0;
+	char* saveptr = NULL;
 
-	line = (unsigned char*)strtok((char*)buf, "\r\n\t ");
+	line = (unsigned char*)strtok_r((char*)buf, "\r\n\t ", &saveptr);
 	while (line) {
 		p+=base64decode_block(outbuf+p, (const char*)line, strlen((char*)line));
 
 		// get next line of base64 encoded block
-		line = (unsigned char*)strtok(NULL, "\r\n\t ");
+		line = (unsigned char*)strtok_r(NULL, "\r\n\t ", &saveptr);
 	}
 	outbuf[p] = 0;
 	*size = p;
