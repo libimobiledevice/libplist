@@ -286,15 +286,38 @@ static plist_t parse_string_node(char *bnode, uint64_t size)
 static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, long *items_written)
 {
 	if (!unistr || (len <= 0)) return NULL;
-	char *outbuf = (char*)malloc(3*(len+1));
+	char *outbuf = (char*)malloc(4*(len+1));
 	int p = 0;
 	int i = 0;
 
 	uint16_t wc;
+	uint32_t w;
+	int read_lead_surrogate = 0; 
 
 	while (i < len) {
 		wc = unistr[i++];
-		if (wc >= 0x800) {
+		if (wc >= 0xD800 && wc <= 0xDBFF) {
+			if (!read_lead_surrogate) {
+				read_lead_surrogate = 1;
+				w = 0x010000 + ((wc & 0x3FF) << 10);
+			} else {
+				// This is invalid, the next 16 bit char should be a trail surrogate. 
+				// Handling error by skipping.
+				read_lead_surrogate = 0;
+			}
+		} else if (wc >= 0xDC00 && wc <= 0xDFFF) {
+			if (read_lead_surrogate) {
+				read_lead_surrogate = 0;
+				w = w | (wc & 0x3FF);
+				outbuf[p++] = (char)(0xF0 + ((w >> 18) & 0x3));
+				outbuf[p++] = (char)(0x80 + ((w >> 12) & 0x3F));
+				outbuf[p++] = (char)(0x80 + ((w >> 6) & 0x3F));
+				outbuf[p++] = (char)(0x80 + (w & 0x3F));
+			} else {
+				// This is invalid.  A trail surrogate should always follow a lead surrogate.
+				// Handling error by skipping
+			}
+		} else if (wc >= 0x800) {
 			outbuf[p++] = (char)(0xE0 + ((wc >> 12) & 0xF));
 			outbuf[p++] = (char)(0x80 + ((wc >> 6) & 0x3F));
 			outbuf[p++] = (char)(0x80 + (wc & 0x3F));
@@ -988,19 +1011,29 @@ static int is_ascii_string(char* s, int len)
 
 uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
 {
-	uint16_t *outbuf = (uint16_t*)malloc((size+1)*sizeof(uint16_t));
+	uint16_t *outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
 	int p = 0;
 	int i = 0;
 
 	unsigned char c0;
 	unsigned char c1;
 	unsigned char c2;
+	unsigned char c3;
+
+	uint32_t w;
 
 	while (i < size) {
 		c0 = unistr[i];
 		c1 = (i < size-1) ? unistr[i+1] : 0;
 		c2 = (i < size-2) ? unistr[i+2] : 0;
-		if ((c0 >= 0xE0) && (i < size-2) && (c1 >= 0x80) && (c2 >= 0x80)) {
+		c3 = (i < size-3) ? unistr[i+3] : 0;
+		if ((c0 >= 0xF0) && (i < size-3) && (c1 >= 0x80) && (c2 >= 0x80) && (c3 >= 0x80)) {
+			// 4 byte sequence.  Need to generate UTF-16 surrogate pair
+			w = ((((c0 & 7) << 18) + ((c1 & 0x3F) << 12) + ((c2 & 0x3F) << 6) + (c3 & 0x3F)) & 0x0FFFFF) - 0x010000;
+			outbuf[p++] = 0xD800 + (w >> 10);
+			outbuf[p++] = 0xDC00 + (w & 0x3FF);
+			i+=4;
+		} else if ((c0 >= 0xE0) && (i < size-2) && (c1 >= 0x80) && (c2 >= 0x80)) {
 			// 3 byte sequence
 			outbuf[p++] = ((c2 & 0x3F) + ((c1 & 3) << 6)) + (((c1 >> 2) & 15) << 8) + ((c0 & 15) << 12);
 			i+=3;
