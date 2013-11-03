@@ -1,18 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="include">
+      <UniqueIdentifier>{65b01f31-109f-4e4d-ab4a-4775daff8aa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libcnary">
+      <UniqueIdentifier>{83af2ddb-18ea-4393-a1a4-246067372014}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{fe479df6-fce3-4684-a65e-4b396b2c55ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="libPList.cpp" />
-    <ClCompile Include="pch.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="libPList.h" />
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="targetver.h" />
+    <ClCompile Include="src\Array.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
