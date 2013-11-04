@@ -22,8 +22,9 @@
 #include "base64.h"
 
 #if defined(WIN32)
-# define strtok_r strtok_s
+#define strtok_r strtok_s
 #endif
+
 static const char base64_str[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char base64_pad = '=';
 
