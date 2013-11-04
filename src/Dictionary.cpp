@@ -151,7 +151,8 @@ Dictionary::iterator Dictionary::Insert(const std::string& key, Node* node)
         _map[key] = clone;
         return _map.find(key);
     }
-    return iterator(NULL);
+
+	return _map.end();
 }
 
 void Dictionary::Remove(Node* node)

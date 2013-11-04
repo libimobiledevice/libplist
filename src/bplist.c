@@ -33,6 +33,10 @@
 #include "bytearray.h"
 #include "ptrarray.h"
 
+#ifdef _WIN32
+#include <winsock.h>
+#endif
+
 #include <node.h>
 #include <node_iterator.h>
 
@@ -171,6 +175,56 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #endif
 #endif
 
+
+#ifdef _WIN32
+uint64_t get_unaligned_64(uint64_t *ptr)
+{
+#pragma pack(push, 1)
+	struct packed {
+		uint64_t __v;
+	} *__p = (packed *)(ptr);
+#pragma pack(pop)	
+	return __p->__v;
+}
+
+uint32_t get_unaligned_32(uint32_t *ptr)
+{
+#pragma pack(push, 1)	
+	struct packed {
+		uint32_t __v;
+	} *__p = (packed *)(ptr);
+#pragma pack(pop)
+	return __p->__v;
+}
+
+uint16_t get_unaligned_16(uint16_t *ptr)
+{
+#pragma pack(push, 1)	
+	struct packed {
+		uint16_t __v;
+	} *__p = (packed *)(ptr);
+#pragma pack(pop)	
+	return __p->__v;
+}
+uint64_t UINT_TO_HOST(void *x, uint8_t n)
+{
+	union plist_uint_ptr __up;
+	__up.src = x;
+	return (n == 8 ? be64toh(get_unaligned_64(__up.u64ptr)) :
+		(n == 4 ? be32toh(get_unaligned_32(__up.u32ptr)) :
+		(n == 3 ? uint24_from_be(__up) :
+		(n == 2 ? be16toh(get_unaligned_16(__up.u16ptr)) :
+		*__up.u8ptr))));
+}
+
+
+uint64_t be64dec(char *x)
+{
+	union plist_uint_ptr __up;
+	__up.src = x;
+	return be64toh(get_unaligned_64(__up.u64ptr));
+}
+#else
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
@@ -188,6 +242,7 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 		__up.src = x; \
 		be64toh( get_unaligned(__up.u64ptr) ); \
 	})
+#endif
 
 #define get_needed_bytes(x) \
 		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
@@ -232,7 +287,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
     uint8_t* buf;
 
     size = 1 << size;			// make length less misleading
-    buf = malloc (size);
+    buf = (uint8_t *)malloc (size);
     memcpy (buf, bnode, size);
     switch (size)
     {
@@ -673,17 +728,17 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
                 if (index1 < num_objects)
                 {
                     if (NODE_IS_ROOT(nodeslist[index1]))
-                        node_attach(nodeslist[i], nodeslist[index1]);
+						node_attach((node_t*)nodeslist[i], (node_t*)nodeslist[index1]);
                     else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index1], copy_plist_data));
+						node_attach((node_t*)nodeslist[i], node_copy_deep((node_t*)nodeslist[index1], copy_plist_data));
                 }
 
                 if (index2 < num_objects)
                 {
                     if (NODE_IS_ROOT(nodeslist[index2]))
-                        node_attach(nodeslist[i], nodeslist[index2]);
+						node_attach((node_t*)nodeslist[i], (node_t*)nodeslist[index2]);
                     else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index2], copy_plist_data));
+						node_attach((node_t*)nodeslist[i], node_copy_deep((node_t*)nodeslist[index2], copy_plist_data));
                 }
             }
 
@@ -699,9 +754,9 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
                 if (index1 < num_objects)
                 {
                     if (NODE_IS_ROOT(nodeslist[index1]))
-                        node_attach(nodeslist[i], nodeslist[index1]);
+						node_attach((node_t*)nodeslist[i], (node_t*)nodeslist[index1]);
                     else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index1], copy_plist_data));
+						node_attach((node_t*)nodeslist[i], node_copy_deep((node_t*)nodeslist[index1], copy_plist_data));
                 }
             }
             free(data->buff);
@@ -1097,7 +1152,7 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //serialize plist
     ser_s.objects = objects;
     ser_s.ref_table = ref_table;
-    serialize_plist(plist, &ser_s);
+	serialize_plist((node_t*)plist, &ser_s);
 
     //now stream to output buffer
     offset_size = 0;			//unknown yet
@@ -1155,10 +1210,10 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         case PLIST_DATA:
             write_data(bplist_buff, data->buff, data->length);
         case PLIST_ARRAY:
-            write_array(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
+			write_array(bplist_buff, (node_t*)ptr_array_index(objects, i), ref_table, dict_param_size);
             break;
         case PLIST_DICT:
-            write_dict(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
+			write_dict(bplist_buff, (node_t*)ptr_array_index(objects, i), ref_table, dict_param_size);
             break;
         case PLIST_DATE:
             write_date(bplist_buff, data->timeval.tv_sec + (double) data->timeval.tv_usec / 1000000);

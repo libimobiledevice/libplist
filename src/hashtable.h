@@ -26,7 +26,7 @@
 typedef struct hashentry_t {
 	void *key;
 	void *value;
-	void *next;
+	hashentry_t *next;
 } hashentry_t;
 
 typedef unsigned int(*hash_func_t)(const void* key);

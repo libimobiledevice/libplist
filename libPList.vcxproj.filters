@@ -4,14 +4,8 @@
     <Filter Include="include">
       <UniqueIdentifier>{65b01f31-109f-4e4d-ab4a-4775daff8aa0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="libcnary">
-      <UniqueIdentifier>{83af2ddb-18ea-4393-a1a4-246067372014}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{fe479df6-fce3-4684-a65e-4b396b2c55ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="libcnary\include">
-      <UniqueIdentifier>{98cfa678-cceb-4163-a452-727a11b3f7d8}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\plist">
       <UniqueIdentifier>{f61ffa19-cd1d-4753-b6f0-f1b4d47f285d}</UniqueIdentifier>
@@ -75,24 +69,6 @@
     <ClCompile Include="src\xplist.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="libcnary\cnary.c">
-      <Filter>libcnary</Filter>
-    </ClCompile>
-    <ClCompile Include="libcnary\iterator.c">
-      <Filter>libcnary</Filter>
-    </ClCompile>
-    <ClCompile Include="libcnary\list.c">
-      <Filter>libcnary</Filter>
-    </ClCompile>
-    <ClCompile Include="libcnary\node.c">
-      <Filter>libcnary</Filter>
-    </ClCompile>
-    <ClCompile Include="libcnary\node_iterator.c">
-      <Filter>libcnary</Filter>
-    </ClCompile>
-    <ClCompile Include="libcnary\node_list.c">
-      <Filter>libcnary</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\base64.h">
@@ -112,24 +88,6 @@
     </ClInclude>
     <ClInclude Include="src\ptrarray.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="libcnary\include\iterator.h">
-      <Filter>libcnary\include</Filter>
-    </ClInclude>
-    <ClInclude Include="libcnary\include\list.h">
-      <Filter>libcnary\include</Filter>
-    </ClInclude>
-    <ClInclude Include="libcnary\include\node.h">
-      <Filter>libcnary\include</Filter>
-    </ClInclude>
-    <ClInclude Include="libcnary\include\node_iterator.h">
-      <Filter>libcnary\include</Filter>
-    </ClInclude>
-    <ClInclude Include="libcnary\include\node_list.h">
-      <Filter>libcnary\include</Filter>
-    </ClInclude>
-    <ClInclude Include="libcnary\include\object.h">
-      <Filter>libcnary\include</Filter>
     </ClInclude>
     <ClInclude Include="include\plist\Array.h">
       <Filter>include\plist</Filter>
