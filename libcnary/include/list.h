@@ -27,8 +27,8 @@
 #include "object.h"
 
 typedef struct list_t {
-	void* next;
-	void* prev;
+	list_t* next;
+	list_t* prev;
 } list_t;
 
 void list_init(struct list_t* list);
