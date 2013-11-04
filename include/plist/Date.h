@@ -24,7 +24,7 @@
 
 #include <plist/Node.h>
 #include <ctime>
-#ifdef _WIN32
+#ifdef WIN32
 #include <winsock.h>
 #else
 #include <sys/time.h>
