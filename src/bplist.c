@@ -32,11 +32,6 @@
 #include "hashtable.h"
 #include "bytearray.h"
 #include "ptrarray.h"
-
-#ifdef _WIN32
-#include <winsock.h>
-#endif
-
 #include <node.h>
 #include <node_iterator.h>
 
@@ -176,7 +171,7 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #endif
 
 
-#ifdef _WIN32
+#ifdef WIN32
 uint64_t get_unaligned_64(uint64_t *ptr)
 {
 #pragma pack(push, 1)

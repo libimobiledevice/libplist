@@ -31,7 +31,7 @@
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #pragma warning(disable:4244)
-#include <winsock.h>
+#include <winsock2.h>
 #else
 #include <sys/time.h>
 #endif

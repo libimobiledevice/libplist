@@ -10,8 +10,24 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libcnary\include\iterator.h" />
+    <ClInclude Include="libcnary\include\list.h" />
+    <ClInclude Include="libcnary\include\node.h" />
+    <ClInclude Include="libcnary\include\node_iterator.h" />
+    <ClInclude Include="libcnary\include\node_list.h" />
+    <ClInclude Include="libcnary\include\object.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libcnary\cnary.c" />
+    <ClCompile Include="libcnary\iterator.c" />
+    <ClCompile Include="libcnary\list.c" />
+    <ClCompile Include="libcnary\node.c" />
+    <ClCompile Include="libcnary\node_iterator.c" />
+    <ClCompile Include="libcnary\node_list.c" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6B3C2D4C-624A-4761-8192-9396EE69ACA0}</ProjectGuid>
+    <ProjectGuid>{59F2B61D-85BA-4094-838F-3ECE45CE0651}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libcnary</RootNamespace>
   </PropertyGroup>
@@ -39,7 +55,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(ProjectName)-$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(ProjectName)-$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -47,6 +68,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>libcnary/include</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

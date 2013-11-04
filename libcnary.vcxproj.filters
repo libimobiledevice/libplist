@@ -1,2 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" />
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{ad2013fd-9d84-4ab1-8d58-0e5b1ed065c9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libcnary\include\iterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="libcnary\include\list.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="libcnary\include\node.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="libcnary\include\node_iterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="libcnary\include\node_list.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="libcnary\include\object.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libcnary\cnary.c" />
+    <ClCompile Include="libcnary\iterator.c" />
+    <ClCompile Include="libcnary\list.c" />
+    <ClCompile Include="libcnary\node.c" />
+    <ClCompile Include="libcnary\node_iterator.c" />
+    <ClCompile Include="libcnary\node_list.c" />
+  </ItemGroup>
+</Project>
