@@ -446,6 +446,33 @@ void plist_dict_remove_item(plist_t node, const char* key)
     return;
 }
 
+void plist_dict_merge(plist_t *target, plist_t source)
+{
+	if (!target || !*target || (plist_get_node_type(*target) != PLIST_DICT) || !source || (plist_get_node_type(source) != PLIST_DICT))
+		return;
+
+	char* key = NULL;
+	plist_dict_iter it = NULL;
+	plist_t subnode = NULL;
+	plist_dict_new_iter(source, &it);
+	if (!it)
+		return;
+
+	do {
+		plist_dict_next_item(source, it, &key, &subnode);
+		if (!key)
+			break;
+
+		if (plist_dict_get_item(*target, key) != NULL)
+			plist_dict_remove_item(*target, key);
+
+		plist_dict_insert_item(*target, key, plist_copy(subnode));
+		free(key);
+		key = NULL;
+	} while (1);
+	free(it);	
+}
+
 plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
 {
     plist_t current = plist;

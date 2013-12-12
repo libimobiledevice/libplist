@@ -336,6 +336,16 @@ extern "C"
      */
     PLIST_API void plist_dict_remove_item(plist_t node, const char* key);
 
+    /**
+     * Merge a dictionary into another. This will add all key/value pairs
+     * from the source dictionary to the target dictionary, overwriting
+     * any existing key/value pairs that are already present in target.
+     *
+     * @param target pointer to an existing node of type #PLIST_DICT
+     * @param source node of type #PLIST_DICT that should be merged into target
+     */
+    PLIST_API void plist_dict_merge(plist_t *target, plist_t source);
+
 
     /********************************************
      *                                          *
