@@ -47,6 +47,6 @@ void byte_array_append(bytearray_t *ba, void *buf, size_t len)
 		ba->data = realloc(ba->data, ba->capacity + (len - remaining));
 		ba->capacity += (len - remaining);
 	}
-	memcpy(ba->data+ba->len, buf, len);
+	memcpy(((char*)ba->data) + ba->len, buf, len);
 	ba->len += len;
 }
