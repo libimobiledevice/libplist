@@ -121,7 +121,7 @@ int node_insert(node_t* parent, unsigned int index, node_t* child)
 }
 
 void node_debug(node_t* node) {
-	int i = 0;
+	unsigned int i = 0;
 	node_t* current = NULL;
 	node_iterator_t* iter = NULL;
 	for(i = 0; i < node->depth; i++) {
@@ -155,7 +155,7 @@ unsigned int node_n_children(struct node_t* node)
 node_t* node_nth_child(struct node_t* node, unsigned int n)
 {
 	if (!node || !node->children || !node->children->begin) return NULL;
-	int index = 0;
+	unsigned int index = 0;
 	int found = 0;
 	node_t *ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
