@@ -1009,7 +1009,7 @@ static int is_ascii_string(char* s, int len)
   return ret;
 }
 
-uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
+static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
 {
 	uint16_t *outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
 	int p = 0;
