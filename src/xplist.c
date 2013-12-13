@@ -89,7 +89,7 @@ static char *format_string(const char *buf, size_t len, int cols, int depth)
         new_buf[i * colw] = '\n';
         for (j = 0; j < depth; j++)
             new_buf[i * colw + 1 + j] = '\t';
-        memcpy(new_buf + i * colw + 1 + depth, buf + i * cols, (i + 1) * cols <= len ? cols : len - i * cols);
+        memcpy(new_buf + i * colw + 1 + depth, buf + i * cols, (size_t)(i + 1) * cols <= len ? cols : len - i * cols);
     }
     new_buf[len + (1 + depth) * nlines] = '\n';
 
