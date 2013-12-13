@@ -297,9 +297,9 @@ static void node_to_xml(node_t* node, void *xml_struct)
     if (isUIDNode)
     {
         unsigned int num = node_n_children(node);
-        unsigned int i;
-        for (i = num; i > 0; i--) {
-            node_t* ch = node_nth_child(node, i-1);
+        unsigned int j;
+        for (j = num; j > 0; j--) {
+            node_t* ch = node_nth_child(node, j-1);
             node_detach(node, ch);
             node_destroy(ch);
         }
