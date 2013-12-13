@@ -74,7 +74,8 @@ char *base64encode(const unsigned char *buf, size_t *size)
 static int base64decode_block(unsigned char *target, const char *data, size_t data_size)
 {
 	int w1,w2,w3,w4;
-	int n,i;
+	int i;
+	size_t n;
 
 	if (!data || (data_size <= 0)) {
 		return 0;
