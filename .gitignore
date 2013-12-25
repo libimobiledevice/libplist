@@ -1,2 +1,6 @@
 *.swp
 build/*
+libPList-Debug/
+libPList-Release/
+libcnary-Debug/
+libcnary-Release/

@@ -38,7 +38,14 @@ extern "C"
     typedef unsigned __int32 uint32_t;
     typedef unsigned __int64 uint64_t;
 
-	#define PLIST_API
+	#ifdef plist_EXPORTS
+		#define PLIST_API  __declspec(dllexport)
+	#elif !defined(plist_STATIC)
+		#define PLIST_API  __declspec(dllimport)
+	#else
+		#define PLIST_API
+	#endif
+
 #else
 #include <stdint.h>
 #define PLIST_API
