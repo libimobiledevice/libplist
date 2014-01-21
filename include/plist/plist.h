@@ -48,10 +48,11 @@ extern "C"
 
 #else
 #include <stdint.h>
+#include <sys/types.h>
 #define PLIST_API
 #endif
 
-#include <sys/types.h>
+
 #include <stdarg.h>
 
     /**
