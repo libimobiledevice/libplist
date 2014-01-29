@@ -609,6 +609,14 @@ extern "C"
      */
     PLIST_API char plist_compare_node_value(plist_t node_l, plist_t node_r);
 
+	/**
+	* Frees memory allocated by plist. Should be used by plist users in order
+	* to free memory allocated by plist functions.
+	*
+	* @param p The memory to free
+	*/
+	PLIST_API void plist_free_memory(void * p);
+
     /*@}*/
 
 #ifdef __cplusplus

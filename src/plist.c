@@ -808,3 +808,7 @@ void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
     plist_set_element_val(node, PLIST_DATE, &val, sizeof(struct timeval));
 }
 
+void plist_free_memory(void * p)
+{
+	free(p);
+}
