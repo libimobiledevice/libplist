@@ -92,11 +92,10 @@ if [test "x$CYTHON" != "xfalse"]; then
             AC_MSG_CHECKING([for libplist Cython bindings])
             CYTHON_PLIST_INCLUDE_DIR=$($PKG_CONFIG --variable=includedir libplist)/plist/cython
             if [test ! -d "$CYTHON_PLIST_INCLUDE_DIR"]; then
-                CYTHON=false
-                CYTHON_SUB=
-                cython_python_bindings=no
-                AC_MSG_RESULT([no])
-                AC_MSG_WARN([cannot find libplist Cython bindings. You should install your distribution specific libplist Cython bindings package.])
+                CYTHON_PLIST_INCLUDE_DIR=.
+                CYTHON_SUB=cython
+                cython_python_bindings=yes
+                AC_MSG_RESULT([Using built-in libplist Cython bindings (assuming this is a first build)])
             else
                 AC_SUBST([CYTHON_PLIST_INCLUDE_DIR])
                 AC_MSG_RESULT([$CYTHON_PLIST_INCLUDE_DIR])
