@@ -2,6 +2,7 @@ cimport cpython
 cimport libc.stdlib
 from libc.stdint cimport *
 
+# https://groups.google.com/forum/#!topic/cython-users/xoKNFTRagvk
 cdef _from_string_and_size(char *s, size_t length):
     if PY_MAJOR_VERSION < 3 or s == NULL:
         return s[:length]
