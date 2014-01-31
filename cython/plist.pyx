@@ -2,6 +2,15 @@ cimport cpython
 cimport libc.stdlib
 from libc.stdint cimport *
 
+cdef _from_string_and_size(char *s, size_t length):
+    if PY_MAJOR_VERSION < 3 or s == NULL:
+        return s[:length]
+
+    if s == NULL:
+        return s[:length]
+    else:
+        return s[:length].decode("ascii")
+
 cdef extern from *:
     ctypedef enum plist_type:
         PLIST_BOOLEAN,
@@ -115,7 +124,7 @@ cdef class Node:
         plist_to_bin(self._c_node, &out, &length)
 
         try:
-            return cpython.PyString_FromStringAndSize(out, length)
+            return _from_string_and_size(out, length)
         finally:
             if out != NULL:
                 libc.stdlib.free(out)
@@ -550,7 +559,7 @@ cdef class Data(Node):
         plist_get_data_val(self._c_node, &val, &length)
 
         try:
-            return cpython.PyString_FromStringAndSize(val, length)
+            return _from_string_and_size(val, length)
         finally:
             libc.stdlib.free(val)
 
