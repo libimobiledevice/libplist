@@ -5,6 +5,7 @@
 *.pc
 *.log
 *.exe
+*~
 configure
 Makefile
 Makefile.in
@@ -49,3 +50,6 @@ test/data/*.out
 cython/Makefile
 cython/Makefile.in
 cython/.deps
+cython/.libs
+cython/plist.c
+test-driver
