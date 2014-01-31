@@ -4,13 +4,7 @@ from libc.stdint cimport *
 
 # https://groups.google.com/forum/#!topic/cython-users/xoKNFTRagvk
 cdef _from_string_and_size(char *s, size_t length):
-    if PY_MAJOR_VERSION < 3 or s == NULL:
-        return s[:length]
-
-    if s == NULL:
-        return s[:length]
-    else:
-        return s[:length].decode("ascii")
+    return s[:length].encode('utf-8')
 
 cdef extern from *:
     ctypedef enum plist_type:
@@ -606,7 +600,12 @@ cdef class Dict(Node):
         plist_dict_next_item(self._c_node, it, &key, &subnode);
 
         while subnode is not NULL:
-            cpython.PyDict_SetItem(self._map, key, plist_t_to_node(subnode, False))
+            py_key = key
+
+            if PY_MAJOR_VERSION >= 3:
+                py_key = py_key.decode('utf-8')
+
+            cpython.PyDict_SetItem(self._map, py_key, plist_t_to_node(subnode, False))
             subnode = NULL
             libc.stdlib.free(key)
             key = NULL
