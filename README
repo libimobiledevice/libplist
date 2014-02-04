@@ -27,9 +27,7 @@ Installation
 ============
 
 To compile run:
-	mkdir build
-	cd build
-	cmake ..
+	./autogen.sh
 	make
 	sudo make install
 
