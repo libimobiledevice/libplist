@@ -655,6 +655,9 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
     {
 
         plist_data_t data = plist_get_data(nodeslist[i]);
+	if (!data) {
+		break;
+	}
 
         switch (data->type)
         {
