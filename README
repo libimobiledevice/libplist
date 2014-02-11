@@ -10,26 +10,23 @@ Development Packages of:
 	libxml2
 
 Software:
-	cmake
 	make
+	autoheader
+	automake
+	autoconf
 	libtool
 	pkg-config
 	gcc
 
 Optional:
 	cython (Python bindings)
-	swig (Python bindings / Deprecated)
-
-On Ubuntu/Debian, you can do:
-	sudo apt-get install build-essential cmake libxml2-dev
+	doxygen (Documentation)
 
 Installation
 ============
 
 To compile run:
-	mkdir build
-	cd build
-	cmake ..
+	./autogen.sh
 	make
 	sudo make install
 
@@ -59,7 +56,7 @@ Credits
 
 Apple, iPhone, iPod, and iPod Touch are trademarks of Apple Inc.
 libimobiledevice is an independent software library and has not been
-authorized, sponsored or otherwise approved by Apple Inc.
+authorized, sponsored, or otherwise approved by Apple Inc.
 
 README Updated on:
-	2013-11-13
+	2014-02-11
