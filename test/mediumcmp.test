@@ -1,12 +1,7 @@
 ## -*- sh -*-
 
-# Common definitions
-if test -z "$srcdir"; then
-	srcdir=echo "$0" | sed 's,[^/]*$,,'
-	test "$srcdir" = "$0" && srcdir=.
-	test -z "$srcdir" && srcdir=.
-	test "${VERBOSE+set}" != set && VERBOSE=1
-fi
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE=3.plist
 
-$srcdir/plist_cmp $srcdir/data/3.plist $srcdir/data/3.plist.out
-
+$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out

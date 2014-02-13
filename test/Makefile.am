@@ -23,3 +23,9 @@ TESTS = \
 	hugecmp.test \
 	bigarraycmp.test
 
+EXTRA_DIST = $(TESTS) data/1.plist data/2.plist data/3.plist data/4.plist data/5.plist data/6.plist
+
+TESTS_ENVIRONMENT = top_srcdir=$(top_srcdir) top_builddir=$(top_builddir)
+
+clean-local:
+	rm -f $(top_builddir)/test/data/*.out

@@ -4,14 +4,14 @@ AM_CFLAGS = $(GLOBAL_CFLAGS) $(libxml2_CFLAGS)
 AM_LDFLAGS = $(libxml2_LIBS)
 
 lib_LTLIBRARIES = libplist.la libplist++.la
-libplist_la_LIBADD = $(top_srcdir)/libcnary/libcnary.la
+libplist_la_LIBADD = $(top_builddir)/libcnary/libcnary.la
 libplist_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPLIST_SO_VERSION) -no-undefined
 libplist_la_SOURCES = base64.c base64.h \
 		      bytearray.c bytearray.h \
 		      hashtable.c hashtable.h \
 		      ptrarray.c ptrarray.h \
-		      xplist.c xplist.h \
-		      bplist.c bplist.h \
+		      xplist.c \
+		      bplist.c \
 		      plist.c plist.h \
 		      common.h
 

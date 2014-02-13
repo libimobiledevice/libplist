@@ -1,4 +1,4 @@
-AM_CFLAGS = $(GLOBAL_CFLAGS) -Iinclude
+AM_CFLAGS = $(GLOBAL_CFLAGS) -I$(top_srcdir)/libcnary/include
 AM_LDFLAGS =
 
 noinst_LTLIBRARIES = libcnary.la
