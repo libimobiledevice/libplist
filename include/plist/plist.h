@@ -310,20 +310,21 @@ extern "C"
 
     /**
      * Set item identified by key in a #PLIST_DICT node.
-     * The previous item at index n will be freed using #plist_free
+     * The previous item identified by key will be freed using #plist_free.
+     * If there is no item for the given key a new item will be inserted.
      *
      * @param node the node of type #PLIST_DICT
      * @param item the new item associated to key
-     * @param key the identifier of the item to get. Assert if identifier is not present.
+     * @param key the identifier of the item to set.
      */
     PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item);
 
     /**
-     * Insert a new item at position n in a #PLIST_DICT node.
+     * Insert a new item into a #PLIST_DICT node.
      *
      * @param node the node of type #PLIST_DICT
      * @param item the new item to insert
-     * @param key The identifier of the item to insert. Assert if identifier already present.
+     * @param key The identifier of the item to insert.
      */
     PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
 

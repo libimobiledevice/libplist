@@ -405,17 +405,18 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
 
 void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
-    if (node && PLIST_DICT == plist_get_node_type(node))
-    {
+    if (node && PLIST_DICT == plist_get_node_type(node)) {
         node_t* old_item = plist_dict_get_item(node, key);
-        if (old_item)
-        {
+        if (old_item) {
             int idx = plist_free_node(old_item);
-	    if (idx < 0) {
-		node_attach(node, item);
-	    } else {
-		node_insert(node, idx, item);
-	    }
+            if (idx < 0) {
+                node_attach(node, item);
+            } else {
+                node_insert(node, idx, item);
+            }
+        } else {
+            node_attach(node, plist_new_key(key));
+            node_attach(node, item);
         }
     }
     return;
@@ -466,7 +467,7 @@ void plist_dict_merge(plist_t *target, plist_t source)
 		if (plist_dict_get_item(*target, key) != NULL)
 			plist_dict_remove_item(*target, key);
 
-		plist_dict_insert_item(*target, key, plist_copy(subnode));
+		plist_dict_set_item(*target, key, plist_copy(subnode));
 		free(key);
 		key = NULL;
 	} while (1);
