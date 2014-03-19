@@ -424,12 +424,7 @@ void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 
 void plist_dict_insert_item(plist_t node, const char* key, plist_t item)
 {
-    if (node && PLIST_DICT == plist_get_node_type(node))
-    {
-        node_attach(node, plist_new_key(key));
-        node_attach(node, item);
-    }
-    return;
+    plist_dict_set_item(node, key, item);
 }
 
 void plist_dict_remove_item(plist_t node, const char* key)
