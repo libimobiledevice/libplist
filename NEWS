@@ -1,3 +1,15 @@
+Version 1.11
+~~~~~~~~~~~~
+
+- Changes:
+  * Deprecated plist_dict_insert_item() in favor of plist_dict_set_item()
+  * Updated cython bindings for Python 3.x
+  * Removed swig python bindings
+  * Changed build system to autotools
+  * Added new plist_dict_merge() function
+  * WIN32 (MinGW) + OSX compilation fixes
+  * Made base64 decoding thread safe
+
 Version 1.10
 ~~~~~~~~~~~~
 
