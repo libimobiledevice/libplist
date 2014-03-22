@@ -576,7 +576,7 @@ cdef plist_t create_dict_plist(object value=None):
     if value is not None and isinstance(value, dict):
         for key, item in value.items():
             c_node = native_to_plist_t(item)
-            plist_dict_insert_item(node, key, c_node)
+            plist_dict_set_item(node, key, c_node)
             c_node = NULL
     return node
 
@@ -683,7 +683,7 @@ cdef class Dict(Node):
         else:
             n = plist_t_to_node(native_to_plist_t(value), False)
 
-        plist_dict_insert_item(self._c_node, key, n._c_node)
+        plist_dict_set_item(self._c_node, key, n._c_node)
         self._map[key] = n
 
     def __delitem__(self, key):
