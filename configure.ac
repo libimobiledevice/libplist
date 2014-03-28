@@ -49,16 +49,9 @@ AC_TYPE_UINT8_T
 AC_CHECK_FUNCS([asprintf strcasecmp strdup strerror strndup stpcpy vasprintf])
 
 AC_CHECK_HEADER(endian.h, [ac_cv_have_endian_h="yes"], [ac_cv_have_endian_h="no"])
-if test "x$ac_cv_have_endian_h" = "xno"; then
-  AC_DEFINE(__LITTLE_ENDIAN,1234,[little endian])
-  AC_DEFINE(__BIG_ENDIAN,4321,[big endian])
-  AC_C_BIGENDIAN([ac_cv_c_bigendian="yes"], [ac_cv_c_bigendian="no"], [], [])
-  if test "x$ac_cv_c_bigendian" = "xyes"; then
-    AC_DEFINE(__BYTE_ORDER,4321,[big endian byte order])
-  else
-    AC_DEFINE(__BYTE_ORDER,1234,[little endian byte order])
-  fi
-fi
+AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
+               [AC_DEFINE([__LITTLE_ENDIAN__], [1], [little endian])])
+
 
 # Check for operating system
 AC_MSG_CHECKING([whether to enable WIN32 build settings])
