@@ -15,7 +15,7 @@ libplist_la_SOURCES = base64.c base64.h \
 		      plist.c plist.h \
 		      common.h
 
-libplist___la_LIBADD = $(top_builddir)/src/libplist.la
+libplist___la_LIBADD = libplist.la
 libplist___la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPLIST_SO_VERSION) -no-undefined
 libplist___la_SOURCES = Node.cpp \
 		      Structure.cpp \
