@@ -48,7 +48,7 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_CHECK_FUNCS([asprintf strcasecmp strdup strerror strndup stpcpy vasprintf])
 
-AC_CHECK_HEADER(endian.h, [ac_cv_have_endian_h="yes"], [ac_cv_have_endian_h="no"])
+# Checking endianness
 AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
                [AC_DEFINE([__LITTLE_ENDIAN__], [1], [little endian])])
 
