@@ -69,5 +69,8 @@ cdef class Array(Node):
 cpdef object from_xml(xml)
 cpdef object from_bin(bytes bin)
 
+cpdef object load(fp, fmt=*, use_builtin_types=*, dict_type=*)
+cpdef object loads(data, fmt=*, use_builtin_types=*, dict_type=*)
+
 cdef object plist_t_to_node(plist_t c_plist, bint managed=*)
 cdef plist_t native_to_plist_t(object native)
