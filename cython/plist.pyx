@@ -854,3 +854,58 @@ cdef object plist_t_to_node(plist_t c_plist, bint managed=True):
         return Data_factory(c_plist, managed)
     if t == PLIST_NONE:
         return None
+
+# This is to match up with the new plistlib API
+# http://docs.python.org/dev/library/plistlib.html
+# dump() and dumps() are not yet implemented
+FMT_XML = 1
+FMT_BINARY = 2
+
+cpdef object load(fp, fmt=None, use_builtin_types=True, dict_type=dict):
+    is_binary = fp.read(6) == 'bplist'
+    fp.seek(0)
+
+    if not fmt:
+        if is_binary:
+            if 'b' not in fp.mode:
+                raise IOError('File handle must be opened in binary (b) mode to read binary property lists')
+            cb = from_bin
+        else:
+            cb = from_xml
+    else:
+        if fmt not in (FMT_XML, FMT_BINARY):
+            raise ValueError('Format must be constant FMT_XML or FMT_BINARY')
+        if fmt == FMT_BINARY:
+            cb = from_bin
+        elif fmt == FMT_XML:
+            cb = from_xml
+
+    if is_binary and fmt == FMT_XML:
+        raise ValueError('Cannot parse binary property list as XML')
+    elif not is_binary and fmt == FMT_BINARY:
+        raise ValueError('Cannot parse XML property list as binary')
+
+    return cb(fp.read())
+
+cpdef object loads(data, fmt=None, use_builtin_types=True, dict_type=dict):
+    is_binary = data[0:6] == 'bplist'
+
+    if fmt is not None:
+        if fmt not in (FMT_XML, FMT_BINARY):
+            raise ValueError('Format must be constant FMT_XML or FMT_BINARY')
+        if fmt == FMT_BINARY:
+            cb = from_bin
+        else:
+            cb = from_xml
+    else:
+        if is_binary:
+            cb = from_bin
+        else:
+            cb = from_xml
+
+    if is_binary and fmt == FMT_XML:
+        raise ValueError('Cannot parse binary property list as XML')
+    elif not is_binary and fmt == FMT_BINARY:
+        raise ValueError('Cannot parse XML property list as binary')
+
+    return cb(data)
