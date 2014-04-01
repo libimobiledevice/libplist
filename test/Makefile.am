@@ -21,7 +21,9 @@ TESTS = \
 	mediumcmp.test \
 	largecmp.test \
 	hugecmp.test \
-	bigarraycmp.test
+	bigarraycmp.test \
+	timezone1.test \
+	timezone2.test
 
 EXTRA_DIST = $(TESTS) data/1.plist data/2.plist data/3.plist data/4.plist data/5.plist data/6.plist
 
