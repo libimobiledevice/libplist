@@ -223,7 +223,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
         tag = XPLIST_DATE;
         {
             time_t time = (time_t)node_data->timeval.tv_sec;
-            struct tm *btime = localtime(&time);
+            struct tm *btime = gmtime(&time);
             if (btime) {
                 val = (char*)malloc(24);
                 memset(val, 0, 24);
@@ -398,8 +398,11 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
             time_t time = 0;
             if (strlen((const char*)strval) >= 11) {
                 struct tm btime;
+                struct tm* tm_utc;
                 parse_date((const char*)strval, &btime);
                 time = mktime(&btime);
+                tm_utc = gmtime(&time);
+                time -= (mktime(tm_utc) - time);
             }
             data->timeval.tv_sec = (long)time;
             data->timeval.tv_usec = 0;
