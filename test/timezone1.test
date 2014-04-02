@@ -1,5 +1,7 @@
 ## -*- sh -*-
 
+set -e
+
 DATASRC=$top_srcdir/test/data
 TESTFILE=2.plist
 DATAIN0=$DATASRC/$TESTFILE
