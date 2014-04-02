@@ -459,9 +459,6 @@ void plist_dict_merge(plist_t *target, plist_t source)
 		if (!key)
 			break;
 
-		if (plist_dict_get_item(*target, key) != NULL)
-			plist_dict_remove_item(*target, key);
-
 		plist_dict_set_item(*target, key, plist_copy(subnode));
 		free(key);
 		key = NULL;
