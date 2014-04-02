@@ -46,12 +46,20 @@ extern "C"
 		#define PLIST_API
 	#endif
 
-#else
-#include <stdint.h>
-#include <sys/types.h>
-#define PLIST_API
-#endif
+	#define DEPRECATED(x) __declspec(deprecated(x))
 
+#else
+	#include <sys/types.h>
+	#include <stdint.h>
+	#define PLIST_API
+	#ifdef __GNUC__
+		#define DEPRECATED(x) __attribute__((deprecated(x)))
+	#elif defined(_MSC_VER)
+	#else
+		#define DEPRECATED(x)
+		#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+	#endif
+#endif
 
 #include <stdarg.h>
 
@@ -313,22 +321,25 @@ extern "C"
 
     /**
      * Set item identified by key in a #PLIST_DICT node.
-     * The previous item at index n will be freed using #plist_free
+     * The previous item identified by key will be freed using #plist_free.
+     * If there is no item for the given key a new item will be inserted.
      *
      * @param node the node of type #PLIST_DICT
      * @param item the new item associated to key
-     * @param key the identifier of the item to get. Assert if identifier is not present.
+     * @param key the identifier of the item to set.
      */
     PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item);
 
     /**
-     * Insert a new item at position n in a #PLIST_DICT node.
+     * Insert a new item into a #PLIST_DICT node.
+     *
+     * @deprecated Deprecated. Use plist_dict_set_item instead.
      *
      * @param node the node of type #PLIST_DICT
      * @param item the new item to insert
-     * @param key The identifier of the item to insert. Assert if identifier already present.
+     * @param key The identifier of the item to insert.
      */
-    PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
+    DEPRECATED("use plist_dict_set_item instead") PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
 
     /**
      * Remove an existing position in a #PLIST_DICT node.
@@ -338,6 +349,16 @@ extern "C"
      * @param key The identifier of the item to remove. Assert if identifier is not present.
      */
     PLIST_API void plist_dict_remove_item(plist_t node, const char* key);
+
+    /**
+     * Merge a dictionary into another. This will add all key/value pairs
+     * from the source dictionary to the target dictionary, overwriting
+     * any existing key/value pairs that are already present in target.
+     *
+     * @param target pointer to an existing node of type #PLIST_DICT
+     * @param source node of type #PLIST_DICT that should be merged into target
+     */
+    PLIST_API void plist_dict_merge(plist_t *target, plist_t source);
 
 
     /********************************************

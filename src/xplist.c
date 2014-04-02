@@ -93,7 +93,7 @@ static char *format_string(const char *buf, size_t len, int cols, int depth)
         new_buf[i * colw] = '\n';
         for (j = 0; j < depth; j++)
             new_buf[i * colw + 1 + j] = '\t';
-        memcpy(new_buf + i * colw + 1 + depth, buf + i * cols, (i + 1) * cols <= len ? cols : len - i * cols);
+        memcpy(new_buf + i * colw + 1 + depth, buf + i * cols, (size_t)(i + 1) * cols <= len ? (size_t)cols : len - i * cols);
     }
     new_buf[len + (1 + depth) * nlines] = '\n';
 
@@ -301,9 +301,9 @@ static void node_to_xml(node_t* node, void *xml_struct)
     if (isUIDNode)
     {
         unsigned int num = node_n_children(node);
-        unsigned int i;
-        for (i = num; i > 0; i--) {
-            node_t* ch = node_nth_child(node, i-1);
+        unsigned int j;
+        for (j = num; j > 0; j--) {
+            node_t* ch = node_nth_child(node, j-1);
             node_detach(node, ch);
             node_destroy(ch);
         }

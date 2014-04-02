@@ -1,12 +1,12 @@
-prefix=${CMAKE_INSTALL_PREFIX}
-exec_prefix=${CMAKE_INSTALL_PREFIX}
-libdir=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
-includedir=${CMAKE_INSTALL_PREFIX}/include
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
 
 Name: libplist++
 Description: C++ binding of libplist
-Version: ${LIBPLIST_VERSION}
-Requires: libplist >= ${LIBPLIST_VERSION}
-Libs: -L${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} -lplist++
-Cflags: -I${CMAKE_INSTALL_PREFIX}/include
+Version: @VERSION@
+Requires: libplist >= @VERSION@
+Libs: -L${libdir} -lplist++
+Cflags: -I${includedir}
 

@@ -44,14 +44,16 @@ int main(int argc, char *argv[])
     uint32_t size_out = 0;
     uint32_t size_out2 = 0;
     char *file_in = NULL;
+    char *file_out = NULL;
     struct stat *filestats = (struct stat *) malloc(sizeof(struct stat));
-    if (argc!= 2)
+    if (argc != 3)
     {
         printf("Wrong input\n");
         return 1;
     }
 
     file_in = argv[1];
+    file_out = argv[2];
     //read input file
     iplist = fopen(file_in, "rb");
 
@@ -108,8 +110,6 @@ int main(int argc, char *argv[])
     if (plist_xml2)
     {
         FILE *oplist = NULL;
-        char file_out[512];
-        sprintf(file_out, "%s.out", file_in);
         oplist = fopen(file_out, "wb");
         fwrite(plist_xml2, size_out2, sizeof(char), oplist);
         fclose(oplist);

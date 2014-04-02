@@ -1,9 +1,0 @@
-
-SET(plistutil_SRC
-	plistutil.c)
-
-ADD_EXECUTABLE(plistutil ${plistutil_SRC})
-TARGET_LINK_LIBRARIES(plistutil plist)
-SET_TARGET_PROPERTIES( plistutil PROPERTIES VERSION ${PLISTUTIL_VERSION} )
-
-INSTALL( TARGETS plistutil RUNTIME DESTINATION bin COMPONENT plistutil )

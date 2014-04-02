@@ -706,6 +706,9 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
     {
 
         plist_data_t data = plist_get_data(nodeslist[i]);
+		if (!data) {
+			break;
+		}
 
         switch (data->type)
         {
@@ -1060,7 +1063,7 @@ static int is_ascii_string(char* s, int len)
   return ret;
 }
 
-uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
+static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
 {
 	uint16_t *outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
 	int p = 0;

@@ -2,6 +2,10 @@ cimport cpython
 cimport libc.stdlib
 from libc.stdint cimport *
 
+# https://groups.google.com/forum/#!topic/cython-users/xoKNFTRagvk
+cdef _from_string_and_size(char *s, size_t length):
+    return s[:length].encode('utf-8')
+
 cdef extern from *:
     ctypedef enum plist_type:
         PLIST_BOOLEAN,
@@ -115,7 +119,7 @@ cdef class Node:
         plist_to_bin(self._c_node, &out, &length)
 
         try:
-            return cpython.PyString_FromStringAndSize(out, length)
+            return _from_string_and_size(out, length)
         finally:
             if out != NULL:
                 libc.stdlib.free(out)
@@ -550,7 +554,7 @@ cdef class Data(Node):
         plist_get_data_val(self._c_node, &val, &length)
 
         try:
-            return cpython.PyString_FromStringAndSize(val, length)
+            return _from_string_and_size(val, length)
         finally:
             libc.stdlib.free(val)
 
@@ -572,7 +576,7 @@ cdef plist_t create_dict_plist(object value=None):
     if value is not None and isinstance(value, dict):
         for key, item in value.items():
             c_node = native_to_plist_t(item)
-            plist_dict_insert_item(node, key, c_node)
+            plist_dict_set_item(node, key, c_node)
             c_node = NULL
     return node
 
@@ -596,7 +600,12 @@ cdef class Dict(Node):
         plist_dict_next_item(self._c_node, it, &key, &subnode);
 
         while subnode is not NULL:
-            cpython.PyDict_SetItem(self._map, key, plist_t_to_node(subnode, False))
+            py_key = key
+
+            if PY_MAJOR_VERSION >= 3:
+                py_key = py_key.decode('utf-8')
+
+            cpython.PyDict_SetItem(self._map, py_key, plist_t_to_node(subnode, False))
             subnode = NULL
             libc.stdlib.free(key)
             key = NULL
@@ -674,7 +683,7 @@ cdef class Dict(Node):
         else:
             n = plist_t_to_node(native_to_plist_t(value), False)
 
-        plist_dict_insert_item(self._c_node, key, n._c_node)
+        plist_dict_set_item(self._c_node, key, n._c_node)
         self._map[key] = n
 
     def __delitem__(self, key):

@@ -1,47 +1,62 @@
-INSTALLATION
-================================================================================
+About
+=====
 
-For:
-	Apple Binary and XML Property Lists
+A small portable C library to handle Apple Property List files in binary or XML.
 
-You must have:
-	libxml2-dev
-	cmake
+Requirements
+============
+
+Development Packages of:
+	libxml2
+
+Software:
 	make
+	autoheader
+	automake
+	autoconf
+	libtool
+	pkg-config
 	gcc
 
 Optional:
-	swig
-	python
+	cython (Python bindings)
+	doxygen (Documentation)
+
+Installation
+============
 
 To compile run:
-	mkdir build
-	cd build
-	cmake ..
+	./autogen.sh
 	make
-	sudo make install  # (if you want to install it into your system directories)
+	sudo make install
 
-On Ubuntu/Debian, you can do:
-	sudo apt-get install build-essential cmake libxml2-dev
-
-
-== Who/what/where? ==
+Who/What/Where?
+===============
 
 Home:
 	http://www.libimobiledevice.org/
 
 Code:
-	git clone http://cgit.sukimashita.com/libplist.git/
+	git clone http://git.sukimashita.com/libplist.git
 
-	libplist uses libcnary, see:
-	http://github.com/Chronic-Dev/libcnary
+Code (Mirror):
+	git clone https://github.com/libimobiledevice/libplist.git
 
 Tickets:
-	http://libiphone.lighthouseapp.com/
-	Please tag libplist related bugs with 'libplist'
+	http://github.com/libimobiledevice/libplist/issues
 
 Mailing List:
 	http://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 
-updated:
-	2011-06-25
+IRC:
+	irc://irc.freenode.net#libimobiledevice
+
+Credits
+=======
+
+Apple, iPhone, iPod, and iPod Touch are trademarks of Apple Inc.
+libimobiledevice is an independent software library and has not been
+authorized, sponsored, or otherwise approved by Apple Inc.
+
+README Updated on:
+	2014-02-11

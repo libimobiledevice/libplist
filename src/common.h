@@ -1,6 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define PLIST_LITTLE_ENDIAN 0
 #define PLIST_BIG_ENDIAN 1
 

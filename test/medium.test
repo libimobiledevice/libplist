@@ -1,0 +1,11 @@
+## -*- sh -*-
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE=3.plist
+
+if ! test -d "$DATAOUT"; then
+	mkdir -p $DATAOUT
+fi
+
+$top_builddir/test/plist_test $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out

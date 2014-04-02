@@ -21,10 +21,6 @@
 #include <string.h>
 #include "base64.h"
 
-#if defined(WIN32)
-#define strtok_r strtok_s
-#endif
-
 static const char base64_str[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char base64_pad = '=';
 
@@ -78,7 +74,8 @@ char *base64encode(const unsigned char *buf, size_t *size)
 static int base64decode_block(unsigned char *target, const char *data, size_t data_size)
 {
 	int w1,w2,w3,w4;
-	int n,i;
+	int i;
+	size_t n;
 
 	if (!data || (data_size <= 0)) {
 		return 0;
@@ -112,18 +109,23 @@ unsigned char *base64decode(const char *buf, size_t *size)
 	size_t len = strlen(buf);
 	if (len <= 0) return NULL;
 	unsigned char *outbuf = (unsigned char*)malloc((len/4)*3+3);
-
-	unsigned char *line;
+	const char *ptr = buf;
 	int p = 0;
-	char* saveptr = NULL;
 
-	line = (unsigned char*)strtok_r((char*)buf, "\r\n\t ", &saveptr);
-	while (line) {
-		p+=base64decode_block(outbuf+p, (const char*)line, strlen((char*)line));
+	do {
+		ptr += strspn(ptr, "\r\n\t ");
+		if (*ptr == '\0') {
+			break;
+		}
+		len = strcspn(ptr, "\r\n\t ");
+		if (len > 0) {
+			p+=base64decode_block(outbuf+p, ptr, len);
+			ptr += len;
+		} else {
+			break;
+		}
+	} while (1);
 
-		// get next line of base64 encoded block
-		line = (unsigned char*)strtok_r(NULL, "\r\n\t ", &saveptr);
-	}
 	outbuf[p] = 0;
 	*size = p;
 	return outbuf;
