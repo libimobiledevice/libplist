@@ -71,6 +71,8 @@ cpdef object from_bin(bytes bin)
 
 cpdef object load(fp, fmt=*, use_builtin_types=*, dict_type=*)
 cpdef object loads(data, fmt=*, use_builtin_types=*, dict_type=*)
+cpdef object dump(value, fp, fmt=*, sort_keys=*, skipkeys=*)
+cpdef object dumps(value, fmt=*, sort_keys=*, skipkeys=*)
 
 cdef object plist_t_to_node(plist_t c_plist, bint managed=*)
 cdef plist_t native_to_plist_t(object native)

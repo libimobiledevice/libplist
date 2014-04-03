@@ -119,7 +119,7 @@ cdef class Node:
         plist_to_bin(self._c_node, &out, &length)
 
         try:
-            return _from_string_and_size(out, length)
+            return out[:length]
         finally:
             if out != NULL:
                 libc.stdlib.free(out)
@@ -909,3 +909,38 @@ cpdef object loads(data, fmt=None, use_builtin_types=True, dict_type=dict):
         raise ValueError('Cannot parse XML property list as binary')
 
     return cb(data)
+
+cpdef object dump(value, fp, fmt=FMT_XML, sort_keys=True, skipkeys=False):
+    fp.write(dumps(value, fmt=fmt))
+
+cpdef object dumps(value, fmt=FMT_XML, sort_keys=True, skipkeys=False):
+    if fmt not in (FMT_XML, FMT_BINARY):
+        raise ValueError('Format must be constant FMT_XML or FMT_BINARY')
+
+    if check_datetime(value):
+        node = Date(value)
+    elif isinstance(value, unicode):
+        node = String(value)
+    elif PY_MAJOR_VERSION >= 3 and isinstance(value, bytes):
+        node = Data(value)
+    elif isinstance(value, str):
+        # See if this is binary
+        try:
+            node = String(value)
+        except ValueError:
+            node = Data(value)
+    elif isinstance(value, bool):
+        node = Bool(value)
+    elif isinstance(value, int):
+        node = Integer(value)
+    elif isinstance(value, float):
+        node = Real(value)
+    elif isinstance(value, dict):
+        node = Dict(value)
+    elif type(value) in (list, set, tuple):
+        node = Array(value)
+
+    if fmt == FMT_XML:
+        return node.to_xml()
+
+    return node.to_bin()
