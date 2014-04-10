@@ -593,6 +593,17 @@ extern "C"
      */
     PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
+	/**
+     * Import the #plist_t structure from binary format and export it to XML format.
+     *
+     * @param plist_bin a pointer to the xml buffer.
+     * @param bin_length length of the buffer to read.
+     * @param plist_xml a pointer to a C-string. This function allocates the memory,
+     *            caller is responsible for freeing it. Data is UTF-8 encoded.
+     * @param xml_length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     */
+	PLIST_API void plist_xml_from_bin(const char *plist_bin, uint32_t bin_length, char **plist_xml, uint32_t * xml_length);
+
 
     /********************************************
      *                                          *

@@ -534,3 +534,14 @@ void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
     xml_to_node(root_node, plist);
     xmlFreeDoc(plist_doc);
 }
+
+void plist_xml_from_bin(const char *plist_bin, uint32_t bin_length, char **plist_xml, uint32_t * xml_length)
+{
+	plist_t plist = NULL;
+	plist_from_bin(plist_bin, bin_length, &plist);
+	if (plist)
+	{
+		plist_to_xml(plist, plist_xml, xml_length);
+		plist_free(plist);
+	}
+}
