@@ -235,7 +235,7 @@ extern "C"
      * The previous item at index n will be freed using #plist_free
      *
      * @param node the node of type #PLIST_ARRAY
-     * @param item the new item at index n
+     * @param item the new item at index n. The array is responsible for freeing item when it is no longer needed.
      * @param n the index of the item to get. Range is [0, array_size[. Assert if n is not in range.
      */
     PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n);
@@ -244,7 +244,7 @@ extern "C"
      * Append a new item at the end of a #PLIST_ARRAY node.
      *
      * @param node the node of type #PLIST_ARRAY
-     * @param item the new item
+     * @param item the new item. The array is responsible for freeing item when it is no longer needed.
      */
     PLIST_API void plist_array_append_item(plist_t node, plist_t item);
 
@@ -252,14 +252,14 @@ extern "C"
      * Insert a new item at position n in a #PLIST_ARRAY node.
      *
      * @param node the node of type #PLIST_ARRAY
-     * @param item the new item to insert
+     * @param item the new item to insert. The array is responsible for freeing item when it is no longer needed.
      * @param n The position at which the node will be stored. Range is [0, array_size[. Assert if n is not in range.
      */
     PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n);
 
     /**
      * Remove an existing position in a #PLIST_ARRAY node.
-     * Removed position will be freed using #plist_free
+     * Removed position will be freed using #plist_free.
      *
      * @param node the node of type #PLIST_ARRAY
      * @param n The position to remove. Range is [0, array_size[. Assert if n is not in range.
@@ -281,8 +281,8 @@ extern "C"
     PLIST_API uint32_t plist_dict_get_size(plist_t node);
 
     /**
-     * Create iterator of a #PLIST_DICT node.
-     * The allocated iterator shoult be freed with tandard free function
+     * Create an iterator of a #PLIST_DICT node.
+     * The allocated iterator should be freed with the standard free function.
      *
      * @param node the node of type #PLIST_DICT
      * @param iter iterator of the #PLIST_DICT node
@@ -294,8 +294,10 @@ extern "C"
      *
      * @param node the node of type #PLIST_DICT
      * @param iter iterator of the dictionary
-     * @param key a location to store the key, or NULL.
-     * @param val a location to store the value, or NULL.
+     * @param key a location to store the key, or NULL. The caller is responsible
+     *		for freeing the the returned string.
+     * @param val a location to store the value, or NULL. The caller should *not*
+     *		free the returned value.
      */
     PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
 
@@ -303,7 +305,7 @@ extern "C"
      * Get key associated to an item. Item must be member of a dictionary
      *
      * @param node the node
-     * @param key a location to store the key.
+     * @param key a location to store the key. The caller is responsible for freeing the returned string.
      */
     PLIST_API void plist_dict_get_item_key(plist_t node, char **key);
 
@@ -312,7 +314,8 @@ extern "C"
      *
      * @param node the node of type #PLIST_DICT
      * @param key the identifier of the item to get.
-     * @return the item or NULL if node is not of type #PLIST_DICT
+     * @return the item or NULL if node is not of type #PLIST_DICT. The caller should not free
+     *		the returned node.
      */
     PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key);
 
@@ -485,7 +488,8 @@ extern "C"
      * Forces type of node to #PLIST_STRING
      *
      * @param node the node
-     * @param val the string value
+     * @param val the string value. The string is copied when set and will be
+     *		freed by the node.
      */
     PLIST_API void plist_set_string_val(plist_t node, const char *val);
 
@@ -521,7 +525,8 @@ extern "C"
      * Forces type of node to #PLIST_DATA
      *
      * @param node the node
-     * @param val the binary buffer
+     * @param val the binary buffer. The buffer is copied when set and will
+     *		be freed by the node.
      * @param length the length of the buffer
      */
     PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length);
