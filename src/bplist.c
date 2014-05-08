@@ -609,7 +609,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
     char *offset_table = NULL;
     uint32_t j = 0, str_i = 0, str_j = 0;
     uint32_t index1 = 0, index2 = 0;
-
+    uint8_t *handled_nodes = NULL;
 
     //first check we have enough data
     if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + BPLIST_TRL_SIZE))
@@ -635,6 +635,8 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 
     //allocate serialized array of nodes
     nodeslist = (plist_t *) malloc(sizeof(plist_t) * num_objects);
+    handled_nodes = calloc(num_objects, sizeof(uint8_t));
+    handled_nodes[root_object]=1;
 
     if (!nodeslist)
         return;
@@ -655,9 +657,9 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
     {
 
         plist_data_t data = plist_get_data(nodeslist[i]);
-	if (!data) {
-		break;
-	}
+        if (!data) {
+            break;
+        }
 
         switch (data->type)
         {
@@ -675,6 +677,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 
                 if (index1 < num_objects)
                 {
+                    handled_nodes[index1] = 1;
                     if (NODE_IS_ROOT(nodeslist[index1]))
                         node_attach(nodeslist[i], nodeslist[index1]);
                     else
@@ -683,6 +686,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 
                 if (index2 < num_objects)
                 {
+                    handled_nodes[index2] = 1;
                     if (NODE_IS_ROOT(nodeslist[index2]))
                         node_attach(nodeslist[i], nodeslist[index2]);
                     else
@@ -701,6 +705,7 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 
                 if (index1 < num_objects)
                 {
+                    handled_nodes[index1] = 1;
                     if (NODE_IS_ROOT(nodeslist[index1]))
                         node_attach(nodeslist[i], nodeslist[index1]);
                     else
@@ -715,7 +720,15 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
     }
 
     *plist = nodeslist[root_object];
+    for (i = 0; i < num_objects; ++i)
+    {
+        if (!handled_nodes[i])
+        {
+            plist_free(nodeslist[i]);
+        }
+    }
     free(nodeslist);
+    free(handled_nodes);
 }
 
 static unsigned int plist_data_hash(const void* key)
