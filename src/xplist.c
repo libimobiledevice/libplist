@@ -136,11 +136,11 @@ static struct node_t* new_key_node(const char* name)
     return node_create(NULL, data);
 }
 
-static struct node_t* new_uint_node(uint64_t uint)
+static struct node_t* new_uint_node(uint64_t value)
 {
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_UINT;
-    data->intval = uint;
+    data->intval = value;
     data->length = sizeof(uint64_t);
     return node_create(NULL, data);
 }
@@ -222,8 +222,8 @@ static void node_to_xml(node_t* node, void *xml_struct)
     case PLIST_DATE:
         tag = XPLIST_DATE;
         {
-            time_t time = (time_t)node_data->timeval.tv_sec;
-            struct tm *btime = gmtime(&time);
+            time_t timev = (time_t)node_data->timeval.tv_sec;
+            struct tm *btime = gmtime(&timev);
             if (btime) {
                 val = (char*)malloc(24);
                 memset(val, 0, 24);
@@ -395,14 +395,14 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!xmlStrcmp(node->name, XPLIST_DATE))
         {
             xmlChar *strval = xmlNodeGetContent(node);
-            time_t time = 0;
+            time_t timev = 0;
             if (strlen((const char*)strval) >= 11) {
                 struct tm btime;
                 struct tm* tm_utc;
                 parse_date((const char*)strval, &btime);
-                time = mktime(&btime);
-                tm_utc = gmtime(&time);
-                time -= (mktime(tm_utc) - time);
+                timev = mktime(&btime);
+                tm_utc = gmtime(&timev);
+                timev -= (mktime(tm_utc) - timev);
             }
             data->timeval.tv_sec = (long)time;
             data->timeval.tv_usec = 0;
