@@ -715,6 +715,15 @@ void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
     }
 
     *plist = nodeslist[root_object];
+
+    // free unreferenced nodes that would otherwise leak memory
+    for (i = 0; i < num_objects; i++) {
+        if (i == root_object) continue;
+        node_t* node = (node_t*)nodeslist[i];
+        if (NODE_IS_ROOT(node)) {
+            plist_free(node);
+        }
+    }
     free(nodeslist);
 }
 
