@@ -72,9 +72,9 @@ int node_list_add(node_list_t* list, node_t* node) {
 	return 0;
 }
 
-int node_list_insert(node_list_t* list, unsigned int index, node_t* node) {
+int node_list_insert(node_list_t* list, unsigned int node_index, node_t* node) {
 	if (!list || !node) return -1;
-	if (index >= list->count) {
+	if (node_index >= list->count) {
 		return node_list_add(list, node);
 	}
 
@@ -84,8 +84,8 @@ int node_list_insert(node_list_t* list, unsigned int index, node_t* node) {
 	unsigned int pos = 0;
 	node_t* prev = NULL;
 
-	if (index > 0) {
-		while (pos < index) {
+	if (node_index > 0) {
+		while (pos < node_index) {
 			prev = cur;
 			cur = cur->next;
 			pos++;
@@ -124,7 +124,7 @@ int node_list_remove(node_list_t* list, node_t* node) {
 	if (!list || !node) return -1;
 	if (list->count == 0) return -1;
 
-	int index = 0;
+	int node_index = 0;
 	node_t* n;
 	for (n = list->begin; n; n = n->next) {
 		if (node == n) {
@@ -145,9 +145,9 @@ int node_list_remove(node_list_t* list, node_t* node) {
 				list->begin = newnode;
 			}
 			list->count--;
-			return index;
+			return node_index;
 		}
-		index++;
+		node_index++;
 	}	
 	return -1;
 }

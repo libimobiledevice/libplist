@@ -70,7 +70,7 @@ static void plist_free_data(plist_data_t data)
 static int plist_free_node(node_t* node)
 {
     plist_data_t data = NULL;
-    int index = node_detach(node->parent, node);
+    int node_index = node_detach(node->parent, node);
     data = plist_get_data(node);
     plist_free_data(data);
     node->data = NULL;
@@ -84,7 +84,7 @@ static int plist_free_node(node_t* node)
 
     node_destroy(node);
 
-    return index;
+    return node_index;
 }
 
 plist_t plist_new_dict(void)

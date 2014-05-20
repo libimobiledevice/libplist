@@ -96,14 +96,14 @@ int node_attach(node_t* parent, node_t* child) {
 
 int node_detach(node_t* parent, node_t* child) {
 	if (!parent || !child) return -1;
-	int index = node_list_remove(parent->children, child);
-	if (index >= 0) {
+	int node_index = node_list_remove(parent->children, child);
+	if (node_index >= 0) {
 		parent->count--;
 	}
-	return index;
+	return node_index;
 }
 
-int node_insert(node_t* parent, unsigned int index, node_t* child)
+int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 {
 	if (!parent || !child) return -1;
 	child->isLeaf = TRUE;
@@ -113,7 +113,7 @@ int node_insert(node_t* parent, unsigned int index, node_t* child)
 	if(parent->isLeaf == TRUE) {
 		parent->isLeaf = FALSE;
 	}
-	int res = node_list_insert(parent->children, index, child);
+	int res = node_list_insert(parent->children, node_index, child);
 	if (res == 0) {
 		parent->count++;
 	}
@@ -155,11 +155,11 @@ unsigned int node_n_children(struct node_t* node)
 node_t* node_nth_child(struct node_t* node, unsigned int n)
 {
 	if (!node || !node->children || !node->children->begin) return NULL;
-	unsigned int index = 0;
+	unsigned int node_index = 0;
 	int found = 0;
 	node_t *ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-		if (index++ == n) {
+		if (node_index++ == n) {
 			found = 1;
 			break;
 		}
@@ -191,7 +191,7 @@ node_t* node_next_sibling(struct node_t* node)
 int node_child_position(struct node_t* parent, node_t* child)
 {
 	if (!parent || !parent->children || !parent->children->begin || !child) return -1;
-	int index = 0;
+	int node_index = 0;
 	int found = 0;
 	node_t *ch;
 	for (ch = node_first_child(parent); ch; ch = node_next_sibling(ch)) {
@@ -199,12 +199,12 @@ int node_child_position(struct node_t* parent, node_t* child)
 			found = 1;
 			break;
 		}
-		index++;
+		node_index++;
 	}
 	if (!found) {
 		return -1;
 	}
-	return index;
+	return node_index;
 }
 
 node_t* node_copy_deep(node_t* node, copy_func_t copy_func)

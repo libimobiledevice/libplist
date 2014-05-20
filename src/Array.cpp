@@ -90,9 +90,9 @@ Node* Array::Clone()
     return new Array(*this);
 }
 
-Node* Array::operator[](unsigned int index)
+Node* Array::operator[](unsigned int array_index)
 {
-    return _array.at(index);
+    return _array.at(array_index);
 }
 
 void Array::Append(Node* node)
