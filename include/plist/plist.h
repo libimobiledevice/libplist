@@ -40,21 +40,43 @@ extern "C"
     typedef unsigned __int64 uint64_t;
 
 #ifdef plist_EXPORTS
-#define PLIST_API  __declspec( dllexport )
+  #define PLIST_API  __declspec( dllexport )
 #else
-#define PLIST_API  __declspec( dllimport )
+  #define PLIST_API  __declspec( dllimport )
 #endif
-#define DEPRECATED(x) __declspec(deprecated(x))
+
 #else
 #include <stdint.h>
 #define PLIST_API
-#ifdef __GNUC__
-#define DEPRECATED(x) __attribute__((deprecated(x)))
-#elif defined(_MSC_VER)
-#else
-#define DEPRECATED(x)
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #endif
+
+#ifdef __llvm__
+  #if defined(__has_extension)
+    #if (__has_extension(attribute_deprecated_with_message))
+      #ifndef PLIST_WARN_DEPRECATED
+        #define PLIST_WARN_DEPRECATED(x) __attribute__((deprecated(x)))
+      #endif
+    #else
+      #ifndef PLIST_WARN_DEPRECATED
+        #define PLIST_WARN_DEPRECATED(x) __attribute__((deprecated))
+      #endif
+    #endif
+  #else
+    #ifndef PLIST_WARN_DEPRECATED
+      #define PLIST_WARN_DEPRECATED(x) __attribute__((deprecated))
+    #endif
+  #endif
+#elif (__GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ >= 5)))
+  #ifndef PLIST_WARN_DEPRECATED
+    #define PLIST_WARN_DEPRECATED(x) __attribute__((deprecated(x)))
+  #endif
+#elif defined(_MSC_VER)
+  #ifndef PLIST_WARN_DEPRECATED
+    #define PLIST_WARN_DEPRECATED(x) __declspec(deprecated(x))
+  #endif
+#else
+  #define PLIST_WARN_DEPRECATED(x)
+  #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #endif
 
 #include <sys/types.h>
@@ -339,7 +361,7 @@ extern "C"
      * @param item the new item to insert
      * @param key The identifier of the item to insert.
      */
-    DEPRECATED("use plist_dict_set_item instead") PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
+    PLIST_WARN_DEPRECATED("use plist_dict_set_item instead") PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
 
     /**
      * Remove an existing position in a #PLIST_DICT node.
