@@ -489,14 +489,6 @@ extern "C"
      ********************************************/
 
     /**
-     * Forces type of node. Changing type of structured nodes is only allowed if node is empty.
-     * Reset value of node;
-     * @param node the node
-     * @param type the key value
-     */
-    PLIST_API void plist_set_type(plist_t node, plist_type type);
-
-    /**
      * Set the value of a node.
      * Forces type of node to #PLIST_KEY
      *

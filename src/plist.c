@@ -757,36 +757,6 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     }
 }
 
-void plist_set_type(plist_t node, plist_type type)
-{
-    if ( node_n_children(node) == 0 )
-    {
-        plist_data_t data = plist_get_data(node);
-        plist_free_data( data );
-        data = plist_new_plist_data();
-        data->type = type;
-        switch (type)
-        {
-        case PLIST_BOOLEAN:
-            data->length = sizeof(uint8_t);
-            break;
-        case PLIST_UINT:
-        case PLIST_UID:
-            data->length = sizeof(uint64_t);
-            break;
-        case PLIST_REAL:
-            data->length = sizeof(double);
-            break;
-        case PLIST_DATE:
-            data->length = sizeof(struct timeval);
-            break;
-        default:
-            data->length = 0;
-            break;
-        }
-    }
-}
-
 void plist_set_key_val(plist_t node, const char *val)
 {
     plist_set_element_val(node, PLIST_KEY, val, strlen(val));
