@@ -764,6 +764,7 @@ void plist_set_type(plist_t node, plist_type type)
         plist_data_t data = plist_get_data(node);
         plist_free_data( data );
         data = plist_new_plist_data();
+        ((node_t*)node)->data = data;
         data->type = type;
         switch (type)
         {
