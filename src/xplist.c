@@ -404,7 +404,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
                 tm_utc = gmtime(&timev);
                 timev -= (mktime(tm_utc) - timev);
             }
-            data->timeval.tv_sec = (long)time;
+            data->timeval.tv_sec = (long)timev;
             data->timeval.tv_usec = 0;
             data->type = PLIST_DATE;
             data->length = sizeof(struct timeval);
