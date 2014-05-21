@@ -47,7 +47,7 @@ public :
     iterator End();
     iterator Find(const std::string& key);
     iterator Set(const std::string& key, Node* node);
-    PLIST_WARN_DEPRECATED("use Set() instead") iterator Insert(const std::string& key, Node* node);
+    iterator Insert(const std::string& key, Node* node) PLIST_WARN_DEPRECATED("use Set() instead");
     void Remove(Node* node);
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* key);
