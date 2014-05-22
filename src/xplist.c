@@ -51,6 +51,8 @@
 #define XPLIST_ARRAY	BAD_CAST("array")
 #define XPLIST_DICT	BAD_CAST("dict")
 
+#define MAC_EPOCH 978307200
+
 static const char *plist_base = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
 <plist version=\"1.0\">\n\
@@ -222,7 +224,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
     case PLIST_DATE:
         tag = XPLIST_DATE;
         {
-            time_t timev = (time_t)node_data->timeval.tv_sec;
+            time_t timev = (time_t)node_data->timeval.tv_sec + MAC_EPOCH;
             struct tm *btime = gmtime(&timev);
             if (btime) {
                 val = (char*)malloc(24);
@@ -404,7 +406,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
                 tm_utc = gmtime(&timev);
                 timev -= (mktime(tm_utc) - timev);
             }
-            data->timeval.tv_sec = (long)timev;
+            data->timeval.tv_sec = (long)(timev - MAC_EPOCH);
             data->timeval.tv_usec = 0;
             data->type = PLIST_DATE;
             data->length = sizeof(struct timeval);
