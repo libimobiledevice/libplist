@@ -16,6 +16,8 @@
 		<string>język polski</string>
 		<string>हिन्दी</string>
 	</array>
+	<key>Keys &amp; &quot;entities&quot;</key>
+	<string>hellow world &amp; others &lt;nodes&gt; are &quot;fun!?&apos;</string>
 	<key>Boolean</key>
 	<false/>
 	<key>Another Boolean</key>
