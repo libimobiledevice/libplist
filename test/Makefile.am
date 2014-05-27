@@ -33,4 +33,4 @@ EXTRA_DIST = $(TESTS) data/1.plist data/2.plist data/3.plist data/4.plist data/5
 TESTS_ENVIRONMENT = top_srcdir=$(top_srcdir) top_builddir=$(top_builddir)
 
 clean-local:
-	rm -f $(top_builddir)/test/data/*.out
+	cd $(top_builddir)/test/data && rm -f *.out *.bin *.xml
