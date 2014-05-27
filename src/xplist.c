@@ -199,7 +199,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
 
     case PLIST_STRING:
         tag = XPLIST_STRING;
-        val = strdup(node_data->strval);
+        val = strdup((char*) node_data->strval);
         break;
 
     case PLIST_KEY:
@@ -257,7 +257,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
     {
         xmlNodeAddContent(xstruct->xml, BAD_CAST("\t"));
     }
-    if (node_data->type == PLIST_STRING) {
+    if (node_data->type == PLIST_STRING || node_data->type == PLIST_KEY) {
         /* make sure we convert the following predefined xml entities */
         /* < = &lt; > = &gt; ' = &apos; " = &quot; & = &amp; */
         child_node = xmlNewTextChild(xstruct->xml, NULL, tag, BAD_CAST(val));
@@ -458,9 +458,15 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!xmlStrcmp(node->name, XPLIST_KEY))
         {
             xmlChar *strval = xmlNodeGetContent(node);
-            data->strval = strdup((char *) strval);
-            data->type = PLIST_KEY;
-            data->length = strlen(data->strval);
+            len = strlen((char *) strval);
+            type = xmlDetectCharEncoding(strval, len);
+
+            if (XML_CHAR_ENCODING_UTF8 == type || XML_CHAR_ENCODING_ASCII == type || XML_CHAR_ENCODING_NONE == type)
+            {
+                data->strval = strdup((char *) strval);
+                data->type = PLIST_KEY;
+                data->length = strlen(data->strval);
+            }
             xmlFree(strval);
             continue;
         }
