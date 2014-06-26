@@ -28,7 +28,14 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <config.h>
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #ifdef _MSC_VER
+#define _isatty isatty
+#include <io.h>
 #pragma warning(disable:4996)
 #endif
 
@@ -43,6 +50,8 @@ int main(int argc, char *argv[])
     char *plist_entire = NULL;
     struct stat *filestats = (struct stat *) malloc(sizeof(struct stat));
     Options *options = parse_arguments(argc, argv);
+    int is_binary = 0;
+    int print_xml = 0;
 
     if (!options)
     {
@@ -72,9 +81,9 @@ int main(int argc, char *argv[])
     {
         plist_from_xml(plist_entire, read_size, &root_node);
         plist_to_bin(root_node, &plist_out, &size);
+        is_binary = 1;
     }
     plist_free(root_node);
-    free(plist_entire);
     free(filestats);
 
     if (plist_out)
@@ -86,16 +95,26 @@ int main(int argc, char *argv[])
                 return 1;
             fwrite(plist_out, size, sizeof(char), oplist);
             fclose(oplist);
+            free(plist_out);
         }
         //if no output file specified, write to stdout
-        else
+        else {
+            // Never allow binary to print on a TTY
+            print_xml = is_binary && isatty(1);
+            if (print_xml) {
+                plist_out = plist_entire;
+                size = read_size;
+            }
             fwrite(plist_out, size, sizeof(char), stdout);
-
-        free(plist_out);
+            if (!print_xml) {
+                free(plist_out);
+            }
+        }
     }
     else
         printf("ERROR\n");
 
+    free(plist_entire);
     free(options);
     return 0;
 }
