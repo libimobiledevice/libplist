@@ -716,7 +716,7 @@ cdef class Array(Node):
         cdef uint32_t size = plist_array_get_size(self._c_node)
         cdef plist_t subnode = NULL
 
-        for i from 0 <= i < size:
+        for i in range(size):
             subnode = plist_array_get_item(self._c_node, i)
             self._array.append(plist_t_to_node(subnode, False))
 
