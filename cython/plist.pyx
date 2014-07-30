@@ -78,8 +78,6 @@ cdef extern from *:
     plist_t plist_get_parent(plist_t node)
     plist_type plist_get_node_type(plist_t node)
 
-    void plist_set_type(plist_t node, plist_type type)
-
     void plist_from_xml(char *plist_xml, uint32_t length, plist_t * plist)
     void plist_from_bin(char *plist_bin, uint32_t length, plist_t * plist)
 
@@ -337,8 +335,7 @@ cdef class Key(Node):
                 raise ValueError("Requires unicode input, got %s" % type(value))
             c_utf8_data = utf8_data
             self._c_node = plist_new_string("")
-            plist_set_type(self._c_node, PLIST_KEY)
-            #plist_set_key_val(self._c_node, c_utf8_data)
+            plist_set_key_val(self._c_node, c_utf8_data)
 
     def __repr__(self):
         s = self.get_value()
