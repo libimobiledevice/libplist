@@ -11,15 +11,14 @@ void datetime_to_ints(PyObject* obj, int32_t* sec, int32_t* usec) {
 		usec = NULL;
 		return;
     }
-    struct tm t = {
-		PyDateTime_DATE_GET_SECOND(obj),
-		PyDateTime_DATE_GET_MINUTE(obj),
-		PyDateTime_DATE_GET_HOUR(obj),
-		PyDateTime_GET_DAY(obj),
-		PyDateTime_GET_MONTH(obj)-1,
-		PyDateTime_GET_YEAR(obj)-1900,
-		0,0,0
-    };
+    struct tm t;
+    memset(&t, 0, sizeof(t));
+    t.tm_sec = PyDateTime_DATE_GET_SECOND(obj);
+    t.tm_min = PyDateTime_DATE_GET_MINUTE(obj);
+    t.tm_hour = PyDateTime_DATE_GET_HOUR(obj);
+    t.tm_mday = PyDateTime_GET_DAY(obj);
+    t.tm_mon = PyDateTime_GET_MONTH(obj)-1;
+    t.tm_year = PyDateTime_GET_YEAR(obj)-1900;
 	*sec = (int32_t)mktime(&t);
 	*usec = PyDateTime_DATE_GET_MICROSECOND(obj);
 }
