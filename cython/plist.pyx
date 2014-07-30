@@ -36,7 +36,6 @@ cdef extern from *:
     void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 
-    plist_t plist_new_key(char *val)
     void plist_get_key_val(plist_t node, char **val)
     void plist_set_key_val(plist_t node, char *val)
 
