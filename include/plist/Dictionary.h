@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__DICTIONARY_H
-#define PLIST__DICTIONARY_H
+#ifndef PLIST_DICTIONARY_H
+#define PLIST_DICTIONARY_H
 
 #include <plist/Structure.h>
 #include <map>
@@ -60,4 +60,4 @@ private :
 
 };
 
-#endif // PLIST__DICTIONARY_H
+#endif // PLIST_DICTIONARY_H

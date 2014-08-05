@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__ARRAY_H
-#define PLIST__ARRAY_H
+#ifndef PLIST_ARRAY_H
+#define PLIST_ARRAY_H
 
 #include <plist/Structure.h>
 #include <vector>
@@ -52,4 +52,4 @@ private :
 
 };
 
-#endif // PLIST__ARRAY_H
+#endif // PLIST_ARRAY_H
