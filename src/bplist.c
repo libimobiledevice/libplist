@@ -1115,6 +1115,8 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     long items_read = 0;
     long items_written = 0;
     uint16_t *unicodestr = NULL;
+    uint64_t objects_len = 0;
+    uint64_t buff_len = 0;
 
     //check for valid input
     if (!plist || !plist_bin || *plist_bin || !length)
@@ -1132,7 +1134,8 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
     //now stream to output buffer
     offset_size = 0;			//unknown yet
-    dict_param_size = get_needed_bytes(objects->len);
+    objects_len = objects->len;
+    dict_param_size = get_needed_bytes(objects_len);
     num_objects = objects->len;
     root_object = 0;			//root is first in list
     offset_table_index = 0;		//unknown yet
@@ -1211,7 +1214,8 @@ void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     hash_table_destroy(ref_table);
 
     //write offsets
-    offset_size = get_needed_bytes(bplist_buff->len);
+    buff_len = bplist_buff->len;
+    offset_size = get_needed_bytes(buff_len);
     offset_table_index = bplist_buff->len;
     for (i = 0; i < num_objects; i++)
     {
