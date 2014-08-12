@@ -124,7 +124,6 @@ void Array::Remove(Node* node)
     if (node)
     {
         uint32_t pos = plist_array_get_item_index(node->GetPlist());
-        plist_array_remove_item(_node, pos);
         std::vector<Node*>::iterator it = _array.begin();
         it += pos;
         _array.erase(it);
@@ -134,7 +133,6 @@ void Array::Remove(Node* node)
 
 void Array::Remove(unsigned int pos)
 {
-    plist_array_remove_item(_node, pos);
     std::vector<Node*>::iterator it = _array.begin();
     it += pos;
     delete _array.at(pos);
