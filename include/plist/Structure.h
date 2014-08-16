@@ -34,10 +34,10 @@ class Structure : public Node
 public :
     virtual ~Structure();
 
-    uint32_t GetSize();
+    uint32_t GetSize() const;
 
-    std::string ToXml();
-    std::vector<char> ToBin();
+    std::string ToXml() const;
+    std::vector<char> ToBin() const;
 
     virtual void Remove(Node* node) = 0;
 
