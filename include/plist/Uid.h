@@ -32,15 +32,15 @@ class Uid : public Node
 public :
     Uid(Node* parent = NULL);
     Uid(plist_t node, Node* parent = NULL);
-    Uid(Uid& i);
+    Uid(const Uid& i);
     Uid& operator=(Uid& i);
     Uid(uint64_t i);
     virtual ~Uid();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(uint64_t i);
-    uint64_t GetValue();
+    uint64_t GetValue() const;
 };
 
 };

@@ -32,15 +32,15 @@ class Real : public Node
 public :
     Real(Node* parent = NULL);
     Real(plist_t node, Node* parent = NULL);
-    Real(Real& d);
+    Real(const Real& d);
     Real& operator=(Real& d);
     Real(double d);
     virtual ~Real();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(double d);
-    double GetValue();
+    double GetValue() const;
 };
 
 };

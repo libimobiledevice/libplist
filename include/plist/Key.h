@@ -33,15 +33,15 @@ class Key : public Node
 public :
     Key(Node* parent = NULL);
     Key(plist_t node, Node* parent = NULL);
-    Key(Key& s);
+    Key(const Key& s);
     Key& operator=(Key& s);
     Key(const std::string& s);
     virtual ~Key();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(const std::string& s);
-    std::string GetValue();
+    std::string GetValue() const;
 };
 
 };

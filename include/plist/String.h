@@ -33,15 +33,15 @@ class String : public Node
 public :
     String(Node* parent = NULL);
     String(plist_t node, Node* parent = NULL);
-    String(String& s);
+    String(const String& s);
     String& operator=(String& s);
     String(const std::string& s);
     virtual ~String();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(const std::string& s);
-    std::string GetValue();
+    std::string GetValue() const;
 };
 
 };

@@ -32,7 +32,7 @@ String::String(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-String::String(PList::String& s) : Node(PLIST_UINT)
+String::String(const PList::String& s) : Node(PLIST_UINT)
 {
     plist_set_string_val(_node, s.GetValue().c_str());
 }
@@ -53,7 +53,7 @@ String::~String()
 {
 }
 
-Node* String::Clone()
+Node* String::Clone() const
 {
     return new String(*this);
 }
@@ -63,7 +63,7 @@ void String::SetValue(const std::string& s)
     plist_set_string_val(_node, s.c_str());
 }
 
-std::string String::GetValue()
+std::string String::GetValue() const
 {
     char* s = NULL;
     plist_get_string_val(_node, &s);

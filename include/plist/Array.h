@@ -33,11 +33,11 @@ class Array : public Structure
 public :
     Array(Node* parent = NULL);
     Array(plist_t node, Node* parent = NULL);
-    Array(Array& a);
+    Array(const Array& a);
     Array& operator=(Array& a);
     virtual ~Array();
 
-    Node* Clone();
+    Node* Clone() const;
 
     Node* operator[](unsigned int index);
     void Append(Node* node);

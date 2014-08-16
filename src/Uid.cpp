@@ -32,7 +32,7 @@ Uid::Uid(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Uid::Uid(PList::Uid& i) : Node(PLIST_UID)
+Uid::Uid(const PList::Uid& i) : Node(PLIST_UID)
 {
     plist_set_uid_val(_node, i.GetValue());
 }
@@ -53,7 +53,7 @@ Uid::~Uid()
 {
 }
 
-Node* Uid::Clone()
+Node* Uid::Clone() const
 {
     return new Uid(*this);
 }
@@ -63,7 +63,7 @@ void Uid::SetValue(uint64_t i)
     plist_set_uid_val(_node, i);
 }
 
-uint64_t Uid::GetValue()
+uint64_t Uid::GetValue() const
 {
     uint64_t i = 0;
     plist_get_uid_val(_node, &i);

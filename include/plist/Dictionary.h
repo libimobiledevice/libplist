@@ -34,11 +34,11 @@ class Dictionary : public Structure
 public :
     Dictionary(Node* parent = NULL);
     Dictionary(plist_t node, Node* parent = NULL);
-    Dictionary(Dictionary& d);
+    Dictionary(const Dictionary& d);
     Dictionary& operator=(Dictionary& d);
     virtual ~Dictionary();
 
-    Node* Clone();
+    Node* Clone() const;
 
     typedef std::map<std::string,Node*>::iterator iterator;
 
@@ -46,7 +46,8 @@ public :
     iterator Begin();
     iterator End();
     iterator Find(const std::string& key);
-    iterator Set(const std::string& key, Node* node);
+    iterator Set(const std::string& key, const Node* node);
+    iterator Set(const std::string& key, const Node& node);
     iterator Insert(const std::string& key, Node* node) PLIST_WARN_DEPRECATED("use Set() instead");
     void Remove(Node* node);
     void Remove(const std::string& key);
