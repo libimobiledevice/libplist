@@ -32,7 +32,7 @@ Key::Key(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Key::Key(PList::Key& k) : Node(PLIST_UINT)
+Key::Key(const PList::Key& k) : Node(PLIST_UINT)
 {
     plist_set_key_val(_node, k.GetValue().c_str());
 }
@@ -53,7 +53,7 @@ Key::~Key()
 {
 }
 
-Node* Key::Clone()
+Node* Key::Clone() const
 {
     return new Key(*this);
 }
@@ -63,7 +63,7 @@ void Key::SetValue(const std::string& s)
     plist_set_key_val(_node, s.c_str());
 }
 
-std::string Key::GetValue()
+std::string Key::GetValue() const
 {
     char* s = NULL;
     plist_get_key_val(_node, &s);

@@ -32,15 +32,15 @@ class Boolean : public Node
 public :
     Boolean(Node* parent = NULL);
     Boolean(plist_t node, Node* parent = NULL);
-    Boolean(Boolean& b);
+    Boolean(const Boolean& b);
     Boolean& operator=(Boolean& b);
     Boolean(bool b);
     virtual ~Boolean();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(bool b);
-    bool GetValue();
+    bool GetValue() const;
 };
 
 };

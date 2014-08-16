@@ -34,15 +34,15 @@ class Date : public Node
 public :
     Date(Node* parent = NULL);
     Date(plist_t node, Node* parent = NULL);
-    Date(Date& d);
+    Date(const Date& d);
     Date& operator=(Date& d);
     Date(timeval t);
     virtual ~Date();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(timeval t);
-    timeval GetValue();
+    timeval GetValue() const;
 };
 
 };

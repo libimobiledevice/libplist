@@ -93,7 +93,7 @@ Node::~Node()
     _parent = NULL;
 }
 
-plist_type Node::GetType()
+plist_type Node::GetType() const
 {
     if (_node)
     {
@@ -102,12 +102,12 @@ plist_type Node::GetType()
     return PLIST_NONE;
 }
 
-plist_t Node::GetPlist()
+plist_t Node::GetPlist() const
 {
     return _node;
 }
 
-Node* Node::GetParent()
+Node* Node::GetParent() const
 {
     return _parent;
 }

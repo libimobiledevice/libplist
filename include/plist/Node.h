@@ -32,11 +32,11 @@ class Node
 public :
     virtual ~Node();
 
-    virtual Node* Clone() = 0;
+    virtual Node* Clone() const = 0;
 
-    Node * GetParent();
-    plist_type GetType();
-    plist_t GetPlist();
+    Node * GetParent() const;
+    plist_type GetType() const;
+    plist_t GetPlist() const;
 
     static Node* FromPlist(plist_t node, Node* parent = NULL);
 

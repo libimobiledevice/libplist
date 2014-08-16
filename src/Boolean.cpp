@@ -32,7 +32,7 @@ Boolean::Boolean(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Boolean::Boolean(PList::Boolean& b) : Node(PLIST_BOOLEAN)
+Boolean::Boolean(const PList::Boolean& b) : Node(PLIST_BOOLEAN)
 {
     plist_set_bool_val(_node, b.GetValue());
 }
@@ -53,7 +53,7 @@ Boolean::~Boolean()
 {
 }
 
-Node* Boolean::Clone()
+Node* Boolean::Clone() const
 {
     return new Boolean(*this);
 }
@@ -63,7 +63,7 @@ void Boolean::SetValue(bool b)
     plist_set_bool_val(_node, b);
 }
 
-bool Boolean::GetValue()
+bool Boolean::GetValue() const
 {
     uint8_t b = 0;
     plist_get_bool_val(_node, &b);
