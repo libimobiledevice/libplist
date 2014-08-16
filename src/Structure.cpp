@@ -35,7 +35,7 @@ Structure::~Structure()
 {
 }
 
-uint32_t Structure::GetSize()
+uint32_t Structure::GetSize() const
 {
     uint32_t size = 0;
     plist_type type = plist_get_node_type(_node);
@@ -50,7 +50,7 @@ uint32_t Structure::GetSize()
     return size;
 }
 
-std::string Structure::ToXml()
+std::string Structure::ToXml() const
 {
     char* xml = NULL;
     uint32_t length = 0;
@@ -60,7 +60,7 @@ std::string Structure::ToXml()
     return ret;
 }
 
-std::vector<char> Structure::ToBin()
+std::vector<char> Structure::ToBin() const
 {
     char* bin = NULL;
     uint32_t length = 0;
