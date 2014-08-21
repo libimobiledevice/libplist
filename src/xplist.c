@@ -529,6 +529,8 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     root_node = xmlDocGetRootElement(plist_doc);
     root.xml = root_node;
 
+    _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
+
     char *current_locale = setlocale(LC_NUMERIC, NULL);
     char *saved_locale = NULL;
     if (current_locale) {
