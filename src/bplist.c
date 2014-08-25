@@ -251,6 +251,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
         data->realval = *(double *) buf;
         break;
     default:
+        free(buf);
         free(data);
         return NULL;
     }

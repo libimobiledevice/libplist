@@ -120,9 +120,6 @@ static xmlDocPtr new_xml_plist(void)
     char *plist = strdup(plist_base);
     xmlDocPtr plist_xml = xmlParseMemory(plist, strlen(plist));
 
-    if (!plist_xml)
-        return NULL;
-
     free(plist);
 
     return plist_xml;
