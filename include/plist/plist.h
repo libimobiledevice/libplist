@@ -41,6 +41,8 @@ extern "C"
 
 #ifdef plist_EXPORTS
   #define PLIST_API  __declspec( dllexport )
+#elif defined(plist_STATIC)
+  #define PLIST_API
 #else
   #define PLIST_API  __declspec( dllimport )
 #endif

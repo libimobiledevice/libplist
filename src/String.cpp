@@ -67,7 +67,7 @@ std::string String::GetValue() const
 {
     char* s = NULL;
     plist_get_string_val(_node, &s);
-    std::string ret = s;
+    std::string ret = s ? s : "";
     free(s);
     return ret;
 }
