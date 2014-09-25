@@ -23,6 +23,7 @@
 #define PLIST_NODE_H
 
 #include <plist/plist.h>
+#include <cstddef>
 
 namespace PList
 {
