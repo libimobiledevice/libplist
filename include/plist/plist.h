@@ -361,7 +361,8 @@ extern "C"
      * @param item the new item to insert
      * @param key The identifier of the item to insert.
      */
-    PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item) PLIST_WARN_DEPRECATED("use plist_dict_set_item instead");
+    PLIST_WARN_DEPRECATED("use plist_dict_set_item instead")
+    PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
 
     /**
      * Remove an existing position in a #PLIST_DICT node.
