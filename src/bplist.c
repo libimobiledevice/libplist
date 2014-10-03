@@ -19,6 +19,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,7 +76,7 @@ enum
 
 static void float_byte_convert(uint8_t * address, size_t size)
 {
-#if (PLIST_BYTE_ORDER == PLIST_LITTLE_ENDIAN \
+#if (defined(__LITTLE_ENDIAN__) \
 		&& !defined(__FLOAT_WORD_ORDER__)) \
 	|| (defined(__FLOAT_WORD_ORDER__) \
 		&& __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)
@@ -110,7 +113,7 @@ union plist_uint_ptr
 
 static void byte_convert(uint8_t * address, size_t size)
 {
-#if PLIST_BYTE_ORDER == PLIST_LITTLE_ENDIAN
+#ifdef __LITTLE_ENDIAN__
     uint8_t i = 0, j = 0;
     uint8_t tmp = 0;
 
@@ -138,7 +141,7 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 }
 
 #ifndef be16toh
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 #define be16toh(x) (x)
 #else
 #define be16toh(x) ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
@@ -146,7 +149,7 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #endif
 
 #ifndef be32toh
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 #define be32toh(x) (x)
 #else
 #define be32toh(x) ((((x) & 0xFF000000) >> 24) \
@@ -157,7 +160,7 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #endif
 
 #ifndef be64toh
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 #define be64toh(x) (x)
 #else
 #define be64toh(x) ((((x) & 0xFF00000000000000ull) >> 56) \
@@ -827,7 +830,7 @@ static void write_int(bytearray_t * bplist, uint64_t val)
     if (size == 3)
         size++;
 
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
     val = val << ((sizeof(uint64_t) - size) * 8);
 #endif
 
@@ -950,7 +953,7 @@ static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_tab
     for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(cur), i++)
     {
         idx = *(uint64_t *) (hash_table_lookup(ref_table, cur));
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 	idx = idx << ((sizeof(uint64_t) - dict_param_size) * 8);
 #endif
         memcpy(buff + i * dict_param_size, &idx, dict_param_size);
@@ -987,14 +990,14 @@ static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_tabl
     for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(node_next_sibling(cur)), i++)
     {
         idx1 = *(uint64_t *) (hash_table_lookup(ref_table, cur));
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 	idx1 = idx1 << ((sizeof(uint64_t) - dict_param_size) * 8);
 #endif
         memcpy(buff + i * dict_param_size, &idx1, dict_param_size);
         byte_convert(buff + i * dict_param_size, dict_param_size);
 
         idx2 = *(uint64_t *) (hash_table_lookup(ref_table, cur->next));
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 	idx2 = idx2 << ((sizeof(uint64_t) - dict_param_size) * 8);
 #endif
         memcpy(buff + (i + size) * dict_param_size, &idx2, dict_param_size);
@@ -1015,7 +1018,7 @@ static void write_uid(bytearray_t * bplist, uint64_t val)
     if (size == 3)
         size++;
 
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
     val = val << ((sizeof(uint64_t) - size) * 8);
 #endif
 
@@ -1222,7 +1225,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     {
         uint8_t *offsetbuff = (uint8_t *) malloc(offset_size);
 
-#if PLIST_BYTE_ORDER == PLIST_BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 	offsets[i] = offsets[i] << ((sizeof(uint64_t) - offset_size) * 8);
 #endif
 
