@@ -4,7 +4,7 @@ AM_LDFLAGS =
 noinst_PROGRAMS = plist_cmp plist_test
 
 plist_cmp_SOURCES = plist_cmp.c
-plist_cmp_LDADD = $(top_builddir)/src/libplist.la
+plist_cmp_LDADD = $(top_builddir)/src/libplist.la $(top_builddir)/libcnary/libcnary.la
 
 plist_test_SOURCES = plist_test.c
 plist_test_LDADD = $(top_builddir)/src/libplist.la

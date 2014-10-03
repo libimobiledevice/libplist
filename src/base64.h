@@ -21,9 +21,8 @@
 #ifndef BASE64_H
 #define BASE64_H
 #include <stdlib.h>
-#include "common.h"
 
-_PLIST_INTERNAL char *base64encode(const unsigned char *buf, size_t *size);
-_PLIST_INTERNAL unsigned char *base64decode(const char *buf, size_t *size);
+char *base64encode(const unsigned char *buf, size_t *size);
+unsigned char *base64decode(const char *buf, size_t *size);
 
 #endif

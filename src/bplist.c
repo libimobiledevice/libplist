@@ -599,7 +599,7 @@ static void* copy_plist_data(const void* src)
     return dstdata;
 }
 
-void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
+PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 {
     char *trailer = NULL;
 
@@ -1095,7 +1095,7 @@ static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, 
 
 }
 
-void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
+PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 {
     ptrarray_t* objects = NULL;
     hashtable_t* ref_table = NULL;

@@ -513,7 +513,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
     }
 }
 
-void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
+PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 {
     xmlDocPtr plist_doc = NULL;
     xmlNodePtr root_node = NULL;
@@ -555,7 +555,7 @@ void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     }
 }
 
-void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
+PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
     xmlDocPtr plist_doc = xmlParseMemory(plist_xml, length);
     xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);

@@ -21,7 +21,6 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 #include <stdlib.h>
-#include "common.h"
 
 typedef struct hashentry_t {
 	void *key;
@@ -39,10 +38,10 @@ typedef struct hashtable_t {
 	compare_func_t compare_func;
 } hashtable_t;
 
-_PLIST_INTERNAL hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func);
-_PLIST_INTERNAL void hash_table_destroy(hashtable_t *ht);
+hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func);
+void hash_table_destroy(hashtable_t *ht);
 
-_PLIST_INTERNAL void hash_table_insert(hashtable_t* ht, void *key, void *value);
-_PLIST_INTERNAL void* hash_table_lookup(hashtable_t* ht, void *key);
+void hash_table_insert(hashtable_t* ht, void *key, void *value);
+void* hash_table_lookup(hashtable_t* ht, void *key);
 
 #endif

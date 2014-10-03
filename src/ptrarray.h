@@ -21,7 +21,6 @@
 #ifndef PTRARRAY_H
 #define PTRARRAY_H
 #include <stdlib.h>
-#include "common.h"
 
 typedef struct ptrarray_t {
 	void **pdata;
@@ -30,8 +29,8 @@ typedef struct ptrarray_t {
 	size_t capacity_step;
 } ptrarray_t;
 
-_PLIST_INTERNAL ptrarray_t *ptr_array_new(int capacity);
-_PLIST_INTERNAL void ptr_array_free(ptrarray_t *pa);
-_PLIST_INTERNAL void ptr_array_add(ptrarray_t *pa, void *data);
-_PLIST_INTERNAL void* ptr_array_index(ptrarray_t *pa, size_t index);
+ptrarray_t *ptr_array_new(int capacity);
+void ptr_array_free(ptrarray_t *pa);
+void ptr_array_add(ptrarray_t *pa, void *data);
+void* ptr_array_index(ptrarray_t *pa, size_t index);
 #endif

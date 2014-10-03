@@ -22,8 +22,11 @@
 #ifndef PLIST_H
 #define PLIST_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "plist/plist.h"
-#include "common.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,6 +37,15 @@
 #pragma warning(disable:4244)
 #endif
 
+#ifdef WIN32
+  #define PLIST_API __declspec( dllexport )
+#else
+  #ifdef HAVE_FVISIBILITY
+    #define PLIST_API __attribute__((visibility("default")))
+  #else
+    #define PLIST_API
+  #endif
+#endif
 
 struct plist_data_s
 {
@@ -52,10 +64,10 @@ struct plist_data_s
 
 typedef struct plist_data_s *plist_data_t;
 
-_PLIST_INTERNAL plist_t plist_new_node(plist_data_t data);
-_PLIST_INTERNAL plist_data_t plist_get_data(const plist_t node);
-_PLIST_INTERNAL plist_data_t plist_new_plist_data(void);
-_PLIST_INTERNAL int plist_data_compare(const void *a, const void *b);
+plist_t plist_new_node(plist_data_t data);
+plist_data_t plist_get_data(const plist_t node);
+plist_data_t plist_new_plist_data(void);
+int plist_data_compare(const void *a, const void *b);
 
 
 #endif

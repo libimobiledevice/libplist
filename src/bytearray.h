@@ -21,7 +21,6 @@
 #ifndef BYTEARRAY_H
 #define BYTEARRAY_H
 #include <stdlib.h>
-#include "common.h"
 
 typedef struct bytearray_t {
 	void *data;
@@ -29,8 +28,8 @@ typedef struct bytearray_t {
 	size_t capacity;
 } bytearray_t;
 
-_PLIST_INTERNAL bytearray_t *byte_array_new();
-_PLIST_INTERNAL void byte_array_free(bytearray_t *ba);
-_PLIST_INTERNAL void byte_array_append(bytearray_t *ba, void *buf, size_t len);
+bytearray_t *byte_array_new();
+void byte_array_free(bytearray_t *ba);
+void byte_array_append(bytearray_t *ba, void *buf, size_t len);
 
 #endif
