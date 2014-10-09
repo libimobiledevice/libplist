@@ -673,29 +673,51 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
         case PLIST_DICT:
             for (j = 0; j < data->length; j++)
             {
+                node_t* n = NULL;
                 str_i = j * dict_param_size;
                 str_j = (j + data->length) * dict_param_size;
 
                 index1 = UINT_TO_HOST(data->buff + str_i, dict_param_size);
                 index2 = UINT_TO_HOST(data->buff + str_j, dict_param_size);
 
-                //first one is actually a key
-                plist_get_data(nodeslist[index1])->type = PLIST_KEY;
-
+                // process key node
                 if (index1 < num_objects)
                 {
-                    if (NODE_IS_ROOT(nodeslist[index1]))
-                        node_attach(nodeslist[i], nodeslist[index1]);
-                    else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index1], copy_plist_data));
+                    // is node already attached?
+                    if (NODE_IS_ROOT(nodeslist[index1])) {
+                        // use original
+                        n = nodeslist[index1];
+                    } else {
+                        // use a copy, because this node is already attached elsewhere
+                        n = node_copy_deep(nodeslist[index1], copy_plist_data);
+                    }
+
+                    // enforce key type
+                    plist_get_data(n)->type = PLIST_KEY;
+
+                    // attach key node
+                    node_attach(nodeslist[i], n);
                 }
 
+                // process value node
                 if (index2 < num_objects)
                 {
-                    if (NODE_IS_ROOT(nodeslist[index2]))
-                        node_attach(nodeslist[i], nodeslist[index2]);
-                    else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index2], copy_plist_data));
+                    // is node already attached?
+                    if (NODE_IS_ROOT(nodeslist[index2])) {
+                        // use original
+                        n = nodeslist[index2];
+                    } else {
+                        // use a copy, because this node is already attached elsewhere
+                        n = node_copy_deep(nodeslist[index2], copy_plist_data);
+
+                        // ensure key type is never used for values, especially if we copy a key node
+                        if (plist_get_data(n)->type == PLIST_KEY) {
+                            plist_get_data(n)->type = PLIST_STRING;
+                        }
+                    }
+
+                    // attach value node
+                    node_attach(nodeslist[i], n);
                 }
             }
 
