@@ -19,9 +19,9 @@ EXTRA_DIST = plist.pyx plist.pxd $(PXIINCLUDES)
 plistdir = $(pyexecdir)
 plist_LTLIBRARIES = plist.la
 plist_la_SOURCES = plist_util.c plist_util.h plist.pyx
-plist_la_CFLAGS = -I../include -I../src $(PYTHON_CPPFLAGS) $(AM_CFLAGS) -Wno-shadow -Wno-redundant-decls -Wno-switch-default -Wno-strict-aliasing -Wno-implicit-function-declaration
+plist_la_CFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src $(PYTHON_CPPFLAGS) $(AM_CFLAGS) -Wno-shadow -Wno-redundant-decls -Wno-switch-default -Wno-strict-aliasing -Wno-implicit-function-declaration
 plist_la_LDFLAGS = -module -avoid-version -L$(libdir) $(PYTHON_LDFLAGS) $(AM_LDFLAGS)
-plist_la_LIBADD = ../src/libplist.la
+plist_la_LIBADD = $(top_builddir)/src/libplist.la
 
 plist.c: plist.pyx $(PXDINCLUDES) $(PXIINCLUDES)
 
