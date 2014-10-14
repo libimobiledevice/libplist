@@ -1,3 +1,27 @@
+Version 1.12
+~~~~~~~~~~~~
+
+- Changes:
+  * Fix plist_from_bin() changing value nodes to key nodes in dictionaries
+  * Avoid exporting non-public symbols
+  * Prevent crash in plist_from_bin() when parsing unusual binary plists
+  * Fix crash in String|Key::GetValue() and actually make C++ interface work
+  * Fix memory leaks in new_xml_plist() and parse_real_node()
+  * Fix header guards to conform to C++ standard
+  * Update Cython based Python bindings and remove plist_new_key()
+  * Fix key nodes not being output correctly if they contained XML entities
+  * Fix handling and storage of signed vs. unsigned integer values
+  * Fix date handling to respect the "Mac Epoch" instead of "Unix Epoch"
+  * Remove plist_set_type() as it should not be used
+  * Fix deprecated macros to work with older LLVM/Clang
+  * Fix various shadowed declarations
+  * Add documentation to explicitly describe memory buffer ownership
+  * Fix memory leak in plist_from_bin()
+  * Add various test cases based on fixes
+  * Fix wrong timezone related date/time conversion of date nodes
+  * Fix endian detection on MIPS architecture
+  * Fix parallel build for autotools
+
 Version 1.11
 ~~~~~~~~~~~~
 
