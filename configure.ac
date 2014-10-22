@@ -27,6 +27,16 @@ AC_SUBST(LIBXML2_VERSION)
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
+
+# AC_PROG_CXX will return "g++" even if no c++ compiler is installed
+AC_LANG_PUSH([C++])
+AC_MSG_CHECKING([whether $CXX is available and compiles a program])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
+                  [AC_MSG_RESULT([yes])],
+                  [AC_MSG_RESULT([no])
+                   AC_MSG_ERROR([C++ compiler not available or unable to compile])])
+AC_LANG_POP
+
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 
