@@ -48,7 +48,12 @@ public :
     iterator Find(const std::string& key);
     iterator Set(const std::string& key, const Node* node);
     iterator Set(const std::string& key, const Node& node);
+#ifdef _MSC_VER
+#pragma deprecated(Insert) // use Set() instead
+	iterator Insert(const std::string& key, Node* node);
+#else
     iterator Insert(const std::string& key, Node* node) PLIST_WARN_DEPRECATED("use Set() instead");
+#endif
     void Remove(Node* node);
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* key);

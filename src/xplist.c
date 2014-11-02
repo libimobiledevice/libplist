@@ -182,10 +182,17 @@ static void node_to_xml(node_t* node, void *xml_struct)
         tag = XPLIST_INT;
         val = (char*)malloc(64);
         if (node_data->length == 16) {
+#ifdef _MSC_VER
+	        (void)snprintf(val, 64, "%llu", node_data->intval);
+	} else {
+	        (void)snprintf(val, 64, "%lld", node_data->intval);
+	}
+#else
 	        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
 	} else {
 	        (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
 	}
+#endif
         break;
 
     case PLIST_REAL:
@@ -355,7 +362,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         data = plist_new_plist_data();
         subnode = plist_new_node(data);
         if (*plist_node)
-            node_attach(*plist_node, subnode);
+            node_attach((node_t *)(*plist_node), (node_t *)subnode);
         else
             *plist_node = subnode;
 
@@ -534,7 +541,7 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     if (saved_locale) {
         setlocale(LC_NUMERIC, "POSIX");
     }
-    node_to_xml(plist, &root);
+    node_to_xml((node_t *)plist, &root);
 
     xmlChar* tmp = NULL;
     xmlDocDumpMemory(plist_doc, &tmp, &size);

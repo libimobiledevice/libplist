@@ -23,7 +23,9 @@
 #define PLIST_NODE_H
 
 #include <plist/plist.h>
+#ifndef _MSC_VER
 #include <cstddef>
+#endif
 
 namespace PList
 {

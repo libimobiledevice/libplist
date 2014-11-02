@@ -30,11 +30,22 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef _MSC_VER
+#include <time.h>
+struct timeval {
+	long    tv_sec;         /* seconds */
+	long    tv_usec;        /* and microseconds */
+};
+#else
 #include <sys/time.h>
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #pragma warning(disable:4244)
+#define snprintf _snprintf
+#define strtoull _strtoui64
+#define __func__ __FUNCTION__
 #endif
 
 #ifdef WIN32

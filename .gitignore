@@ -54,3 +54,7 @@ cython/.deps
 cython/.libs
 cython/plist.c
 test-driver
+Debug/
+Release/
+*.vcproj.*
+*.aps
