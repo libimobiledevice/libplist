@@ -91,7 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Calibre\DLLs&quot; /Y /R"
+				CommandLine="if exist &quot;C:\Program Files (x86)\Calibre\DLLs&quot; xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Calibre\DLLs&quot; /Y /R"
 			/>
 		</Configuration>
 		<Configuration
@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files\Calibre\DLLs&quot; /Y /R"
+				CommandLine="if exist &quot;C:\Program Files\Calibre\DLLs&quot; xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files\Calibre\DLLs&quot; /Y /R"
 			/>
 		</Configuration>
 		<Configuration
@@ -757,11 +757,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\plist.h"
+				RelativePath=".\include\plist\plist.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\plist\plist.h"
+				RelativePath=".\src\plist.h"
 				>
 			</File>
 			<File
