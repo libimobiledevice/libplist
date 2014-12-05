@@ -181,11 +181,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
     case PLIST_UINT:
         tag = XPLIST_INT;
         val = (char*)malloc(64);
-        if (node_data->length == 16) {
-	        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
-	} else {
-	        (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
-	}
+        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
         break;
 
     case PLIST_REAL:
@@ -388,6 +384,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
             }
             char* endp = NULL;
             data->intval = strtoull((char*)str, &endp, 0);
+            data->length = 8;
             if ((endp != NULL) && (strlen(endp) > 0)) {
                 fprintf(stderr, "%s: integer parse error: string contains invalid characters: '%s'\n", __func__, endp);
             }
@@ -397,9 +394,6 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
                     v = -v;
                 }
                 data->intval = (uint64_t)v;
-                data->length = 8;
-            } else {
-                data->length = 16;
             }
             data->type = PLIST_UINT;
             xmlFree(strval);
