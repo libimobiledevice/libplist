@@ -29,6 +29,7 @@
 #include <inttypes.h>
 #include <locale.h>
 
+#include <libxml/xmlIO.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
@@ -555,11 +556,22 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     }
 }
 
+static xmlParserInputPtr plist_xml_external_entity_loader(const char *URL, const char *ID, xmlParserCtxtPtr ctxt)
+{
+    return NULL;
+}
+
 PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
-    xmlDocPtr plist_doc = xmlParseMemory(plist_xml, length);
-    xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);
+    /* CVE-2013-0339: disable external entity loading to prevent XXE vulnerability */
+    xmlSetExternalEntityLoader(plist_xml_external_entity_loader);
 
-    xml_to_node(root_node, plist);
-    xmlFreeDoc(plist_doc);
+    /* read XML from memory and disable network access for security reasons */
+    xmlDocPtr plist_doc = xmlReadMemory(plist_xml, length, "plist_from_xml:memory", NULL, XML_PARSE_NONET);
+    if (plist_doc) {
+        xmlNodePtr root_node = xmlDocGetRootElement(plist_doc);
+
+        xml_to_node(root_node, plist);
+        xmlFreeDoc(plist_doc);
+    }
 }
