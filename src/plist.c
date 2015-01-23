@@ -1,7 +1,9 @@
 /*
  * plist.c
- * Builds plist XML structures.
+ * Builds plist XML structures
  *
+ * Copyright (c) 2010-2015 Martin Szulecki All Rights Reserved.
+ * Copyright (c) 2009-2014 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2008 Zach C. All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

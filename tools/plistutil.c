@@ -1,7 +1,8 @@
 /*
  * plistutil.c
- * source for plist convertion tool
+ * Simple tool to convert a plist into different formats
  *
+ * Copyright (c) 2009-2015 Martin Szulecki All Rights Reserved.
  * Copyright (c) 2008 Zach C. All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or

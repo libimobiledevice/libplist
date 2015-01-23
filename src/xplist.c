@@ -1,7 +1,9 @@
 /*
- * plist.c
+ * xplist.c
  * XML plist implementation
  *
+ * Copyright (c) 2010-2015 Martin Szulecki All Rights Reserved.
+ * Copyright (c) 2010-2014 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2008 Jonathan Beck All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
