@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
         free(plist_out);
     }
     else
-        printf("ERROR\n");
+        printf("ERROR: Failed to convert input file.\n");
 
     free(options);
     return 0;
