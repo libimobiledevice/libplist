@@ -3,10 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libplist
+Name: @PACKAGE_NAME@
 Description: A library to handle Apple Property Lists whereas they are binary or XML
-Version: @VERSION@
-Requires.private: libxml-2.0 >= @LIBXML2_VERSION@
+Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lplist
 Cflags: -I${includedir}
-
+Requires.private: libxml-2.0 >= @LIBXML2_VERSION@
