@@ -123,8 +123,10 @@ int main(int argc, char *argv[])
 
     // read input file
     iplist = fopen(options->in_file, "rb");
-    if (!iplist)
+    if (!iplist) {
+        free(options);
         return 1;
+    }
 
     stat(options->in_file, &filestats);
     plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
@@ -150,8 +152,10 @@ int main(int argc, char *argv[])
         if (options->out_file != NULL)
         {
             FILE *oplist = fopen(options->out_file, "wb");
-            if (!oplist)
+            if (!oplist) {
+                free(options);
                 return 1;
+            }
             fwrite(plist_out, size, sizeof(char), oplist);
             fclose(oplist);
         }
