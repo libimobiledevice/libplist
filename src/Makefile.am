@@ -45,3 +45,6 @@ if WIN32
 libplist_la_LDFLAGS += -avoid-version
 libplist___la_LDFLAGS += -avoid-version
 endif
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libplist.pc libplist++.pc
