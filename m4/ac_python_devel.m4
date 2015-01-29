@@ -150,10 +150,10 @@ $ac_distutils_result])
 	#
 	# Check for Python include path
 	#
+	AC_MSG_CHECKING([for Python include path])
 	if type $PYTHON-config; then
 		PYTHON_CPPFLAGS=`$PYTHON-config --includes`
 	fi
-	AC_MSG_CHECKING([for Python include path])
 	if test -z "$PYTHON_CPPFLAGS"; then
 		python_path=`$PYTHON -c "import distutils.sysconfig; \
 			print(distutils.sysconfig.get_python_inc());"`
