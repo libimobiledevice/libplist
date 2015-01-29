@@ -150,6 +150,9 @@ $ac_distutils_result])
 	#
 	# Check for Python include path
 	#
+	if type $PYTHON-config; then
+		PYTHON_CPPFLAGS=`$PYTHON-config --includes`
+	fi
 	AC_MSG_CHECKING([for Python include path])
 	if test -z "$PYTHON_CPPFLAGS"; then
 		python_path=`$PYTHON -c "import distutils.sysconfig; \
@@ -166,6 +169,9 @@ $ac_distutils_result])
 	# Check for Python library path
 	#
 	AC_MSG_CHECKING([for Python library path])
+	if type $PYTHON-config; then
+		PYTHON_LDFLAGS=`$PYTHON-config --ldflags`
+	fi
 	if test -z "$PYTHON_LDFLAGS"; then
 		# (makes two attempts to ensure we've got a version number
 		# from the interpreter)
