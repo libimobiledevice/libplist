@@ -720,8 +720,6 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
                     node_attach(nodeslist[i], n);
                 }
             }
-
-            free(data->buff);
             break;
 
         case PLIST_ARRAY:
@@ -738,7 +736,6 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
                         node_attach(nodeslist[i], node_copy_deep(nodeslist[index1], copy_plist_data));
                 }
             }
-            free(data->buff);
             break;
         default:
             break;
@@ -749,6 +746,11 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
 
     // free unreferenced nodes that would otherwise leak memory
     for (i = 0; i < num_objects; i++) {
+        plist_data_t data = plist_get_data(nodeslist[i]);
+        if ((data->type == PLIST_DICT) || (data->type == PLIST_ARRAY)) {
+            free(data->buff);
+            data->buff = NULL;
+        }
         if (i == root_object) continue;
         node_t* node = (node_t*)nodeslist[i];
         if (node && NODE_IS_ROOT(node)) {
