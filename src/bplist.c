@@ -1,8 +1,9 @@
 /*
- * plist.c
+ * bplist.c
  * Binary plist implementation
  *
- * Copyright (c) 2008 Jonathan Beck All Rights Reserved.
+ * Copyright (c) 2011-2015 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2008-2010 Jonathan Beck, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -95,7 +96,7 @@ static void float_byte_convert(uint8_t * address, size_t size)
 
 union plist_uint_ptr
 {
-    void *src;
+    const void *src;
     uint8_t *u8ptr;
     uint16_t *u16ptr;
     uint32_t *u32ptr;
@@ -202,7 +203,20 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 
 #define NODE_IS_ROOT(x) (((node_t*)x)->isRoot)
 
-static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
+struct bplist_data {
+    const char* data;
+    uint64_t size;
+    uint64_t num_objects;
+    uint8_t dict_size;
+    uint8_t offset_size;
+    const char* offset_table;
+    uint32_t level;
+    uint32_t *used_indexes;
+};
+
+static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index);
+
+static plist_t parse_uint_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
 
@@ -213,12 +227,12 @@ static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
     case sizeof(uint16_t):
     case sizeof(uint32_t):
     case sizeof(uint64_t):
-        memcpy(&data->intval, bnode, size);
+        memcpy(&data->intval, *bnode, size);
         data->intval = UINT_TO_HOST(&data->intval, size);
         data->length = sizeof(uint64_t);
         break;
     case 16:
-        memcpy(&data->intval, bnode+8, sizeof(uint64_t));
+        memcpy(&data->intval, (*bnode)+8, sizeof(uint64_t));
         data->intval = UINT_TO_HOST(&data->intval, sizeof(uint64_t));
         data->length = size;
         break;
@@ -227,13 +241,13 @@ static plist_t parse_uint_node(char *bnode, uint8_t size, char **next_object)
         return NULL;
     };
 
-    *next_object = bnode + size;
+    (*bnode) += size;
     data->type = PLIST_UINT;
 
     return node_create(NULL, data);
 }
 
-static plist_t parse_real_node(char *bnode, uint8_t size)
+static plist_t parse_real_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
     float floatval = 0.0;
@@ -241,7 +255,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
 
     size = 1 << size;			// make length less misleading
     buf = malloc (size);
-    memcpy (buf, bnode, size);
+    memcpy (buf, *bnode, size);
     switch (size)
     {
     case sizeof(float):
@@ -265,7 +279,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
     return node_create(NULL, data);
 }
 
-static plist_t parse_date_node(char *bnode, uint8_t size)
+static plist_t parse_date_node(const char **bnode, uint8_t size)
 {
     plist_t node = parse_real_node(bnode, size);
     plist_data_t data = plist_get_data(node);
@@ -279,13 +293,13 @@ static plist_t parse_date_node(char *bnode, uint8_t size)
     return node;
 }
 
-static plist_t parse_string_node(char *bnode, uint64_t size)
+static plist_t parse_string_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
 
     data->type = PLIST_STRING;
     data->strval = (char *) malloc(sizeof(char) * (size + 1));
-    memcpy(data->strval, bnode, size);
+    memcpy(data->strval, *bnode, size);
     data->strval[size] = '\0';
     data->length = strlen(data->strval);
 
@@ -348,7 +362,7 @@ static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, l
 	return outbuf;
 }
 
-static plist_t parse_unicode_node(char *bnode, uint64_t size)
+static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
     uint64_t i = 0;
@@ -359,7 +373,7 @@ static plist_t parse_unicode_node(char *bnode, uint64_t size)
 
     data->type = PLIST_STRING;
     unicodestr = (uint16_t*) malloc(sizeof(uint16_t) * size);
-    memcpy(unicodestr, bnode, sizeof(uint16_t) * size);
+    memcpy(unicodestr, *bnode, sizeof(uint16_t) * size);
     for (i = 0; i < size; i++)
         byte_convert((uint8_t *) (unicodestr + i), sizeof(uint16_t));
 
@@ -375,43 +389,112 @@ static plist_t parse_unicode_node(char *bnode, uint64_t size)
     return node_create(NULL, data);
 }
 
-static plist_t parse_data_node(char *bnode, uint64_t size)
+static plist_t parse_data_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
 
     data->type = PLIST_DATA;
     data->length = size;
     data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size);
-    memcpy(data->buff, bnode, sizeof(uint8_t) * size);
+    memcpy(data->buff, *bnode, sizeof(uint8_t) * size);
 
     return node_create(NULL, data);
 }
 
-static plist_t parse_dict_node(char *bnode, uint64_t size, uint32_t ref_size)
+static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, uint64_t size)
 {
+    uint64_t j;
+    uint64_t str_i = 0, str_j = 0;
+    uint64_t index1, index2;
     plist_data_t data = plist_new_plist_data();
 
     data->type = PLIST_DICT;
     data->length = size;
-    data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size * ref_size * 2);
-    memcpy(data->buff, bnode, sizeof(uint8_t) * size * ref_size * 2);
 
-    return node_create(NULL, data);
+    plist_t node = node_create(NULL, data);
+
+    for (j = 0; j < data->length; j++) {
+        str_i = j * bplist->dict_size;
+        str_j = (j + size) * bplist->dict_size;
+
+        index1 = UINT_TO_HOST((*bnode) + str_i, bplist->dict_size);
+        index2 = UINT_TO_HOST((*bnode) + str_j, bplist->dict_size);
+
+        if (index1 >= bplist->num_objects) {
+            plist_free(node);
+            return NULL;
+        }
+        if (index2 >= bplist->num_objects) {
+            plist_free(node);
+            return NULL;
+        }
+
+        /* process key node */
+        plist_t key = parse_bin_node_at_index(bplist, index1);
+        if (!key) {
+            plist_free(node);
+            return NULL;
+        }
+        /* enforce key type */
+        plist_get_data(key)->type = PLIST_KEY;
+        if (!plist_get_data(key)->strval) {
+            fprintf(stderr, "ERROR: Malformed binary plist dict, invalid key node encountered!\n");
+            plist_free(key);
+            plist_free(node);
+            return NULL;
+        }
+
+        /* process value node */
+        plist_t val = parse_bin_node_at_index(bplist, index2);
+        if (!val) {
+            plist_free(key);
+            plist_free(node);
+            return NULL;
+        }
+
+        node_attach(node, key);
+        node_attach(node, val);
+    }
+
+    return node;
 }
 
-static plist_t parse_array_node(char *bnode, uint64_t size, uint32_t ref_size)
+static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, uint64_t size)
 {
+    uint64_t j;
+    uint32_t str_j = 0;
+    uint32_t index1;
+
     plist_data_t data = plist_new_plist_data();
 
     data->type = PLIST_ARRAY;
     data->length = size;
-    data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size * ref_size);
-    memcpy(data->buff, bnode, sizeof(uint8_t) * size * ref_size);
 
-    return node_create(NULL, data);
+    plist_t node = node_create(NULL, data);
+
+    for (j = 0; j < data->length; j++) {
+        str_j = j * bplist->dict_size;
+        index1 = UINT_TO_HOST((*bnode) + str_j, bplist->dict_size);
+
+        if (index1 >= bplist->num_objects) {
+            plist_free(node);
+            return NULL;
+        }
+
+        /* process value node */
+        plist_t val = parse_bin_node_at_index(bplist, index1);
+        if (!val) {
+            plist_free(node);
+            return NULL;
+        }
+
+        node_attach(node, val);
+    }
+
+    return node;
 }
 
-static plist_t parse_uid_node(char *bnode, uint8_t size, char **next_object)
+static plist_t parse_uid_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
 
@@ -422,7 +505,7 @@ static plist_t parse_uid_node(char *bnode, uint8_t size, char **next_object)
     case sizeof(uint16_t):
     case sizeof(uint32_t):
     case sizeof(uint64_t):
-        memcpy(&data->intval, bnode, size);
+        memcpy(&data->intval, *bnode, size);
         data->intval = UINT_TO_HOST(&data->intval, size);
         break;
     default:
@@ -430,15 +513,13 @@ static plist_t parse_uid_node(char *bnode, uint8_t size, char **next_object)
         return NULL;
     };
 
-    *next_object = bnode + size;
     data->type = PLIST_UID;
     data->length = sizeof(uint64_t);
 
     return node_create(NULL, data);
 }
 
-
-static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_object)
+static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
 {
     uint16_t type = 0;
     uint64_t size = 0;
@@ -446,9 +527,9 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
     if (!object)
         return NULL;
 
-    type = (*object) & 0xF0;
-    size = (*object) & 0x0F;
-    object++;
+    type = (**object) & BPLIST_MASK;
+    size = (**object) & BPLIST_FILL;
+    (*object)++;
 
     switch (type)
     {
@@ -481,7 +562,7 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
         }
 
     case BPLIST_UINT:
-        return parse_uint_node(object, size, next_object);
+        return parse_uint_node(object, size);
 
     case BPLIST_REAL:
         return parse_real_node(object, size);
@@ -493,9 +574,8 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
             return parse_date_node(object, size);
 
     case BPLIST_DATA:
-        if (0x0F == size)
-        {
-            plist_t size_node = parse_bin_node(object, dict_size, &object);
+        if (BPLIST_FILL == size) {
+            plist_t size_node = parse_bin_node(bplist, object);
             if (plist_get_node_type(size_node) != PLIST_UINT)
                 return NULL;
             plist_get_uint_val(size_node, &size);
@@ -504,9 +584,8 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
         return parse_data_node(object, size);
 
     case BPLIST_STRING:
-        if (0x0F == size)
-        {
-            plist_t size_node = parse_bin_node(object, dict_size, &object);
+        if (BPLIST_FILL == size) {
+            plist_t size_node = parse_bin_node(bplist, object);
             if (plist_get_node_type(size_node) != PLIST_UINT)
                 return NULL;
             plist_get_uint_val(size_node, &size);
@@ -515,9 +594,8 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
         return parse_string_node(object, size);
 
     case BPLIST_UNICODE:
-        if (0x0F == size)
-        {
-            plist_t size_node = parse_bin_node(object, dict_size, &object);
+        if (BPLIST_FILL == size) {
+            plist_t size_node = parse_bin_node(bplist, object);
             if (plist_get_node_type(size_node) != PLIST_UINT)
                 return NULL;
             plist_get_uint_val(size_node, &size);
@@ -525,76 +603,64 @@ static plist_t parse_bin_node(char *object, uint8_t dict_size, char **next_objec
         }
         return parse_unicode_node(object, size);
 
-    case BPLIST_UNK_0x70:
+    case BPLIST_SET:
     case BPLIST_ARRAY:
-        if (0x0F == size)
-        {
-            plist_t size_node = parse_bin_node(object, dict_size, &object);
+        if (BPLIST_FILL == size) {
+            plist_t size_node = parse_bin_node(bplist, object);
             if (plist_get_node_type(size_node) != PLIST_UINT)
                 return NULL;
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
-        return parse_array_node(object, size, dict_size);
+        return parse_array_node(bplist, object, size);
 
     case BPLIST_UID:
-        return parse_uid_node(object, size, next_object);
+        return parse_uid_node(object, size);
 
-    case BPLIST_SET:
     case BPLIST_DICT:
-        if (0x0F == size)
-        {
-            plist_t size_node = parse_bin_node(object, dict_size, &object);
+        if (BPLIST_FILL == size) {
+            plist_t size_node = parse_bin_node(bplist, object);
             if (plist_get_node_type(size_node) != PLIST_UINT)
                 return NULL;
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
-        return parse_dict_node(object, size, dict_size);
+        return parse_dict_node(bplist, object, size);
     default:
         return NULL;
     }
     return NULL;
 }
 
-static void* copy_plist_data(const void* src)
+static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index)
 {
-    plist_data_t srcdata = (plist_data_t) src;
-    plist_data_t dstdata = plist_new_plist_data();
+    int i;
+    const char* ptr;
+    plist_t plist;
 
-    dstdata->type = srcdata->type;
-    dstdata->length = srcdata->length;
-    switch (dstdata->type)
-    {
-    case PLIST_BOOLEAN:
-        dstdata->boolval = srcdata->boolval;
-        break;
-    case PLIST_UINT:
-        dstdata->intval = srcdata->intval;
-        break;
-    case PLIST_DATE:
-        dstdata->timeval.tv_sec = srcdata->timeval.tv_sec;
-        dstdata->timeval.tv_usec = srcdata->timeval.tv_usec;
-        break;
-    case PLIST_REAL:
-        dstdata->realval = srcdata->realval;
-        break;
-    case PLIST_KEY:
-    case PLIST_STRING:
-        dstdata->strval = strdup(srcdata->strval);
-        break;
-    case PLIST_DATA:
-        dstdata->buff = (uint8_t*) malloc(sizeof(uint8_t) * srcdata->length);
-        memcpy(dstdata->buff, srcdata->buff, sizeof(uint8_t) * srcdata->length);
-        break;
-    case PLIST_UID:
-        dstdata->intval = srcdata->intval;
-        break;
-    default:
-        break;
+    ptr = bplist->data + UINT_TO_HOST(bplist->offset_table + node_index * bplist->offset_size, bplist->offset_size);
+    /* make sure the node offset is in a sane range */
+    if ((ptr < bplist->data) || (ptr >= bplist->offset_table)) {
+        return NULL;
     }
 
-    return dstdata;
+    /* store node_index for current recursion level */
+    bplist->used_indexes[bplist->level] = node_index;
+    /* recursion check */
+    if (bplist->level > 0) {
+        for (i = bplist->level-1; i >= 0; i--) {
+            if (bplist->used_indexes[i] == bplist->used_indexes[bplist->level]) {
+                fprintf(stderr, "Recursion detected in binary plist. Aborting.\n");
+                return NULL;
+            }
+        }
+    }
+
+    /* finally parse node */
+    bplist->level++;
+    plist = parse_bin_node(bplist, &ptr);
+    bplist->level--;
+    return plist;
 }
 
 PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
@@ -602,18 +668,10 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     char *trailer = NULL;
 
     uint8_t offset_size = 0;
-    uint8_t dict_param_size = 0;
+    uint8_t dict_size = 0;
     uint64_t num_objects = 0;
     uint64_t root_object = 0;
     uint64_t offset_table_index = 0;
-
-    plist_t *nodeslist = NULL;
-    uint64_t i = 0;
-    uint64_t current_offset = 0;
-    char *offset_table = NULL;
-    uint32_t j = 0, str_i = 0, str_j = 0;
-    uint32_t index1 = 0, index2 = 0;
-
 
     //first check we have enough data
     if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + BPLIST_TRL_SIZE))
@@ -629,7 +687,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     trailer = (char *) (plist_bin + (length - BPLIST_TRL_SIZE));
 
     offset_size = trailer[BPLIST_TRL_OFFSIZE_IDX];
-    dict_param_size = trailer[BPLIST_TRL_PARMSIZE_IDX];
+    dict_size = trailer[BPLIST_TRL_PARMSIZE_IDX];
     num_objects = be64dec(trailer + BPLIST_TRL_NUMOBJ_IDX);
     root_object = be64dec(trailer + BPLIST_TRL_ROOTOBJ_IDX);
     offset_table_index = be64dec(trailer + BPLIST_TRL_OFFTAB_IDX);
@@ -637,122 +695,22 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     if (num_objects == 0)
         return;
 
-    //allocate serialized array of nodes
-    nodeslist = (plist_t *) malloc(sizeof(plist_t) * num_objects);
-
-    if (!nodeslist)
+    if (root_object >= num_objects)
         return;
 
-    //parse serialized nodes
-    offset_table = (char *) (plist_bin + offset_table_index);
-    for (i = 0; i < num_objects; i++)
-    {
-        char *obj = NULL;
-        current_offset = UINT_TO_HOST(offset_table + i * offset_size, offset_size);
+    struct bplist_data bplist;
+    bplist.data = plist_bin;
+    bplist.size = length;
+    bplist.num_objects = num_objects;
+    bplist.dict_size = dict_size;
+    bplist.offset_size = offset_size;
+    bplist.offset_table = (char *) (plist_bin + offset_table_index);
+    bplist.level = 0;
+    bplist.used_indexes = (uint32_t*)malloc(sizeof(uint32_t) * num_objects);
 
-        obj = (char *) (plist_bin + current_offset);
-        nodeslist[i] = parse_bin_node(obj, dict_param_size, &obj);
-    }
+    *plist = parse_bin_node_at_index(&bplist, root_object);
 
-    //setup children for structured types
-    for (i = 0; i < num_objects; i++)
-    {
-
-        plist_data_t data = plist_get_data(nodeslist[i]);
-	if (!data) {
-		break;
-	}
-
-        switch (data->type)
-        {
-        case PLIST_DICT:
-            for (j = 0; j < data->length; j++)
-            {
-                node_t* n = NULL;
-                str_i = j * dict_param_size;
-                str_j = (j + data->length) * dict_param_size;
-
-                index1 = UINT_TO_HOST(data->buff + str_i, dict_param_size);
-                index2 = UINT_TO_HOST(data->buff + str_j, dict_param_size);
-
-                // process key node
-                if (index1 < num_objects)
-                {
-                    // is node already attached?
-                    if (NODE_IS_ROOT(nodeslist[index1])) {
-                        // use original
-                        n = nodeslist[index1];
-                    } else {
-                        // use a copy, because this node is already attached elsewhere
-                        n = node_copy_deep(nodeslist[index1], copy_plist_data);
-                    }
-
-                    // enforce key type
-                    plist_get_data(n)->type = PLIST_KEY;
-
-                    // attach key node
-                    node_attach(nodeslist[i], n);
-                }
-
-                // process value node
-                if (index2 < num_objects)
-                {
-                    // is node already attached?
-                    if (NODE_IS_ROOT(nodeslist[index2])) {
-                        // use original
-                        n = nodeslist[index2];
-                    } else {
-                        // use a copy, because this node is already attached elsewhere
-                        n = node_copy_deep(nodeslist[index2], copy_plist_data);
-
-                        // ensure key type is never used for values, especially if we copy a key node
-                        if (plist_get_data(n)->type == PLIST_KEY) {
-                            plist_get_data(n)->type = PLIST_STRING;
-                        }
-                    }
-
-                    // attach value node
-                    node_attach(nodeslist[i], n);
-                }
-            }
-            break;
-
-        case PLIST_ARRAY:
-            for (j = 0; j < data->length; j++)
-            {
-                str_j = j * dict_param_size;
-                index1 = UINT_TO_HOST(data->buff + str_j, dict_param_size);
-
-                if (index1 < num_objects)
-                {
-                    if (NODE_IS_ROOT(nodeslist[index1]))
-                        node_attach(nodeslist[i], nodeslist[index1]);
-                    else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index1], copy_plist_data));
-                }
-            }
-            break;
-        default:
-            break;
-        }
-    }
-
-    *plist = nodeslist[root_object];
-
-    // free unreferenced nodes that would otherwise leak memory
-    for (i = 0; i < num_objects; i++) {
-        plist_data_t data = plist_get_data(nodeslist[i]);
-        if ((data->type == PLIST_DICT) || (data->type == PLIST_ARRAY)) {
-            free(data->buff);
-            data->buff = NULL;
-        }
-        if (i == root_object) continue;
-        node_t* node = (node_t*)nodeslist[i];
-        if (node && NODE_IS_ROOT(node)) {
-            plist_free(node);
-        }
-    }
-    free(nodeslist);
+    free(bplist.used_indexes);
 }
 
 static unsigned int plist_data_hash(const void* key)
