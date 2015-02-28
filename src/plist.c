@@ -31,6 +31,15 @@
 #include <node.h>
 #include <node_iterator.h>
 
+PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
+{
+    if (length < 8) {
+        return 0;
+    }
+
+    return (memcmp(plist_data, "bplist00", 8) == 0);
+}
+
 plist_t plist_new_node(plist_data_t data)
 {
     return (plist_t) node_create(NULL, data);
