@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(ProjectDir)include;$(ProjectDir)..\libimobiledevice-windows\libcnary\include;$(ProjectDir)..\libimobiledevice-windows\vendors\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\src;$(ProjectDir)..\libimobiledevice-windows\libiconv\include;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)include&quot;;&quot;$(SolutionDir)libcnary\include&quot;;&quot;$(SolutionDir)vendors\include&quot;;&quot;$(SolutionDir)libxml2\include&quot;;&quot;$(SolutionDir)libxml2\src&quot;;&quot;$(SolutionDir)libiconv\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;plist_EXPORTS;POLYFUN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -66,7 +66,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libxml2.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(ProjectDir)..\libimobiledevice-windows\lib\$(PlatformName)"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\$(PlatformName)"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -91,7 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="if exist &quot;C:\Program Files (x86)\Calibre\DLLs&quot; xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Calibre\DLLs&quot; /Y /R&#x0D;&#x0A;if exist &quot;C:\Program Files (x86)\Calibre\DLLs&quot; xcopy &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;C:\Program Files (x86)\Calibre\DLLs&quot; /Y /R"
+				CommandLine="if exist &quot;C:\Program Files (x86)\Calibre\DLLs&quot; xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Calibre\DLLs&quot; /Y /R"
 			/>
 		</Configuration>
 		<Configuration
@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(ProjectDir)include;$(ProjectDir)..\libimobiledevice-windows\libcnary\include;$(ProjectDir)..\libimobiledevice-windows\vendors\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\src;$(ProjectDir)..\libimobiledevice-windows\libiconv\include;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)include&quot;;&quot;$(SolutionDir)libcnary\include&quot;;&quot;$(SolutionDir)vendors\include&quot;;&quot;$(SolutionDir)libxml2\include&quot;;&quot;$(SolutionDir)libxml2\src&quot;;&quot;$(SolutionDir)libiconv\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;plist_EXPORTS;POLYFUN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -142,7 +142,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libxml2.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(ProjectDir)..\libimobiledevice-windows\lib\$(PlatformName)"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\$(PlatformName)"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="17"
@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="if exist &quot;C:\Program Files\Calibre\DLLs&quot; xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files\Calibre\DLLs&quot; /Y /R&#x0D;&#x0A;if exist &quot;C:\Program Files\Calibre\DLLs&quot; xcopy &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;C:\Program Files\Calibre\DLLs&quot; /Y /R"
+				CommandLine="if exist &quot;C:\Program Files\Calibre\DLLs&quot; xcopy &quot;$(TargetPath)&quot; &quot;C:\Program Files\Calibre\DLLs&quot; /Y /R"
 			/>
 		</Configuration>
 		<Configuration
@@ -197,7 +197,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(ProjectDir)include;$(ProjectDir)..\libimobiledevice-windows\libcnary\include;$(ProjectDir)..\libimobiledevice-windows\vendors\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\src;$(ProjectDir)..\libimobiledevice-windows\libiconv\include;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)include&quot;;&quot;$(SolutionDir)libcnary\include&quot;;&quot;$(SolutionDir)vendors\include&quot;;&quot;$(SolutionDir)libxml2\include&quot;;&quot;$(SolutionDir)libxml2\src&quot;;&quot;$(SolutionDir)libiconv\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;plist_EXPORTS;POLYFUN"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -218,7 +218,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libxml2.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(ProjectDir)..\libimobiledevice-windows\lib\$(PlatformName)"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\$(PlatformName)"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -275,7 +275,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(ProjectDir)include;$(ProjectDir)..\libimobiledevice-windows\libcnary\include;$(ProjectDir)..\libimobiledevice-windows\vendors\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\include;$(ProjectDir)..\libimobiledevice-windows\libxml2\src;$(ProjectDir)..\libimobiledevice-windows\libiconv\include;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)include&quot;;&quot;$(SolutionDir)libcnary\include&quot;;&quot;$(SolutionDir)vendors\include&quot;;&quot;$(SolutionDir)libxml2\include&quot;;&quot;$(SolutionDir)libxml2\src&quot;;&quot;$(SolutionDir)libiconv\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;plist_EXPORTS;POLYFUN"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -296,7 +296,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libxml2.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(ProjectDir)..\libimobiledevice-windows\lib\$(PlatformName)"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\$(PlatformName)"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
