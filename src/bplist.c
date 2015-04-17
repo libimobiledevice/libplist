@@ -41,6 +41,12 @@
 #include <node.h>
 #include <node_iterator.h>
 
+#ifndef _MSC_VER
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#else
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop) )
+#endif
+
 /* Magic marker and size. */
 #define BPLIST_MAGIC            ((uint8_t*)"bplist")
 #define BPLIST_MAGIC_SIZE       6
@@ -48,14 +54,14 @@
 #define BPLIST_VERSION          ((uint8_t*)"00")
 #define BPLIST_VERSION_SIZE     2
 
-typedef struct __attribute__((packed)) {
+PACK(typedef struct {
     uint8_t unused[6];
     uint8_t offset_size;
     uint8_t ref_size;
     uint64_t num_objects;
     uint64_t root_object_index;
     uint64_t offset_table_offset;
-} bplist_trailer_t;
+}) bplist_trailer_t;
 
 enum
 {
@@ -86,6 +92,28 @@ union plist_uint_ptr
     uint64_t *u64ptr;
 };
 
+#ifdef _MSC_VER
+uint64_t get_unaligned_64(uint64_t *ptr)
+{
+	uint64_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
+}
+
+uint32_t get_unaligned_32(uint32_t *ptr)
+{
+	uint32_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
+}
+
+uint16_t get_unaligned_16(uint16_t *ptr)
+{
+	uint16_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
+}
+#else
 #define get_unaligned(ptr)			  \
   ({                                              \
     struct __attribute__((packed)) {		  \
@@ -93,7 +121,7 @@ union plist_uint_ptr
     } *__p = (void *) (ptr);			  \
     __p->__v;					  \
   })
-
+#endif
 
 #ifndef bswap16
 #define bswap16(x)   ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
@@ -147,6 +175,20 @@ union plist_uint_ptr
 #define beNtoh(x,n) be64toh(x << ((8-n) << 3))
 #endif
 
+#ifdef _MSC_VER
+uint64_t UINT_TO_HOST(void* x, uint8_t n)
+{
+		union plist_uint_ptr __up;
+		// Adding to void* is a GCC extension, see http://gcc.gnu.org/onlinedocs/gcc-4.8.0/gcc/Pointer-Arith.html
+		__up.src = (n > 8) ? (char *)x + (n - 8) : x;
+		return (n >= 8 ? be64toh( get_unaligned_64(__up.u64ptr) ) :
+		(n == 4 ? be32toh( get_unaligned_32(__up.u32ptr) ) :
+		(n == 2 ? be16toh( get_unaligned_16(__up.u16ptr) ) :
+                (n == 1 ? *__up.u8ptr :
+		beNtoh( get_unaligned_64(__up.u64ptr), n)
+		))));
+}
+#else
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
@@ -158,6 +200,7 @@ union plist_uint_ptr
 		beNtoh( get_unaligned(__up.u64ptr), n) \
 		)))); \
 	})
+#endif
 
 #define get_needed_bytes(x) \
 		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
