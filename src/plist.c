@@ -38,7 +38,7 @@ plist_data_t plist_get_data(const plist_t node)
 {
     if (!node)
         return NULL;
-    return ((node_t*)node)->data;
+    return (plist_data_t)((node_t*)node)->data;
 }
 
 plist_data_t plist_new_plist_data(void)
