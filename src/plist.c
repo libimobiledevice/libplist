@@ -31,7 +31,7 @@
 
 plist_t plist_new_node(plist_data_t data)
 {
-    return (plist_t) node_create(NULL, data);
+    return (plist_t)node_create(NULL, data);
 }
 
 plist_data_t plist_get_data(const plist_t node)
@@ -43,7 +43,7 @@ plist_data_t plist_get_data(const plist_t node)
 
 plist_data_t plist_new_plist_data(void)
 {
-    plist_data_t data = (plist_data_t) calloc(sizeof(struct plist_data_s), 1);
+    plist_data_t data = (plist_data_t)calloc(sizeof(struct plist_data_s), 1);
     return data;
 }
 
@@ -160,7 +160,7 @@ PLIST_API plist_t plist_new_data(const char *val, uint64_t length)
 {
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_DATA;
-    data->buff = (uint8_t *) malloc(length);
+    data->buff = (uint8_t *)malloc(length);
     memcpy(data->buff, val, length);
     data->length = length;
     return plist_new_node(data);
@@ -180,7 +180,7 @@ PLIST_API void plist_free(plist_t plist)
 {
     if (plist)
     {
-        plist_free_node(plist);
+        plist_free_node((node_t*)plist);
     }
 }
 
@@ -201,12 +201,12 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
         switch (node_type)
         {
         case PLIST_DATA:
-            newdata->buff = (uint8_t *) malloc(data->length);
+            newdata->buff = (uint8_t *)malloc(data->length);
             memcpy(newdata->buff, data->buff, data->length);
             break;
         case PLIST_KEY:
         case PLIST_STRING:
-            newdata->strval = strdup((char *) data->strval);
+            newdata->strval = strdup((char *)data->strval);
             break;
         default:
             break;
@@ -216,7 +216,7 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
 
     if (*(plist_t*)parent_node_ptr)
     {
-        node_attach(*(plist_t*)parent_node_ptr, newnode);
+        node_attach((node_t*)(*(plist_t*)parent_node_ptr), (node_t*)newnode);
     }
     else
     {
@@ -234,7 +234,7 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
 PLIST_API plist_t plist_copy(plist_t node)
 {
     plist_t copied = NULL;
-    plist_copy_node(node, &copied);
+    plist_copy_node((node_t*)node, &copied);
     return copied;
 }
 
@@ -243,7 +243,7 @@ PLIST_API uint32_t plist_array_get_size(plist_t node)
     uint32_t ret = 0;
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        ret = node_n_children(node);
+        ret = node_n_children((node_t*)node);
     }
     return ret;
 }
@@ -253,7 +253,7 @@ PLIST_API plist_t plist_array_get_item(plist_t node, uint32_t n)
     plist_t ret = NULL;
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        ret = (plist_t)node_nth_child(node, n);
+        ret = (plist_t)node_nth_child((node_t*)node, n);
     }
     return ret;
 }
@@ -263,7 +263,7 @@ PLIST_API uint32_t plist_array_get_item_index(plist_t node)
     plist_t father = plist_get_parent(node);
     if (PLIST_ARRAY == plist_get_node_type(father))
     {
-        return node_child_position(father, node);
+        return node_child_position((node_t*)father, (node_t*)node);
     }
     return 0;
 }
@@ -275,12 +275,13 @@ PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
         plist_t old_item = plist_array_get_item(node, n);
         if (old_item)
         {
-            int idx = plist_free_node(old_item);
-	    if (idx < 0) {
-		node_attach(node, item);
-	    } else {
-		node_insert(node, idx, item);
-	    }
+            int idx = plist_free_node((node_t*)old_item);
+            if (idx < 0) {
+                node_attach((node_t*)node, (node_t*)item);
+            }
+            else {
+                node_insert((node_t*)node, idx, (node_t*)item);
+            }
         }
     }
     return;
@@ -290,7 +291,7 @@ PLIST_API void plist_array_append_item(plist_t node, plist_t item)
 {
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        node_attach(node, item);
+        node_attach((node_t*)node, (node_t*)item);
     }
     return;
 }
@@ -299,7 +300,7 @@ PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n)
 {
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
-        node_insert(node, n, item);
+        node_insert((node_t*)node, n, (node_t*)item);
     }
     return;
 }
@@ -322,7 +323,7 @@ PLIST_API uint32_t plist_dict_get_size(plist_t node)
     uint32_t ret = 0;
     if (node && PLIST_DICT == plist_get_node_type(node))
     {
-        ret = node_n_children(node) / 2;
+        ret = node_n_children((node_t*)node) / 2;
     }
     return ret;
 }
@@ -339,7 +340,7 @@ PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 
 PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val)
 {
-    uint32_t* iter_int = (uint32_t*) iter;
+    uint32_t* iter_int = (uint32_t*)iter;
 
     if (key)
     {
@@ -350,17 +351,17 @@ PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **k
         *val = NULL;
     }
 
-    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_int < node_n_children(node))
+    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_int < node_n_children((node_t*)node))
     {
 
         if (key)
         {
-            plist_get_key_val((plist_t)node_nth_child(node, *iter_int), key);
+            plist_get_key_val((plist_t)node_nth_child((node_t*)node, *iter_int), key);
         }
 
         if (val)
         {
-            *val = (plist_t) node_nth_child(node, *iter_int + 1);
+            *val = (plist_t)node_nth_child((node_t*)node, *iter_int + 1);
         }
 
         *iter_int += 2;
@@ -373,7 +374,7 @@ PLIST_API void plist_dict_get_item_key(plist_t node, char **key)
     plist_t father = plist_get_parent(node);
     if (PLIST_DICT == plist_get_node_type(father))
     {
-        plist_get_key_val( (plist_t) node_prev_sibling(node), key);
+        plist_get_key_val((plist_t)node_prev_sibling((node_t*)node), key);
     }
 }
 
@@ -385,17 +386,17 @@ PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key)
     {
 
         plist_t current = NULL;
-        for (current = (plist_t)node_first_child(node);
-                current;
-                current = (plist_t)node_next_sibling(node_next_sibling(current)))
+        for (current = (plist_t)node_first_child((node_t*)node);
+            current;
+            current = (plist_t)node_next_sibling(node_next_sibling((node_t*)current)))
         {
 
             plist_data_t data = plist_get_data(current);
-            assert( PLIST_KEY == plist_get_node_type(current) );
+            assert(PLIST_KEY == plist_get_node_type(current));
 
             if (data && !strcmp(key, data->strval))
             {
-                ret = (plist_t)node_next_sibling(current);
+                ret = (plist_t)node_next_sibling((node_t*)current);
                 break;
             }
         }
@@ -406,17 +407,19 @@ PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key)
 PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
     if (node && PLIST_DICT == plist_get_node_type(node)) {
-        node_t* old_item = plist_dict_get_item(node, key);
+        node_t* old_item = (node_t*)plist_dict_get_item(node, key);
         if (old_item) {
             int idx = plist_free_node(old_item);
             if (idx < 0) {
-                node_attach(node, item);
-            } else {
-                node_insert(node, idx, item);
+                node_attach((node_t*)node, (node_t*)item);
             }
-        } else {
-            node_attach(node, plist_new_key(key));
-            node_attach(node, item);
+            else {
+                node_insert((node_t*)node, idx, (node_t*)item);
+            }
+        }
+        else {
+            node_attach((node_t*)node, (node_t*)plist_new_key(key));
+            node_attach((node_t*)node, (node_t*)item);
         }
     }
     return;
@@ -434,7 +437,7 @@ PLIST_API void plist_dict_remove_item(plist_t node, const char* key)
         plist_t old_item = plist_dict_get_item(node, key);
         if (old_item)
         {
-            plist_t key_node = node_prev_sibling(old_item);
+            plist_t key_node = node_prev_sibling((node_t*)old_item);
             plist_free(key_node);
             plist_free(old_item);
         }
@@ -444,26 +447,26 @@ PLIST_API void plist_dict_remove_item(plist_t node, const char* key)
 
 PLIST_API void plist_dict_merge(plist_t *target, plist_t source)
 {
-	if (!target || !*target || (plist_get_node_type(*target) != PLIST_DICT) || !source || (plist_get_node_type(source) != PLIST_DICT))
-		return;
+    if (!target || !*target || (plist_get_node_type(*target) != PLIST_DICT) || !source || (plist_get_node_type(source) != PLIST_DICT))
+        return;
 
-	char* key = NULL;
-	plist_dict_iter it = NULL;
-	plist_t subnode = NULL;
-	plist_dict_new_iter(source, &it);
-	if (!it)
-		return;
+    char* key = NULL;
+    plist_dict_iter it = NULL;
+    plist_t subnode = NULL;
+    plist_dict_new_iter(source, &it);
+    if (!it)
+        return;
 
-	do {
-		plist_dict_next_item(source, it, &key, &subnode);
-		if (!key)
-			break;
+    do {
+        plist_dict_next_item(source, it, &key, &subnode);
+        if (!key)
+            break;
 
-		plist_dict_set_item(*target, key, plist_copy(subnode));
-		free(key);
-		key = NULL;
-	} while (1);
-	free(it);	
+        plist_dict_set_item(*target, key, plist_copy(subnode));
+        free(key);
+        key = NULL;
+    } while (1);
+    free(it);
 }
 
 PLIST_API plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
@@ -516,22 +519,22 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
     switch (*type)
     {
     case PLIST_BOOLEAN:
-        *((char *) value) = data->boolval;
+        *((char *)value) = data->boolval;
         break;
     case PLIST_UINT:
     case PLIST_UID:
-        *((uint64_t *) value) = data->intval;
+        *((uint64_t *)value) = data->intval;
         break;
     case PLIST_REAL:
-        *((double *) value) = data->realval;
+        *((double *)value) = data->realval;
         break;
     case PLIST_KEY:
     case PLIST_STRING:
-        *((char **) value) = strdup(data->strval);
+        *((char **)value) = strdup(data->strval);
         break;
     case PLIST_DATA:
-        *((uint8_t **) value) = (uint8_t *) malloc(*length * sizeof(uint8_t));
-        memcpy(*((uint8_t **) value), data->buff, *length * sizeof(uint8_t));
+        *((uint8_t **)value) = (uint8_t *)malloc(*length * sizeof(uint8_t));
+        memcpy(*((uint8_t **)value), data->buff, *length * sizeof(uint8_t));
         break;
     case PLIST_DATE:
         //exception : here we use memory on the stack since it is just a temporary buffer
@@ -547,7 +550,7 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
 
 PLIST_API plist_t plist_get_parent(plist_t node)
 {
-    return node ? (plist_t) ((node_t*) node)->parent : NULL;
+    return node ? (plist_t)((node_t*)node)->parent : NULL;
 }
 
 PLIST_API plist_type plist_get_node_type(plist_t node)
@@ -566,7 +569,7 @@ PLIST_API void plist_get_key_val(plist_t node, char **val)
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     if (PLIST_KEY == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+        plist_get_type_and_value(node, &type, (void *)val, &length);
     assert(length == strlen(*val));
 }
 
@@ -575,7 +578,7 @@ PLIST_API void plist_get_string_val(plist_t node, char **val)
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     if (PLIST_STRING == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+        plist_get_type_and_value(node, &type, (void *)val, &length);
     assert(length == strlen(*val));
 }
 
@@ -584,7 +587,7 @@ PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val)
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     if (PLIST_BOOLEAN == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+        plist_get_type_and_value(node, &type, (void *)val, &length);
     assert(length == sizeof(uint8_t));
 }
 
@@ -593,7 +596,7 @@ PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val)
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     if (PLIST_UINT == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+        plist_get_type_and_value(node, &type, (void *)val, &length);
     assert(length == sizeof(uint64_t));
 }
 
@@ -602,7 +605,7 @@ PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val)
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     if (PLIST_UID == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+        plist_get_type_and_value(node, &type, (void *)val, &length);
     assert(length == sizeof(uint64_t));
 }
 
@@ -611,7 +614,7 @@ PLIST_API void plist_get_real_val(plist_t node, double *val)
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     if (PLIST_REAL == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+        plist_get_type_and_value(node, &type, (void *)val, &length);
     assert(length == sizeof(double));
 }
 
@@ -619,7 +622,7 @@ PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length)
 {
     plist_type type = plist_get_node_type(node);
     if (PLIST_DATA == type)
-        plist_get_type_and_value(node, &type, (void *) val, length);
+        plist_get_type_and_value(node, &type, (void *)val, length);
 }
 
 PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
@@ -628,7 +631,7 @@ PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     uint64_t length = 0;
     struct timeval val = { 0, 0 };
     if (PLIST_DATE == type)
-        plist_get_type_and_value(node, &type, (void *) &val, &length);
+        plist_get_type_and_value(node, &type, (void *)&val, &length);
     assert(length == sizeof(struct timeval));
     *sec = val.tv_sec;
     *usec = val.tv_usec;
@@ -642,11 +645,11 @@ int plist_data_compare(const void *a, const void *b)
     if (!a || !b)
         return FALSE;
 
-    if (!((node_t*) a)->data || !((node_t*) b)->data)
+    if (!((node_t*)a)->data || !((node_t*)b)->data)
         return FALSE;
 
-    val_a = plist_get_data((plist_t) a);
-    val_b = plist_get_data((plist_t) b);
+    val_a = plist_get_data((plist_t)a);
+    val_b = plist_get_data((plist_t)b);
 
     if (val_a->type != val_b->type)
         return FALSE;
@@ -729,21 +732,21 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     switch (type)
     {
     case PLIST_BOOLEAN:
-        data->boolval = *((char *) value);
+        data->boolval = *((char *)value);
         break;
     case PLIST_UINT:
     case PLIST_UID:
-        data->intval = *((uint64_t *) value);
+        data->intval = *((uint64_t *)value);
         break;
     case PLIST_REAL:
-        data->realval = *((double *) value);
+        data->realval = *((double *)value);
         break;
     case PLIST_KEY:
     case PLIST_STRING:
-        data->strval = strdup((char *) value);
+        data->strval = strdup((char *)value);
         break;
     case PLIST_DATA:
-        data->buff = (uint8_t *) malloc(length);
+        data->buff = (uint8_t *)malloc(length);
         memcpy(data->buff, value, length);
         break;
     case PLIST_DATE:
