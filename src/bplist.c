@@ -240,7 +240,7 @@ static plist_t parse_real_node(char *bnode, uint8_t size)
     uint8_t* buf;
 
     size = 1 << size;			// make length less misleading
-    buf = malloc (size);
+    buf = (uint8_t*)malloc (size);
     memcpy (buf, bnode, size);
     switch (size)
     {
@@ -686,17 +686,17 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
                     // is node already attached?
                     if (NODE_IS_ROOT(nodeslist[index1])) {
                         // use original
-                        n = nodeslist[index1];
+                        n = (node_t*)nodeslist[index1];
                     } else {
                         // use a copy, because this node is already attached elsewhere
-                        n = node_copy_deep(nodeslist[index1], copy_plist_data);
+                        n = node_copy_deep((node_t*)nodeslist[index1], copy_plist_data);
                     }
 
                     // enforce key type
                     plist_get_data(n)->type = PLIST_KEY;
 
                     // attach key node
-                    node_attach(nodeslist[i], n);
+                    node_attach((node_t*)nodeslist[i], n);
                 }
 
                 // process value node
@@ -705,10 +705,10 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
                     // is node already attached?
                     if (NODE_IS_ROOT(nodeslist[index2])) {
                         // use original
-                        n = nodeslist[index2];
+                        n = (node_t*)nodeslist[index2];
                     } else {
                         // use a copy, because this node is already attached elsewhere
-                        n = node_copy_deep(nodeslist[index2], copy_plist_data);
+                        n = node_copy_deep((node_t*)nodeslist[index2], copy_plist_data);
 
                         // ensure key type is never used for values, especially if we copy a key node
                         if (plist_get_data(n)->type == PLIST_KEY) {
@@ -717,7 +717,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
                     }
 
                     // attach value node
-                    node_attach(nodeslist[i], n);
+                    node_attach((node_t*)nodeslist[i], n);
                 }
             }
 
@@ -733,9 +733,9 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
                 if (index1 < num_objects)
                 {
                     if (NODE_IS_ROOT(nodeslist[index1]))
-                        node_attach(nodeslist[i], nodeslist[index1]);
+                        node_attach((node_t*)nodeslist[i], (node_t*)nodeslist[index1]);
                     else
-                        node_attach(nodeslist[i], node_copy_deep(nodeslist[index1], copy_plist_data));
+                        node_attach((node_t*)nodeslist[i], node_copy_deep((node_t*)nodeslist[index1], copy_plist_data));
                 }
             }
             free(data->buff);
@@ -1156,7 +1156,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //serialize plist
     ser_s.objects = objects;
     ser_s.ref_table = ref_table;
-    serialize_plist(plist, &ser_s);
+    serialize_plist((node_t*)plist, &ser_s);
 
     //now stream to output buffer
     offset_size = 0;			//unknown yet
@@ -1219,10 +1219,10 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         case PLIST_DATA:
             write_data(bplist_buff, data->buff, data->length);
         case PLIST_ARRAY:
-            write_array(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
+            write_array(bplist_buff, (node_t*)ptr_array_index(objects, i), ref_table, dict_param_size);
             break;
         case PLIST_DICT:
-            write_dict(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
+            write_dict(bplist_buff, (node_t*)ptr_array_index(objects, i), ref_table, dict_param_size);
             break;
         case PLIST_DATE:
             write_date(bplist_buff, data->timeval.tv_sec + (double) data->timeval.tv_usec / 1000000);
