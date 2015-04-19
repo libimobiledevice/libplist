@@ -1,0 +1,63 @@
+configurations {
+    Toolset { 
+        key : "PlatformToolset"; 
+        choices: { v140 };  
+        // Explicitly Not including pivot variants:  "WindowsKernelModeDriver8.0", "WindowsApplicationForDrivers8.0", "WindowsUserModeDriver8.0" 
+
+        // We're normalizing out the concept of the v140 platform -- Overloading the $(PlatformToolset) variable for additional pivots was a dumb idea.
+        v140.condition = "( $(PlatformToolset.ToLower().IndexOf('v140')) > -1 Or '$(PlatformToolset.ToLower())' == 'windowskernelmodedriver8.0' Or '$(PlatformToolset.ToLower())' == 'windowsapplicationfordrivers8.0' Or '$(PlatformToolset.ToLower())' == 'windowsusermodedriver8.0' )";
+    };
+}
+
+nuget{
+    nuspec{
+        id = libplist;
+        version : 1.12.{build};
+        title: libplist;
+        authors: {libimobiledevice Project};
+        owners: {quamotion};
+        licenseUrl: "http://opensource.org/licenses/LGPL-2.1";
+        projectUrl: "http://www.libimobiledevice.org/";
+        iconUrl: "http://www.nuget.org/Content/Images/packageDefaultIcon-50x50.png";
+        requireLicenseAcceptance:false;
+        description: "A small portable C library to handle Apple Property List files in binary or XML.";
+        summary: "A small portable C library to handle Apple Property List files in binary or XML.";
+        copyright: Copyright 2013;
+        releaseNotes: "Release 1.12 of libplist. See https://github.com/libimobiledevice-win32/libplist/tree/msvc-1.12 for more.";
+        tags: { libplist, libimobiledevice, native };
+    }
+
+    dependencies {
+        packages : {
+            libiconv/1.14.0.11
+        };
+    }
+
+    files{ 
+		includeplist: {
+			#destination = ${d_include}plist;
+			"include\plist\*.h";
+		}
+
+	[x86,v140,debug] {
+            lib: { "Win32\Debug\libplist.lib" };
+            symbols: Win32\Debug\libplist.pdb;
+            bin: Win32\Release\plistutil.exe;
+        }
+	[x64,v140,debug] {
+            lib: { "x64\Debug\libplist.lib" };
+            symbols: x64\Debug\libplist.pdb;
+            bin: x64\Debug\plistutil.exe;
+        }
+	[x86,v140,release] {
+            lib: { "Win32\Release\libplist.lib" };
+            symbols: Win32\Release\libplist.pdb;
+            bin: Win32\Release\plistutil.exe;
+        }
+	[x64,v140,release] {
+            lib: { "x64\Release\libplist.lib" };
+            symbols: x64\Release\libplist.pdb;
+            bin: x64\Release\plistutil.exe;
+        }
+    }
+}
