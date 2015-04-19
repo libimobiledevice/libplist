@@ -25,6 +25,10 @@
 #include <config.h>
 #endif
 
+#ifdef _MSC_VER
+#include "msc_config.h"
+#endif
+
 #ifdef HAVE_STRPTIME
 #define _XOPEN_SOURCE 600
 #endif
