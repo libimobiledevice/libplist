@@ -21,6 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef _MSC_VER
+#include "msc_config.h"
+#endif
 
 #include <string.h>
 #include <assert.h>
