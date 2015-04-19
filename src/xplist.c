@@ -21,6 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef _MSC_VER
+#include "msc_config.h"
+#endif
 
 #include <string.h>
 #include <assert.h>
@@ -358,7 +361,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         data = plist_new_plist_data();
         subnode = plist_new_node(data);
         if (*plist_node)
-            node_attach(*plist_node, subnode);
+			node_attach((node_t*)*plist_node, (node_t*)subnode);
         else
             *plist_node = subnode;
 
@@ -537,7 +540,7 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     if (saved_locale) {
         setlocale(LC_NUMERIC, "POSIX");
     }
-    node_to_xml(plist, &root);
+	node_to_xml((node_t*)plist, &root);
 
     xmlChar* tmp = NULL;
     xmlDocDumpMemory(plist_doc, &tmp, &size);
