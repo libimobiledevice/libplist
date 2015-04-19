@@ -39,6 +39,9 @@
 #include <sys/time.h>
 #endif
 
+#ifdef _MSC_VER
+  #define PLIST_API __declspec( dllexport )
+#else
 #ifdef WIN32
   #define PLIST_API __declspec( dllexport )
 #else
@@ -47,6 +50,7 @@
   #else
     #define PLIST_API
   #endif
+#endif
 #endif
 
 struct plist_data_s
