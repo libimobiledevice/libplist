@@ -1,0 +1,108 @@
+Source: libplist
+Section: libs
+Priority: optional
+Maintainer: gtkpod Maintainers <pkg-gtkpod-devel@lists.alioth.debian.org>
+Uploaders: Julien Lavergne <julien.lavergne@gmail.com>
+Standards-Version: 3.9.6
+Build-Depends: debhelper (>= 9.20120115~),
+               dpkg-dev (>= 1.16.1),
+               dh-autoreconf,
+               pkg-config,
+               cython,
+               python-all-dev (>= 2.6.6-3~),
+               doxygen,
+               chrpath
+X-Python-Version: >= 2.5
+Homepage: http://www.libimobiledevice.org/
+Vcs-Git: git://git.debian.org/git/pkg-gtkpod/packages/libplist.git -b debian
+Vcs-Browser: http://git.debian.org/?p=pkg-gtkpod/packages/libplist.git
+
+Package: libplist3
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Description: Library for handling Apple binary and XML property lists
+ libplist is a library for reading and writing the Apple binary and XML
+ property lists format. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+
+Package: libplist++3v5
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Conflicts: libplist++3
+Replaces: libplist++3
+Description: Library for handling Apple binary and XML property lists
+ libplist is a library for reading and writing the Apple binary and XML
+ property lists format. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+ .
+ This library is the C++ implementation of the libplist API.
+
+Package: libplist-dev
+Architecture: any
+Section: libdevel
+Depends: libplist3 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Library for handling Apple binary and XML property lists
+ libplist is a library for reading and writing the Apple binary and XML
+ property lists format. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+ .
+ This package contains the development files.
+
+Package: libplist++-dev
+Architecture: any
+Section: libdevel
+Depends: libplist++3v5 (= ${binary:Version}),
+         ${misc:Depends}
+Conflicts: libplist-dev (<= 0.13.2)
+Replaces: libplist-dev (<= 0.13.2)
+Description: Library for handling Apple binary and XML property lists
+ libplist is a library for reading and writing the Apple binary and XML
+ property lists format. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+ .
+ This package contains the development files of the liplist++0 library.
+
+Package: libplist-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: libplist3 (= ${binary:Version}),
+         libplist++3v5 (= ${binary:Version}),
+         ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Description: Library for handling Apple binary and XML property lists
+ libplist is a library for reading and writing the Apple binary and XML
+ property lists format. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+ .
+ This package contains the debugging symbols.
+
+Package: libplist-utils
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Apple property list converter
+ This package containt tools to convert Apple property list files from binary
+ to XML and vice-versa. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+
+Package: libplist-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends},
+         libjs-jquery
+Description: Library for handling Apple binary and XML property lists - docs
+ This package contains tools to convert Apple property list files from binary
+ to XML and vice-versa. It's part of the libimobiledevice stack, providing
+ access to iDevices (iPod, iPhone, iPad ...).
+ .
+ This package contains the documentation.

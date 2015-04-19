@@ -1,0 +1,3 @@
+usr/lib/*/libplist.so
+usr/include/plist/plist.h
+usr/lib/*/pkgconfig/libplist.pc

@@ -1,0 +1,51 @@
+dist: trusty
+
+matrix:
+  include:
+    - os: osx
+      env: TARGET=x86_64-apple-darwin RID=osx-x64 RUN_TESTS=yes CREATE_DEB=no
+    - os: linux
+      env: TARGET=x86_64-unknown-linux-gnu RID=linux-x64 RUN_TESTS=yes CREATE_DEB=yes
+
+language: c
+
+env:
+  global:
+  - CFLAGS=-fPIC
+
+addons:
+  apt:
+    packages:
+    - devscripts
+    - debhelper
+    - dh-autoreconf
+    - dput
+    - osc
+    - fakeroot
+
+before_install:
+- test -n $CC && unset CC
+
+install:
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then pip2 install --user azure-cli; fi
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then pip install --user azure-cli; fi
+
+script:
+- ./autogen.sh --prefix=$HOME/out --host=$TARGET --without-cython --enable-static=yes --enable-shared=no
+- make
+- if [[ "$RUN_TESTS" == "yes" ]]; then make check; fi
+
+after_success:
+- make install
+- tar -zcvf libplist-$RID.tar.gz -C $HOME/out .
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then az=$HOME/Library/Python/2.7/bin/az; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then az=$HOME/.local/bin/az; fi
+- $az storage blob upload -f libplist-$RID.tar.gz -c imobiledevice -n libplist-$RID-$LIBPLIST_VERSION_PREFIX-$TRAVIS_BUILD_NUMBER.tar.gz
+- if [[ "$CREATE_DEB" == "yes" ]]; then ./make-deb.sh bionic; fi
+- if [[ "$CREATE_DEB" == "yes" ]]; then ./make-deb.sh precise; fi
+- if [[ "$CREATE_DEB" == "yes" ]]; then ./make-deb.sh trusty; fi
+- if [[ "$CREATE_DEB" == "yes" ]]; then ./make-deb.sh xenial; fi
+- if [[ "$CREATE_DEB" == "yes" ]]; then ./make-rpm.sh; fi
+
+after_failure:
+- cat config.log

@@ -1,0 +1,446 @@
+libplist (1.13.102-0) trusty; urgency=medium
+
+  * Travis CI Build
+
+ -- Frederik Carlier <fcarlier@fcarlier-VirtualBox>  Thu, 20 Apr 2017 00:11:34 +0200
+
+libplist (1.13.101-0) UNRELEASED; urgency=medium
+
+  * Travis Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+  * Travis CI Build
+
+ -- Frederik Carlier <frederik.carlier@quamotion.mobi>  Wed, 19 Apr 2017 22:56:05 +0200
+
+libplist (1.12-3.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+
+  [ Steve Langasek ]
+  * Rename library packages for g++5 ABI transition. (Closes: #791155)
+
+ -- Simon McVittie <smcv@debian.org>  Wed, 26 Aug 2015 00:10:24 +0100
+
+libplist (1.12-3) unstable; urgency=medium
+
+  * Team upload
+  * [a2bf55a] Fix up libplist++3.symbols for uint64_t ambiguities.
+    Depending on arch, uint64_t can be either unsigned long or unsigned long
+    long.
+
+ -- Chow Loong Jin <hyperair@debian.org>  Tue, 02 Jun 2015 16:36:04 +0800
+
+libplist (1.12-2) unstable; urgency=low
+
+  * Team upload
+  * Reupload to unstable
+  * [eb09c93] Call dh_link without arguments as well.
+    Apparently, dh_link doesn't make the symlinks from the .links files when
+    called with arguments.
+
+ -- Chow Loong Jin <hyperair@debian.org>  Sun, 24 May 2015 11:09:00 +0800
+
+libplist (1.12-1) unstable; urgency=medium
+
+  * Team upload
+  * [7d22cff] Imported Upstream version 1.12
+  * [2b51b73] Rename packages for new ABI
+  * [51557d7] Update libplist3.symbols
+  * [63cc293] Update libplist++3.symbols
+  * [50d24a8] Drop 02-fix-endian.patch (upstreamed)
+  * [098bd08] Fix copyright-format 1.0 errors.
+    We need dedicated license paragraphs when more than one file paragraph uses
+    the same license.
+  * [8ffd5cc] Fix invalid-short-name-in-dep5-copyright
+  * [62c733e] Update Standards-Version to 3.9.6 (no change)
+
+ -- Chow Loong Jin <hyperair@debian.org>  Thu, 16 Oct 2014 02:24:42 +0800
+
+libplist (1.11-3) unstable; urgency=medium
+
+  * [516e84a] Patch to fix endian detection (Closes: #742673)
+  * [df245be] Fix typo in libplist-doc description (Closes: #732766)
+
+ -- Chow Loong Jin <hyperair@debian.org>  Sat, 29 Mar 2014 16:32:33 +0800
+
+libplist (1.11-2) unstable; urgency=medium
+
+  * Team upload
+  * [f625f06] Re-add .pxd file to python-plist.install.
+    Looks like it's needed by python-imobiledevice.
+
+ -- Chow Loong Jin <hyperair@debian.org>  Wed, 26 Mar 2014 01:13:54 +0800
+
+libplist (1.11-1) unstable; urgency=medium
+
+  * Team upload
+  * [02a25b6] Imported Upstream version 1.11
+  * [a308129] Adapt packaging to use autotools
+  * [1e2ef46] Bump Standards-Version to 3.9.5 (no changes required)
+  * [cbdbd1a] Drop 03-remove-rpath.patch.
+    We don't need a patch to avoid rpath linkage with the new autotools build
+    system.
+  * [608a31e] Refresh 01-libs.private.patch
+  * [c0e674f] Build-dep on pkg-config
+  * [a5f8276] Rename libplist and libplist++ for SONAME bump
+  * [47cb416] Drop libplist++2.shlibs
+  * [406fb90] Call dpkg-gensymbols with -c4
+  * [8490574] Update install files for SONAME change and drop .pxd
+  * [cc8efd7] Drop *.la and *.a prior to dh_install
+  * [6fa64b7] Update .symbols files
+
+ -- Chow Loong Jin <hyperair@debian.org>  Tue, 25 Mar 2014 00:14:29 +0800
+
+libplist (1.10-1) unstable; urgency=low
+
+  [ Julien Lavergne ]
+  * New upstream release (Closes: #706378)
+  * debian/rules:
+   - Remove workaround for moving plutil utils, since the name change
+     completely.
+  * debian/libplist++-dev.install:
+   - Install new files.
+  * debian/libplist1.symbols:
+   - Update symbols.
+  * debian/control:
+   - Update VCS fields.
+   - Update Standards-Version to 3.9.4.
+   - Remove dm-upload-allowed.
+  * debian/libplist++1.shlibs:
+   - Add a shlibs file, since symbols file is too unstable.
+
+  [ Chow Loong Jin ]
+  * debian/{control,rules}: Multiarchify things
+  * debian/control:
+    - Mark lib packages as multi-arch same
+    - Add dpkg-dev build-dep for default.mk include
+  * debian/libplist*1.install: Update paths in install files for multiarch
+  * debian/plistutils.manpages: Rename manpage to match binary rename
+  * debian/rules: Update LDFLAGS handling and drop CFLAGS override
+  * debian/lintian-overrides:
+    - Add lintian-overrides for hardening-no-fortify-functions
+
+ -- Chow Loong Jin <hyperair@debian.org>  Mon, 16 Sep 2013 06:15:15 +0800
+
+libplist (1.8-2) experimental; urgency=low
+
+  * debian/control:
+   - Replace build-depends on swig by cython, to enable python bindings made
+     by cython.
+   - Build-depends on debhelper (>= 9.20120417~) to fix hardening with cmake.
+   - Build-depends on chrpath.
+   - Update to Standards-Version: 3.9.3, no change needed.
+  * debian/python-plist.install:
+   - Update files installed by cython.
+  * debian/libplist++-dev.install:
+   - Remove the swig files.
+  * debian/rules:
+   - Remove files generated by swig.
+   - Remove rpath problem.
+   - Fix dh sequence order.
+  * debian/compat:
+   - Bump to 9.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Fri, 20 Jul 2012 22:32:15 +0200
+
+libplist (1.8-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Fri, 13 Jan 2012 20:52:44 +0100
+
+libplist (1.7-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/rules:
+   - Run tests on all arches. 
+  * debian/README.Debian:
+   - Remove, since tests suit runs on all arches.
+  * debian/copyright:
+   - Fix DEP5 format.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Mon, 10 Oct 2011 00:06:15 +0200
+
+libplist (1.6-2) unstable; urgency=medium
+
+  * debian/README.Debian :
+   - Add to mention supported archs.
+  * debian/rules:
+   - Only run the test suit on supported archs. (Closes: #633457).
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Sat, 23 Jul 2011 14:48:59 +0200
+
+libplist (1.6-1) unstable; urgency=low
+
+  * New upstream release.
+  * 04-Add-missing-include-cstddef-to-fix-FTBFS-with-GCC-4-6.patch:
+   - Remove, merged upstream.
+  * debian/control:
+   - Remove build-depends and depends of libglib2.0-dev.
+   - Add DM-Upload-Allowed: yes
+   - Build-depends on cmake (>= 2.8.4) for building the correct python
+     extension.
+  * debian/copyright:
+   - Update copyright holders.
+  * debian/libplist1.symbols:
+   - Add new symbols.
+  * debian/rules:
+   - Clean generated files by the tests (Closes: #632057)
+   - Build the correct python extension. Thanks Jakub Wilk for the patch.
+     (Closes: #632056)
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Sun, 03 Jul 2011 22:00:50 +0200
+
+libplist (1.4-2) unstable; urgency=low
+
+  * debian/control:
+   - Add references to iDevices and some examples.
+   - Update Maintainer field, and add me to Uploaders.
+   - Update Vcs-*.
+   - Update Homepage.
+   - Remove build-depends on python-support, to migrate to dh_python2.
+   - Bump build-depends on python-all-dev (>= 2.6.6-3~), for dh_python2
+     support.
+   - Use X-Python-Version for supported python version.
+   - Remove Provides.
+   - Depends on libplist++1 for libplist++-dev, instead of libplist1
+     (LP: #600338)
+   - Fix typo in description (Closes: #620864).
+   - Bump Standards-Version to 3.9.2 (no change needed).
+   - Add depends on libjs-jquery for libplist-doc.
+  * debian/python-plist.preinst:
+   - Remove after Squeeze release.
+  * debian/rules:
+   - Use dh --with python2.
+   - Parse only the default python version, we can only pass 1 version to
+     configure.
+   - Pass --no-guessing-versions to dh_python2 to build only with default
+     python version.
+  * debian/gbp.conf:
+   - Add.
+  * debian/patches/
+   - 04-Add-missing-include-cstddef-to-fix-FTBFS-with-GCC-4-6.patch:
+     From Ubuntu, Fix FTBFS with GCC 4.6 Closes: #624868, #624988, LP: #765982
+  * debian/libplist.links:
+   - Symlink jquery.js to the one available in Debian.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Mon, 02 May 2011 22:54:20 +0200
+
+libplist (1.4-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/rules:
+   - Remove additional CFLAGS to pass correct flags.
+   - Add additional LDFLAGS.
+   - Use filter instead of findstring to find noopt.
+   - Build and clean doxygen documentation.
+  * debian/libplist++1.symbols.amd64
+   - Removed, since symbols are too unstable and easily FTBFS the package.
+     Closes: #605846, #615661, #618150
+  * Set urgency to medium to fix RC bug.
+  * debian/watch:
+   - Update location of the tarballs.
+  * debian/docs
+   - Add general documentation files.
+  * debian/copyright:
+   - Update to DEP5 format.
+  * debian/01-libs.private.patch:
+   - Update.
+  * debian/libplist-doc.doc-base & debian/libplist.install:
+   - Install libplist documentation.
+  * debian/control:
+   - Build-depends on doxygen for documentation support.
+   - Add libplist-doc binary.
+   - Replace references to libiphone by libimobiledevice.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Mon, 21 Mar 2011 17:36:21 +0100
+
+libplist (1.3-2) unstable; urgency=low
+
+  * debian/rules:
+   - Run the test suit for all arches.
+   - Pass -g to CFLAGS (Closes: #579119).
+  * debian/README.Debian:
+   - Remove since we run the test suit on all arches.
+  * debian/watch:
+   - Fix the detection of the version, thanks Paul McEnery.
+  * debian/control:
+   - Wrap build-depends and depends.
+   - Bump Standards-Version to 3.9.1.0, no changes needed.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Mon, 08 Nov 2010 01:24:15 +0100
+
+libplist (1.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/patches/
+   - 04-ftbfs-armel.patch: Remove, merged upstream.
+   - 05-plist_endian+align_fixes.patch: Remove, merged upstream.
+  * debian/rules: Add DH_VERBOSE=1 to add verbosity when necessary.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Mon, 24 May 2010 23:04:10 +0200
+
+libplist (1.2-3) unstable; urgency=medium
+
+  * debian/patches/05-plist_endian+align_fixes.patch: Endianness, alignment and
+    type-punning fixes for binary plist support. Thanks Julien BLACHE for the
+    patch. (Closes: #570580).
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Sat, 10 Apr 2010 18:19:34 +0200
+
+libplist (1.2-2) unstable; urgency=low
+
+  * debian/rules: Really make the test suit fatal only on supported arches.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Wed, 07 Apr 2010 23:38:09 +0200
+
+libplist (1.2-1) unstable; urgency=low
+
+  * New upstream release (Closes: #568131)
+  * debian/watch: update with githubredir.debian.net
+  * debian/patches :
+   - 02-fix-test.patch: merged upstream.
+   - 04-ftbfs-armel.patch: from Ubuntu, fix FTBFS for armel. Thanks Alexander
+     Sack for the patch. (Closes: #574623)
+  * debian/control: Bump Standards-Version to 3.8.4, no changes needed.
+  * debian/rules: Make the test suit fatal on supported arches.
+  * Switch to dpkg-source 3.0 (quilt) format.
+   - debian/control: Remove quilt build-depends.
+   - debian/rules: Remove --with quilt.
+   - README.source: Remove.
+  * README.Debian: Add a note about the supported arches.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Sun, 21 Mar 2010 18:46:25 +0100
+
+libplist (1.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/rules 
+   - Rewrite to use dh7 and quilt.
+   - Remove -DCMAKE_SKIP_RPATH=true, tests won't work without it. RPATH will be
+     removed by patching upstream cmake system when it's needed.
+  * debian/control: 
+   - Build-depends on debhelper (>= 7.0.50~) and quilt (>= 0.46-7) for dh7 and
+     quilt support.
+   - Add VCS-* fields.
+  * debian/01-libs.private.patch: Use Requires.private in *.pc files to not add
+    unecessary links.
+  * debian/02-fix-test.patch: From upstream (54f1ffb0...), fix test suit.
+  * debian/03-remove-rpath.patch: Remove RPATH for python bindings.
+  * debian/README.source: Add for quilt support.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Mon, 18 Jan 2010 00:49:27 +0100
+
+libplist (1.0-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/libplist*.install & debian/control: Bump SONAME version. 
+  * debian/libpmist++-dev.install: Remove Utils.h, not shipped in the new 
+    version.
+  * debian/python-plist.install: Update to the new location.
+  * debian/*.symbols: Add symbols files.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Tue, 08 Dec 2009 20:43:56 +0100
+
+libplist (0.16-1) unstable; urgency=low
+
+  * Adopt the package. Thanks Bradley Smith for his work. (Closes: #548594)
+  * New upstream release (Closes: #557554).
+  * debian/control:
+   - Add libplist++{0,-dev} binaries for the new library.
+   - Bump Standards-Version to 3.8.3, no changes needed.
+   - Build-depends on python-all-dev
+   - Switch to python-support.
+   - Add Conflicts/Replace for -dev packages, some headers moved to the new 
+     library.
+   - Remove Vcs-* field.
+   - Bump minimum version of swig to >= 1.3.36
+   - Change name of the -dbg package, it contains debug symbols for the 2 
+     libraries.
+   - Avoid dupplicated Descriptions field.
+   - Add a more verbose extended description (Closes: #530590)
+  * debian/*.install: Reorganize with the new library.
+  * debian/python-plist.install
+   - Replace site-packages by *-packages for python 2.6 migration. 
+     (Closes: #557822)
+  * debian/rules & python-plist.preinst:
+   - Switch to python-support and remove previous installed files by 
+     python-central.
+  * debian/plist.1 & debian/libplist-utils.man: Add a man page for plist.
+
+ -- Julien Lavergne <julien.lavergne@gmail.com>  Sun, 22 Nov 2009 13:51:02 -0600
+
+libplist (0.13-2) unstable; urgency=low
+
+  * Orphan package.
+
+ -- Bradley Smith <bradsmith@debian.org>  Sun, 27 Sep 2009 14:56:07 +0100
+
+libplist (0.13-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Bradley Smith <bradsmith@debian.org>  Sun, 27 Sep 2009 14:43:59 +0100
+
+libplist (0.12-2) unstable; urgency=low
+
+  * Correctly install plutil. Closes: #531269.
+
+ -- Bradley Smith <bradsmith@debian.org>  Sun, 31 May 2009 11:06:53 +0100
+
+libplist (0.12-1) unstable; urgency=low
+
+  * New upstream release.
+  * Add watch file.
+
+ -- Bradley Smith <bradsmith@debian.org>  Tue, 12 May 2009 18:07:42 +0100
+
+libplist (0.10-1) experimental; urgency=low
+
+  * Initial release. Closes: #523926.
+
+ -- Bradley Smith <bradsmith@debian.org>  Mon, 13 Apr 2009 18:29:42 +0100

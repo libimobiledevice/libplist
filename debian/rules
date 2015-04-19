@@ -1,0 +1,61 @@
+#!/usr/bin/make -f
+#DH_VERBOSE=1
+
+include /usr/share/dpkg/default.mk
+
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+PYVER=$(shell pyversions -vd)
+
+%:
+	dh $@ --with python2,autoreconf
+
+override_dh_auto_configure:
+	dh_auto_configure -- PYTHON_VERSION=$(PYVER) --without-cython
+
+override_dh_auto_build:
+	dh_auto_build
+	doxygen doxygen.cfg
+
+override_dh_install:
+
+	# Remove files we won't install
+	rm -f $(CURDIR)/debian/tmp/usr/lib/*/*.la
+	rm -f $(CURDIR)/debian/tmp/usr/lib/*/*.a
+
+	dh_install --fail-missing
+
+manpage_name = plistutil-$(DEB_VERSION_UPSTREAM).1
+
+debian/$(manpage_name): debian/plistutil.1
+	cp $< $@
+
+override_dh_installman: debian/$(manpage_name)
+	dh_installman
+
+override_dh_link:
+	dh_link
+	dh_link -p libplist-utils /usr/share/man/man1/$(manpage_name).gz /usr/share/man/man1/plistutil.1.gz
+
+override_dh_python2:
+	# Only build for the current version of python, not all supported.
+	dh_python2 --no-guessing-versions
+
+override_dh_strip:
+	dh_strip --dbg-package=libplist-dbg
+
+override_dh_makeshlibs:
+	dh_makeshlibs -- -c4
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -Rf docs/
+	rm -f test/data/*.out
+
+#override_dh_auto_test:
+#Make the test suit fatal on supported arches (See README.Debian)
+#ifneq (,$(filter $(DEB_HOST_ARCH),amd64 i386 kfreebsd-amd64 kfreebsd-amd64))
+#	dh_auto_test
+#else
+#	dh_auto_test || true
+#endif

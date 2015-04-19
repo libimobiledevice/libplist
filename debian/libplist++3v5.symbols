@@ -1,0 +1,213 @@
+libplist++.so.3 libplist++3v5 #MINVER#
+# (c++)"PList::Dictionary::GetNodeKey[abi:cxx11](PList::Node*)@Base" 1.12
+# (c++)"PList::Dictionary::End[abi:cxx11]()@Base" 1.12
+# (c++)"PList::Dictionary::Begin[abi:cxx11]()@Base" 1.12
+# (c++)"PList::Key::GetValue[abi:cxx11]() const@Base" 1.12
+# (c++)"PList::String::GetValue[abi:cxx11]() const@Base" 1.12
+# (c++)"PList::Structure::ToXml[abi:cxx11]() const@Base" 1.12
+ (regex)"_ZN5PList10Dictionary10GetNodeKey.*EPNS_4NodeE@Base" 1.12
+ (regex)"_ZN5PList10Dictionary3End.*Ev@Base" 1.12
+ (regex)"_ZN5PList10Dictionary5Begin.*Ev@Base" 1.12
+ (regex)"_ZNK5PList3Key8GetValue.*Ev@Base" 1.12
+ (regex)"_ZNK5PList6String8GetValue.*Ev@Base" 1.12
+ (regex)"_ZNK5PList9Structure5ToXml.*Ev@Base" 1.12
+ (c++)"PList::Dictionary::Remove(PList::Node*)@Base" 1.12
+ (c++)"PList::Dictionary::Dictionary(PList::Node*)@Base" 1.12
+ (c++)"PList::Dictionary::Dictionary(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Dictionary::Dictionary(PList::Dictionary const&)@Base" 1.12
+ (c++)"PList::Dictionary::Dictionary(PList::Node*)@Base" 1.12
+ (c++)"PList::Dictionary::Dictionary(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Dictionary::Dictionary(PList::Dictionary const&)@Base" 1.12
+ (c++)"PList::Dictionary::~Dictionary()@Base" 1.12
+ (c++)"PList::Dictionary::~Dictionary()@Base" 1.12
+ (c++)"PList::Dictionary::~Dictionary()@Base" 1.12
+ (c++)"PList::Dictionary::operator=(PList::Dictionary&)@Base" 1.12
+ (c++)"PList::Key::Key(PList::Node*)@Base" 1.12
+ (c++)"PList::Key::Key(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Key::Key(PList::Key const&)@Base" 1.12
+ (c++)"PList::Key::Key(PList::Node*)@Base" 1.12
+ (c++)"PList::Key::Key(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Key::Key(PList::Key const&)@Base" 1.12
+ (c++)"PList::Key::~Key()@Base" 1.12
+ (c++)"PList::Key::~Key()@Base" 1.12
+ (c++)"PList::Key::~Key()@Base" 1.12
+ (c++)"PList::Key::operator=(PList::Key&)@Base" 1.12
+ (c++|regex)"PList::Uid::SetValue\(unsigned long( long)?\)@Base" 1.12
+ (c++)"PList::Uid::Uid(PList::Node*)@Base" 1.12
+ (c++)"PList::Uid::Uid(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Uid::Uid(PList::Uid const&)@Base" 1.12
+ (c++)"PList::Uid::Uid(PList::Node*)@Base" 1.12
+ (c++)"PList::Uid::Uid(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Uid::Uid(PList::Uid const&)@Base" 1.12
+ (c++|regex)"PList::Uid::Uid\(unsigned long( long)?\)@Base" 1.12
+ (c++)"PList::Uid::~Uid()@Base" 1.12
+ (c++)"PList::Uid::~Uid()@Base" 1.12
+ (c++)"PList::Uid::~Uid()@Base" 1.12
+ (c++)"PList::Uid::operator=(PList::Uid&)@Base" 1.12
+ (c++)"PList::Data::SetValue(std::vector<char, std::allocator<char> > const&)@Base" 1.12
+ (c++)"PList::Data::Data(PList::Node*)@Base" 1.12
+ (c++)"PList::Data::Data(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Data::Data(PList::Data const&)@Base" 1.12
+ (c++)"PList::Data::Data(std::vector<char, std::allocator<char> > const&)@Base" 1.12
+ (c++)"PList::Data::Data(PList::Node*)@Base" 1.12
+ (c++)"PList::Data::Data(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Data::Data(PList::Data const&)@Base" 1.12
+ (c++)"PList::Data::Data(std::vector<char, std::allocator<char> > const&)@Base" 1.12
+ (c++)"PList::Data::~Data()@Base" 1.12
+ (c++)"PList::Data::~Data()@Base" 1.12
+ (c++)"PList::Data::~Data()@Base" 1.12
+ (c++)"PList::Data::operator=(PList::Data&)@Base" 1.12
+ (c++)"PList::Date::SetValue(timeval)@Base" 1.12
+ (c++)"PList::Date::Date(timeval)@Base" 1.12
+ (c++)"PList::Date::Date(PList::Node*)@Base" 1.12
+ (c++)"PList::Date::Date(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Date::Date(PList::Date const&)@Base" 1.12
+ (c++)"PList::Date::Date(timeval)@Base" 1.12
+ (c++)"PList::Date::Date(PList::Node*)@Base" 1.12
+ (c++)"PList::Date::Date(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Date::Date(PList::Date const&)@Base" 1.12
+ (c++)"PList::Date::~Date()@Base" 1.12
+ (c++)"PList::Date::~Date()@Base" 1.12
+ (c++)"PList::Date::~Date()@Base" 1.12
+ (c++)"PList::Date::operator=(PList::Date&)@Base" 1.12
+ (c++)"PList::Node::FromPlist(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Node::Node(plist_type, PList::Node*)@Base" 1.12
+ (c++)"PList::Node::Node(PList::Node*)@Base" 1.12
+ (c++)"PList::Node::Node(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Node::Node(plist_type, PList::Node*)@Base" 1.12
+ (c++)"PList::Node::Node(PList::Node*)@Base" 1.12
+ (c++)"PList::Node::Node(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Node::~Node()@Base" 1.12
+ (c++)"PList::Node::~Node()@Base" 1.12
+ (c++)"PList::Node::~Node()@Base" 1.12
+ (c++)"PList::Real::SetValue(double)@Base" 1.12
+ (c++)"PList::Real::Real(PList::Node*)@Base" 1.12
+ (c++)"PList::Real::Real(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Real::Real(PList::Real const&)@Base" 1.12
+ (c++)"PList::Real::Real(double)@Base" 1.12
+ (c++)"PList::Real::Real(PList::Node*)@Base" 1.12
+ (c++)"PList::Real::Real(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Real::Real(PList::Real const&)@Base" 1.12
+ (c++)"PList::Real::Real(double)@Base" 1.12
+ (c++)"PList::Real::~Real()@Base" 1.12
+ (c++)"PList::Real::~Real()@Base" 1.12
+ (c++)"PList::Real::~Real()@Base" 1.12
+ (c++)"PList::Real::operator=(PList::Real&)@Base" 1.12
+ (c++)"PList::Array::Append(PList::Node*)@Base" 1.12
+ (c++)"PList::Array::Insert(PList::Node*, unsigned int)@Base" 1.12
+ (c++)"PList::Array::Remove(PList::Node*)@Base" 1.12
+ (c++)"PList::Array::Remove(unsigned int)@Base" 1.12
+ (c++)"PList::Array::Array(PList::Node*)@Base" 1.12
+ (c++)"PList::Array::Array(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Array::Array(PList::Array const&)@Base" 1.12
+ (c++)"PList::Array::Array(PList::Node*)@Base" 1.12
+ (c++)"PList::Array::Array(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Array::Array(PList::Array const&)@Base" 1.12
+ (c++)"PList::Array::~Array()@Base" 1.12
+ (c++)"PList::Array::~Array()@Base" 1.12
+ (c++)"PList::Array::~Array()@Base" 1.12
+ (c++)"PList::Array::operator=(PList::Array&)@Base" 1.12
+ (c++)"PList::Array::operator[](unsigned int)@Base" 1.12
+ (c++)"PList::String::String(PList::Node*)@Base" 1.12
+ (c++)"PList::String::String(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::String::String(PList::String const&)@Base" 1.12
+ (c++)"PList::String::String(PList::Node*)@Base" 1.12
+ (c++)"PList::String::String(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::String::String(PList::String const&)@Base" 1.12
+ (c++)"PList::String::~String()@Base" 1.12
+ (c++)"PList::String::~String()@Base" 1.12
+ (c++)"PList::String::~String()@Base" 1.12
+ (c++)"PList::String::operator=(PList::String&)@Base" 1.12
+ (c++)"PList::Boolean::SetValue(bool)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(PList::Node*)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(PList::Boolean const&)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(bool)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(PList::Node*)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(PList::Boolean const&)@Base" 1.12
+ (c++)"PList::Boolean::Boolean(bool)@Base" 1.12
+ (c++)"PList::Boolean::~Boolean()@Base" 1.12
+ (c++)"PList::Boolean::~Boolean()@Base" 1.12
+ (c++)"PList::Boolean::~Boolean()@Base" 1.12
+ (c++)"PList::Boolean::operator=(PList::Boolean&)@Base" 1.12
+ (c++|regex)"PList::Integer::SetValue\(unsigned long( long)?\)@Base" 1.12
+ (c++)"PList::Integer::Integer(PList::Node*)@Base" 1.12
+ (c++)"PList::Integer::Integer(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Integer::Integer(PList::Integer const&)@Base" 1.12
+ (c++)"PList::Integer::Integer(PList::Node*)@Base" 1.12
+ (c++)"PList::Integer::Integer(void*, PList::Node*)@Base" 1.12
+ (c++)"PList::Integer::Integer(PList::Integer const&)@Base" 1.12
+ (c++|regex)"PList::Integer::Integer\(unsigned long( long)?\)@Base" 1.12
+ (c++)"PList::Integer::~Integer()@Base" 1.12
+ (c++)"PList::Integer::~Integer()@Base" 1.12
+ (c++)"PList::Integer::~Integer()@Base" 1.12
+ (c++)"PList::Integer::operator=(PList::Integer&)@Base" 1.12
+ (c++)"PList::Structure::UpdateNodeParent(PList::Node*)@Base" 1.12
+ (c++)"PList::Structure::FromBin(std::vector<char, std::allocator<char> > const&)@Base" 1.12
+ (c++)"PList::Structure::Structure(plist_type, PList::Node*)@Base" 1.12
+ (c++)"PList::Structure::Structure(PList::Node*)@Base" 1.12
+ (c++)"PList::Structure::Structure(plist_type, PList::Node*)@Base" 1.12
+ (c++)"PList::Structure::Structure(PList::Node*)@Base" 1.12
+ (c++)"PList::Structure::~Structure()@Base" 1.12
+ (c++)"PList::Structure::~Structure()@Base" 1.12
+ (c++)"PList::Structure::~Structure()@Base" 1.12
+ (c++)"PList::Dictionary::Clone() const@Base" 1.12
+ (c++)"PList::Key::Clone() const@Base" 1.12
+ (c++)"PList::Uid::Clone() const@Base" 1.12
+ (c++)"PList::Uid::GetValue() const@Base" 1.12
+ (c++)"PList::Data::Clone() const@Base" 1.12
+ (c++)"PList::Data::GetValue() const@Base" 1.12
+ (c++)"PList::Date::Clone() const@Base" 1.12
+ (c++)"PList::Date::GetValue() const@Base" 1.12
+ (c++)"PList::Node::GetType() const@Base" 1.12
+ (c++)"PList::Node::GetPlist() const@Base" 1.12
+ (c++)"PList::Node::GetParent() const@Base" 1.12
+ (c++)"PList::Real::Clone() const@Base" 1.12
+ (c++)"PList::Real::GetValue() const@Base" 1.12
+ (c++)"PList::Array::GetNodeIndex(PList::Node*) const@Base" 1.12
+ (c++)"PList::Array::Clone() const@Base" 1.12
+ (c++)"PList::String::Clone() const@Base" 1.12
+ (c++)"PList::Boolean::Clone() const@Base" 1.12
+ (c++)"PList::Boolean::GetValue() const@Base" 1.12
+ (c++)"PList::Integer::Clone() const@Base" 1.12
+ (c++)"PList::Integer::GetValue() const@Base" 1.12
+ (c++)"PList::Structure::ToBin() const@Base" 1.12
+ (c++)"PList::Structure::GetSize() const@Base" 1.12
+ (c++|regex)"std::.*" 1.12+0xenial
+ (c++)"typeinfo for PList::Dictionary@Base" 1.12
+ (c++)"typeinfo for PList::Key@Base" 1.12
+ (c++)"typeinfo for PList::Uid@Base" 1.12
+ (c++)"typeinfo for PList::Data@Base" 1.12
+ (c++)"typeinfo for PList::Date@Base" 1.12
+ (c++)"typeinfo for PList::Node@Base" 1.12
+ (c++)"typeinfo for PList::Real@Base" 1.12
+ (c++)"typeinfo for PList::Array@Base" 1.12
+ (c++)"typeinfo for PList::String@Base" 1.12
+ (c++)"typeinfo for PList::Boolean@Base" 1.12
+ (c++)"typeinfo for PList::Integer@Base" 1.12
+ (c++)"typeinfo for PList::Structure@Base" 1.12
+ (c++)"typeinfo name for PList::Dictionary@Base" 1.12
+ (c++)"typeinfo name for PList::Key@Base" 1.12
+ (c++)"typeinfo name for PList::Uid@Base" 1.12
+ (c++)"typeinfo name for PList::Data@Base" 1.12
+ (c++)"typeinfo name for PList::Date@Base" 1.12
+ (c++)"typeinfo name for PList::Node@Base" 1.12
+ (c++)"typeinfo name for PList::Real@Base" 1.12
+ (c++)"typeinfo name for PList::Array@Base" 1.12
+ (c++)"typeinfo name for PList::String@Base" 1.12
+ (c++)"typeinfo name for PList::Boolean@Base" 1.12
+ (c++)"typeinfo name for PList::Integer@Base" 1.12
+ (c++)"typeinfo name for PList::Structure@Base" 1.12
+ (c++)"vtable for PList::Dictionary@Base" 1.12
+ (c++)"vtable for PList::Key@Base" 1.12
+ (c++)"vtable for PList::Uid@Base" 1.12
+ (c++)"vtable for PList::Data@Base" 1.12
+ (c++)"vtable for PList::Date@Base" 1.12
+ (c++)"vtable for PList::Node@Base" 1.12
+ (c++)"vtable for PList::Real@Base" 1.12
+ (c++)"vtable for PList::Array@Base" 1.12
+ (c++)"vtable for PList::String@Base" 1.12
+ (c++)"vtable for PList::Boolean@Base" 1.12
+ (c++)"vtable for PList::Integer@Base" 1.12
+ (c++)"vtable for PList::Structure@Base" 1.12

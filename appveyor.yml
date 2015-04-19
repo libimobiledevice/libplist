@@ -1,0 +1,39 @@
+install:
+  - cinst pester
+
+before_build:
+  - nuget restore
+
+build_script:
+  - msbuild libplist.sln /p:Configuration=Debug /p:Platform=Win32 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild libplist.sln /p:Configuration=Debug /p:Platform=x64 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild libplist.sln /p:Configuration=Release /p:Platform=Win32 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild libplist.sln /p:Configuration=Release /p:Platform=x64 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+platform:
+  - Win32
+
+configuration:
+  - Debug
+
+on_success:
+  - cmd: choco install wget
+  - cmd: wget http://coapp.org/files/CoApp.Tools.Powershell.msi
+  - cmd: start /wait msiexec /qb /i CoApp.Tools.Powershell.msi
+  - ps: .\CreateNuGetPackage.ps1 -Build $ENV:APPVEYOR_BUILD_NUMBER
+  - cmd: appveyor PushArtifact libplist.2.0.1.%APPVEYOR_BUILD_NUMBER%.nupkg
+  - cmd: appveyor PushArtifact libplist.symbols.2.0.1.%APPVEYOR_BUILD_NUMBER%.nupkg
+  - cmd: appveyor PushArtifact libplist.redist.2.0.1.%APPVEYOR_BUILD_NUMBER%.nupkg
+  - cmd: nuget push -ApiKey %NUGET_API_KEY% libplist.2.0.1.%APPVEYOR_BUILD_NUMBER%.nupkg
+  - cmd: nuget push -ApiKey %NUGET_API_KEY% libplist.symbols.2.0.1.%APPVEYOR_BUILD_NUMBER%.nupkg
+  - cmd: nuget push -ApiKey %NUGET_API_KEY% libplist.redist.2.0.1.%APPVEYOR_BUILD_NUMBER%.nupkg
+
+test_script:
+  - ps: $res = Invoke-Pester -Path ".\test" -OutputFormat NUnitXml -OutputFile TestResults.xml -PassThru
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\TestResults.xml))
+# Don't fail on tests just yet
+#  - ps: if ($res.FailedCount -gt 0) { throw "$($res.FailedCount) tests failed."}
+
+nuget:
+  project_feed: true
+  account_feed: true

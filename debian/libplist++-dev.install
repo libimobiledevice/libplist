@@ -1,0 +1,15 @@
+usr/lib/*/libplist++.so
+usr/include/plist/Structure.h
+usr/include/plist/Real.h
+usr/include/plist/String.h
+usr/include/plist/Array.h
+usr/include/plist/Boolean.h
+usr/include/plist/Date.h
+usr/include/plist/Node.h
+usr/include/plist/Data.h
+usr/include/plist/Dictionary.h
+usr/include/plist/plist++.h
+usr/include/plist/Integer.h
+usr/include/plist/Key.h
+usr/include/plist/Uid.h
+usr/lib/*/pkgconfig/libplist++.pc

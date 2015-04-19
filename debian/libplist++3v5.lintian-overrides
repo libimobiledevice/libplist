@@ -1,0 +1,3 @@
+hardening-no-fortify-functions
+# G++5 ABI transition
+libplist++3v5: package-name-doesnt-match-sonames libplist++3
