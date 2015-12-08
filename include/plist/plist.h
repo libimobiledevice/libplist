@@ -603,6 +603,30 @@ extern "C"
      */
     void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
+    /**
+     * Import the #plist_t structure from memory data.
+     * This method will look at the first bytes of plist_data
+     * to determine if plist_data contains a binary or XML plist.
+     *
+     * @param plist_data a pointer to the memory buffer containing plist data.
+     * @param length length of the buffer to read.
+     * @param plist a pointer to the imported plist.
+     */
+    void plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
+
+    /**
+     * Test if in-memory plist data is binary or XML
+     * This method will look at the first bytes of plist_data
+     * to determine if plist_data contains a binary or XML plist.
+     * This method is not validating the whole memory buffer to check if the
+     * content is truly a plist, it's only using some heuristic on the first few
+     * bytes of plist_data.
+     *
+     * @param plist_data a pointer to the memory buffer containing plist data.
+     * @param length length of the buffer to read.
+     * @return 1 if the buffer is a binary plist, 0 otherwise.
+     */
+    int plist_is_binary(const char *plist_data, uint32_t length);
 
     /********************************************
      *                                          *
