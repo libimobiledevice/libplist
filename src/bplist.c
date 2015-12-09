@@ -175,6 +175,56 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #endif
 #endif
 
+#ifdef _MSC_VER
+uint64_t get_unaligned_64(uint64_t *ptr)
+{
+#pragma pack(push, 1)
+    struct packed {
+        uint64_t __v;
+    } *__p = ptr;
+#pragma pack(pop)
+    return __p->__v;
+}
+
+uint32_t get_unaligned_32(uint32_t *ptr)
+{
+#pragma pack(push, 1)
+    struct packed {
+        uint32_t __v;
+    } *__p = ptr;
+#pragma pack(pop)
+    return __p->__v;
+}
+
+uint16_t get_unaligned_16(uint16_t *ptr)
+{
+#pragma pack(push, 1)
+    struct packed {
+        uint16_t __v;
+    } *__p = ptr;
+#pragma pack(pop)
+    return __p->__v;
+}
+uint64_t UINT_TO_HOST(void *x, uint8_t n)
+{
+        union plist_uint_ptr __up;
+        __up.src = x;
+
+        return (n == 8 ? be64toh( get_unaligned_64(__up.u64ptr) ) :
+        (n == 4 ? be32toh( get_unaligned_32(__up.u32ptr) ) :
+        (n == 3 ? uint24_from_be( __up ) :
+        (n == 2 ? be16toh( get_unaligned_16(__up.u16ptr) ) :
+        *__up.u8ptr ))));
+}
+
+uint64_t be64dec(char *x)
+{
+    union plist_uint_ptr __up;
+    __up.src = x;
+    return be64toh( get_unaligned_64(__up.u64ptr) );
+}   
+
+#else
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
@@ -192,6 +242,7 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 		__up.src = x; \
 		be64toh( get_unaligned(__up.u64ptr) ); \
 	})
+#endif
 
 #define get_needed_bytes(x) \
 		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
