@@ -387,15 +387,23 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
         plist_t current = NULL;
 		for (current = (plist_t)node_first_child((node_t*)node);
                 current;
-				current = (plist_t)node_next_sibling(node_next_sibling((node_t*)current)))
+				current = (plist_t)node_next_sibling((node_t*)current))
         {
-
+			if (PLIST_KEY != plist_get_node_type(current))
+			{
+				continue;
+			}
             plist_data_t data = plist_get_data(current);
-            assert( PLIST_KEY == plist_get_node_type(current) );
 
             if (data && !strcmp(key, data->strval))
             {
 				ret = (plist_t)node_next_sibling((node_t*)current);
+				
+				/* Make sure the next node is actually the item's value (and not another key,
+				 * in case of a key without a value) */
+				if (PLIST_KEY == plist_get_node_type(ret)) {
+					ret = NULL;
+				}
                 break;
             }
         }
