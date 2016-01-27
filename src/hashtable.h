@@ -32,7 +32,7 @@ typedef unsigned int(*hash_func_t)(const void* key);
 typedef int (*compare_func_t)(const void *a, const void *b);
 
 typedef struct hashtable_t {
-	hashentry_t *entries[256];
+	hashentry_t *entries[4096];
 	size_t count;
 	hash_func_t hash_func;
 	compare_func_t compare_func;
