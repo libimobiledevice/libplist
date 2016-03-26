@@ -32,7 +32,7 @@
 #include <time.h>
 
 #include <inttypes.h>
-#include <locale.h>
+#include <math.h>
 
 #include <libxml/xmlIO.h>
 #include <libxml/parser.h>
@@ -150,6 +150,36 @@ static struct node_t* new_uint_node(uint64_t value)
     return node_create(NULL, data);
 }
 
+static void dtostr(char *buf, size_t bufsize, double realval)
+{
+    double f = realval;
+    double ip = 0.0;
+    int64_t v;
+    size_t len;
+    size_t p;
+
+    f = modf(f, &ip);
+    len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
+    if (len >= bufsize) {
+        return;
+    }
+
+    if (f < 0) {
+        f *= -1;
+    }
+    f += 0.0000004;
+
+    p = len;
+    buf[p++] = '.';
+
+    while (p < bufsize && (p <= len+6)) {
+        f = modf(f*10, &ip);
+        v = (int)ip;
+        buf[p++] = (v + 0x30);
+    }
+    buf[p] = '\0';
+}
+
 static void node_to_xml(node_t* node, void *xml_struct)
 {
     struct xml_node *xstruct = NULL;
@@ -197,7 +227,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
     case PLIST_REAL:
         tag = XPLIST_REAL;
         val = (char*)malloc(64);
-        (void)snprintf(val, 64, "%f", node_data->realval);
+        dtostr(val, 64, node_data->realval);
         break;
 
     case PLIST_STRING:
@@ -532,14 +562,6 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     root_node = xmlDocGetRootElement(plist_doc);
     root.xml = root_node;
 
-    char *current_locale = setlocale(LC_NUMERIC, NULL);
-    char *saved_locale = NULL;
-    if (current_locale) {
-        saved_locale = strdup(current_locale);
-    }
-    if (saved_locale) {
-        setlocale(LC_NUMERIC, "POSIX");
-    }
 	node_to_xml((node_t*)plist, &root);
 
     xmlChar* tmp = NULL;
@@ -555,10 +577,6 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     }
     xmlFreeDoc(plist_doc);
 
-    if (saved_locale) {
-        setlocale(LC_NUMERIC, saved_locale);
-        free(saved_locale);
-    }
 
     /* free memory from parser initialization */
     xmlCleanupCharEncodingHandlers();
