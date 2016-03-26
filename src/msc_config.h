@@ -25,8 +25,4 @@
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define __func__ __FUNCTION__
-#define strncasecmp _strnicmp
-#define strcasecmp _stricmp
-#define snprintf _snprintf
 #endif
