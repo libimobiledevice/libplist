@@ -469,8 +469,8 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
         str_i = j * bplist->dict_size;
         str_j = (j + size) * bplist->dict_size;
 
-        index1 = UINT_TO_HOST((*bnode) + str_i, bplist->dict_size);
-        index2 = UINT_TO_HOST((*bnode) + str_j, bplist->dict_size);
+        index1 = UINT_TO_HOST((void *)((*bnode) + str_i), bplist->dict_size);
+        index2 = UINT_TO_HOST((void *)((*bnode) + str_j), bplist->dict_size);
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
@@ -504,8 +504,8 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
             return NULL;
         }
 
-        node_attach(node, key);
-        node_attach(node, val);
+        node_attach((node_t *)node, (node_t *)key);
+        node_attach((node_t *)node, (node_t *)val);
     }
 
     return node;
@@ -526,7 +526,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
 
     for (j = 0; j < data->length; j++) {
         str_j = j * bplist->dict_size;
-        index1 = UINT_TO_HOST((*bnode) + str_j, bplist->dict_size);
+        index1 = UINT_TO_HOST((void *)((*bnode) + str_j), bplist->dict_size);
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
@@ -540,7 +540,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
             return NULL;
         }
 
-        node_attach(node, val);
+        node_attach((node_t *)node, (node_t *)val);
     }
 
     return node;
@@ -690,7 +690,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     const char* ptr;
     plist_t plist;
 
-    ptr = bplist->data + UINT_TO_HOST(bplist->offset_table + node_index * bplist->offset_size, bplist->offset_size);
+    ptr = bplist->data + UINT_TO_HOST((void *)(bplist->offset_table + node_index * bplist->offset_size), bplist->offset_size);
     /* make sure the node offset is in a sane range */
     if ((ptr < bplist->data) || (ptr >= bplist->offset_table)) {
         return NULL;
