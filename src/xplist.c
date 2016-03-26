@@ -159,7 +159,7 @@ static void dtostr(char *buf, size_t bufsize, double realval)
     size_t p;
 
     f = modf(f, &ip);
-    len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
+    len = snprintf(buf, bufsize, "%s%" PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
     if (len >= bufsize) {
         return;
     }
