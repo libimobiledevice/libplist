@@ -31,6 +31,24 @@
 #include <node.h>
 #include <node_iterator.h>
 
+#include <libxml/encoding.h>
+#include <libxml/dict.h>
+#include <libxml/xmlerror.h>
+#include <libxml/globals.h>
+#include <libxml/threads.h>
+#include <libxml/xmlmemory.h>
+
+void plist_cleanup(void)
+{
+    /* free memory from parser initialization */
+    xmlCleanupCharEncodingHandlers();
+    xmlDictCleanup();
+    xmlResetLastError();
+    xmlCleanupGlobals();
+    xmlCleanupThreads();
+    xmlCleanupMemory();
+}
+
 plist_t plist_new_node(plist_data_t data)
 {
     return (plist_t) node_create(NULL, data);

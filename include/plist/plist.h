@@ -113,6 +113,19 @@ extern "C"
 
     /********************************************
      *                                          *
+     *     Library Initialization & Cleanup     *
+     *                                          *
+     ********************************************/
+
+    /**
+     * Frees memory used globally by listplist, in
+     * particular the libxml parser
+     */
+    
+    void plist_cleanup(void);
+    
+    /********************************************
+     *                                          *
      *          Creation & Destruction          *
      *                                          *
      ********************************************/
