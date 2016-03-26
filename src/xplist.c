@@ -218,9 +218,9 @@ static void node_to_xml(node_t* node, void *xml_struct)
         tag = XPLIST_INT;
         val = (char*)malloc(64);
         if (node_data->length == 16) {
-	        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
+	        (void)snprintf(val, 64, "%" PRIu64, node_data->intval);
 	} else {
-	        (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
+	        (void)snprintf(val, 64, "%" PRIi64, node_data->intval);
 	}
         break;
 
