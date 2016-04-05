@@ -585,7 +585,7 @@ extern "C"
     *
     * @param plist_bin The object allocated by plist_to_xml
     */
-    void plist_to_xml_free(char **plist_xml);
+    PLIST_API_MSC void plist_to_xml_free(char **plist_xml);
 
     /**
      * Export the #plist_t structure to binary format.
@@ -602,7 +602,7 @@ extern "C"
       *
       * @param plist_bin The object allocated by plist_to_bin
       */
-    void plist_to_bin_free(char **plist_bin);
+    PLIST_API_MSC void plist_to_bin_free(char **plist_bin);
 
     /**
      * Import the #plist_t structure from XML format.
