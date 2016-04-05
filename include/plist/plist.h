@@ -583,7 +583,7 @@ extern "C"
     /**
     * Frees the memory allocated by plist_to_xml
     *
-    * @param plist_bin The object allocated by plist_to_xml
+    * @param plist_xml The object allocated by plist_to_xml
     */
     PLIST_API_MSC void plist_to_xml_free(char **plist_xml);
 
