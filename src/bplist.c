@@ -1236,3 +1236,8 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     byte_array_free(bplist_buff);
     free(offsets);
 }
+
+PLIST_API void plist_to_bin_free(char **plist_bin)
+{
+    free(plist_bin);
+}

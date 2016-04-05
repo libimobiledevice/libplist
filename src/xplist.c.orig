@@ -21,6 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef _MSC_VER
+#include "msc_config.h"
+#endif
 
 #include <string.h>
 #include <assert.h>
@@ -388,7 +391,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         data = plist_new_plist_data();
         subnode = plist_new_node(data);
         if (*plist_node)
-            node_attach(*plist_node, subnode);
+			node_attach((node_t*)*plist_node, (node_t*)subnode);
         else
             *plist_node = subnode;
 
@@ -559,7 +562,19 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     root_node = xmlDocGetRootElement(plist_doc);
     root.xml = root_node;
 
+<<<<<<< HEAD
+    char *current_locale = setlocale(LC_NUMERIC, NULL);
+    char *saved_locale = NULL;
+    if (current_locale) {
+        saved_locale = strdup(current_locale);
+    }
+    if (saved_locale) {
+        setlocale(LC_NUMERIC, "POSIX");
+    }
+	node_to_xml((node_t*)plist, &root);
+=======
     node_to_xml(plist, &root);
+>>>>>>> master-upstream
 
     xmlChar* tmp = NULL;
     xmlDocDumpMemory(plist_doc, &tmp, &size);
@@ -582,11 +597,6 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     xmlCleanupGlobals();
     xmlCleanupThreads();
     xmlCleanupMemory();
-}
-
-PLIST_API void plist_to_xml_free(char **plist_xml)
-{
-    free(plist_xml);
 }
 
 static xmlParserInputPtr plist_xml_external_entity_loader(const char *URL, const char *ID, xmlParserCtxtPtr ctxt)

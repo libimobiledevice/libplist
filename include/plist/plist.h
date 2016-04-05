@@ -576,6 +576,13 @@ extern "C"
     void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
 
     /**
+    * Frees the memory allocated by plist_to_xml
+    *
+    * @param plist_bin The object allocated by plist_to_xml
+    */
+    void plist_to_xml_free(char **plist_xml);
+
+    /**
      * Export the #plist_t structure to binary format.
      *
      * @param plist the root node to export
@@ -584,6 +591,13 @@ extern "C"
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
      */
     void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
+
+    /**
+      * Frees the memory allocated by plist_to_bin
+      *
+      * @param plist_bin The object allocated by plist_to_bin
+      */
+    void plist_to_bin_free(char **plist_bin);
 
     /**
      * Import the #plist_t structure from XML format.
