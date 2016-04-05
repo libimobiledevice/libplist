@@ -159,7 +159,7 @@ static void dtostr(char *buf, size_t bufsize, double realval)
     size_t p;
 
     f = modf(f, &ip);
-    len = snprintf(buf, bufsize, "%s%" PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
+    len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
     if (len >= bufsize) {
         return;
     }
@@ -218,9 +218,9 @@ static void node_to_xml(node_t* node, void *xml_struct)
         tag = XPLIST_INT;
         val = (char*)malloc(64);
         if (node_data->length == 16) {
-	        (void)snprintf(val, 64, "%" PRIu64, node_data->intval);
+	        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
 	} else {
-	        (void)snprintf(val, 64, "%" PRIi64, node_data->intval);
+	        (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
 	}
         break;
 
@@ -562,7 +562,19 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     root_node = xmlDocGetRootElement(plist_doc);
     root.xml = root_node;
 
+<<<<<<< HEAD
+    char *current_locale = setlocale(LC_NUMERIC, NULL);
+    char *saved_locale = NULL;
+    if (current_locale) {
+        saved_locale = strdup(current_locale);
+    }
+    if (saved_locale) {
+        setlocale(LC_NUMERIC, "POSIX");
+    }
 	node_to_xml((node_t*)plist, &root);
+=======
+    node_to_xml(plist, &root);
+>>>>>>> master-upstream
 
     xmlChar* tmp = NULL;
     xmlDocDumpMemory(plist_doc, &tmp, &size);
@@ -585,11 +597,6 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     xmlCleanupGlobals();
     xmlCleanupThreads();
     xmlCleanupMemory();
-}
-
-PLIST_API void plist_to_xml_free(char **plist_xml)
-{
-    free(plist_xml);
 }
 
 static xmlParserInputPtr plist_xml_external_entity_loader(const char *URL, const char *ID, xmlParserCtxtPtr ctxt)
