@@ -717,6 +717,7 @@ static unsigned int plist_data_hash(const void* key)
 {
     plist_data_t data = plist_get_data((plist_t) key);
 
+	unsigned int seed = 131;
     unsigned int hash = data->type;
     unsigned int i = 0;
 
@@ -735,7 +736,7 @@ static unsigned int plist_data_hash(const void* key)
     case PLIST_KEY:
     case PLIST_STRING:
         buff = data->strval;
-        size = strlen(buff);
+        size = data->length;
         break;
     case PLIST_DATA:
     case PLIST_ARRAY:
@@ -753,8 +754,8 @@ static unsigned int plist_data_hash(const void* key)
     }
 
     //now perform hash
-    for (i = 0; i < size; buff++, i++)
-        hash = hash << 7 ^ (*buff);
+    for(i = 0; i < size; buff++, i++)
+        hash = hash * seed + *buff;
 
     return hash;
 }

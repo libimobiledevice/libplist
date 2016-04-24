@@ -24,7 +24,7 @@ hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func)
 {
 	hashtable_t* ht = (hashtable_t*)malloc(sizeof(hashtable_t));
 	int i;
-	for (i = 0; i < 256; i++) {
+	for (i = 0; i < 4096; i++) {
 		ht->entries[i] = NULL;
 	}
 	ht->count = 0;
@@ -38,7 +38,7 @@ void hash_table_destroy(hashtable_t *ht)
 	if (!ht) return;
 
 	int i = 0;
-	for (i = 0; i < 256; i++) {
+	for (i = 0; i < 4096; i++) {
 		if (ht->entries[i]) {
 			hashentry_t* e = ht->entries[i];
 			while (e) {
@@ -58,7 +58,7 @@ void hash_table_insert(hashtable_t* ht, void *key, void *value)
 
 	unsigned int hash = ht->hash_func(key);
 
-	int idx0 = hash & 0xFF;
+	int idx0 = hash & 0xFFF;
 
 	// get the idx0 list
 	hashentry_t* e = ht->entries[idx0];
@@ -93,7 +93,7 @@ void* hash_table_lookup(hashtable_t* ht, void *key)
 	if (!ht || !key) return NULL;
 	unsigned int hash = ht->hash_func(key);
 
-	int idx0 = hash & 0xFF;
+	int idx0 = hash & 0xFFF;
 
 	hashentry_t* e = ht->entries[idx0];
 	while (e) {
