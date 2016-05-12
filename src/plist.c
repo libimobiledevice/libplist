@@ -58,6 +58,21 @@ PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
     return (memcmp(plist_data, "bplist00", 8) == 0);
 }
 
+
+PLIST_API void plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist)
+{
+    if (length < 8) {
+        *plist = NULL;
+        return;
+    }
+
+    if (plist_is_binary(plist_data, length)) {
+        plist_from_bin(plist_data, length, plist);
+    } else {
+        plist_from_xml(plist_data, length, plist);
+    }
+}
+
 plist_t plist_new_node(plist_data_t data)
 {
     return (plist_t) node_create(NULL, data);
