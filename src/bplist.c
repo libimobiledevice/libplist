@@ -735,7 +735,7 @@ static unsigned int plist_data_hash(const void* key)
     case PLIST_KEY:
     case PLIST_STRING:
         buff = data->strval;
-        size = strlen(buff);
+        size = data->length;
         break;
     case PLIST_DATA:
     case PLIST_ARRAY:
@@ -752,9 +752,12 @@ static unsigned int plist_data_hash(const void* key)
         break;
     }
 
-    //now perform hash
-    for (i = 0; i < size; buff++, i++)
-        hash = hash << 7 ^ (*buff);
+    // now perform hash using djb2 hashing algorithm
+    // see: http://www.cse.yorku.ca/~oz/hash.html
+    hash += 5381;
+    for (i = 0; i < size; buff++, i++) {
+        hash = ((hash << 5) + hash) + *buff;
+    }
 
     return hash;
 }
