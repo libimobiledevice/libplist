@@ -189,32 +189,23 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #else
 uint64_t get_unaligned_64(uint64_t *ptr)
 {
-#pragma pack(push, 1)
-    struct packed {
-        uint64_t __v;
-    } *__p = (packed *)(ptr);
-#pragma pack(pop)	
-    return __p->__v;
+	uint64_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
 }
 
 uint32_t get_unaligned_32(uint32_t *ptr)
 {
-#pragma pack(push, 1)	
-    struct packed {
-        uint32_t __v;
-    } *__p = (packed *)(ptr);
-#pragma pack(pop)
-    return __p->__v;
+	uint32_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
 }
 
 uint16_t get_unaligned_16(uint16_t *ptr)
 {
-#pragma pack(push, 1)	
-    struct packed {
-        uint16_t __v;
-    } *__p = (packed *)(ptr);
-#pragma pack(pop)	
-    return __p->__v;
+	uint16_t temp;
+	memcpy(&temp, ptr, sizeof(temp));
+	return temp;
 }
 
 uint64_t UINT_TO_HOST(void *x, uint8_t n)
