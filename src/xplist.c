@@ -1309,6 +1309,11 @@ err_out:
     }
 }
 
+PLIST_API void plist_to_xml_free(char **plist_xml)
+{
+	free(plist_xml);
+}
+
 PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
     if (!plist_xml || (length == 0)) {

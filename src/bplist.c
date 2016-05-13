@@ -1362,3 +1362,8 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     bplist_buff->data = NULL; // make sure we don't free the output buffer
     byte_array_free(bplist_buff);
 }
+
+PLIST_API void plist_to_bin_free(char **plist_bin)
+{
+    free(plist_bin);
+}
