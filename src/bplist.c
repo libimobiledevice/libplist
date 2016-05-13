@@ -252,7 +252,7 @@ static plist_t parse_uint_node(const char **bnode, uint8_t size)
         return NULL;
     };
 
-    data->intval = UINT_TO_HOST(*bnode, size);
+    data->intval = UINT_TO_HOST((void*)*bnode, size);
 
     (*bnode) += size;
     data->type = PLIST_UINT;
@@ -405,7 +405,7 @@ static plist_t parse_unicode_node(const char **bnode, uint64_t size)
     tmpstr[items_written] = '\0';
 
     data->type = PLIST_STRING;
-    data->strval = realloc(tmpstr, items_written+1);
+    data->strval = (char*)realloc(tmpstr, items_written+1);
     if (!data->strval)
         data->strval = tmpstr;
     data->length = items_written;
@@ -456,8 +456,8 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
             return NULL;
         }
 
-        index1 = UINT_TO_HOST(index1_ptr, bplist->ref_size);
-        index2 = UINT_TO_HOST(index2_ptr, bplist->ref_size);
+        index1 = UINT_TO_HOST((void*)index1_ptr, bplist->ref_size);
+        index2 = UINT_TO_HOST((void*)index2_ptr, bplist->ref_size);
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
@@ -501,8 +501,8 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
             return NULL;
         }
 
-        node_attach(node, key);
-        node_attach(node, val);
+        node_attach((node_t *)node, (node_t *)key);
+        node_attach((node_t *)node, (node_t *)val);
     }
 
     return node;
@@ -531,7 +531,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
             return NULL;
         }
 
-        index1 = UINT_TO_HOST(index1_ptr, bplist->ref_size);
+        index1 = UINT_TO_HOST((void*)index1_ptr, bplist->ref_size);
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
@@ -546,7 +546,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
             return NULL;
         }
 
-        node_attach(node, val);
+        node_attach((node_t *)node, (node_t *)val);
     }
 
     return node;
@@ -556,7 +556,7 @@ static plist_t parse_uid_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
     size = size + 1;
-    data->intval = UINT_TO_HOST(*bnode, size);
+    data->intval = UINT_TO_HOST((void*)*bnode, size);
     if (data->intval > UINT32_MAX) {
         PLIST_BIN_ERR("%s: value %" PRIu64 " too large for UID node (must be <= %u)\n", __func__, (uint64_t)data->intval, UINT32_MAX);
         free(data);
@@ -604,7 +604,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
                 PLIST_BIN_ERR("%s: size node data bytes for node type 0x%02x point outside of valid range\n", __func__, type);
                 return NULL;
             }
-            size = UINT_TO_HOST(*object, next_size);
+            size = UINT_TO_HOST((void*)*object, next_size);
             (*object) += next_size;
             break;
         }
@@ -743,7 +743,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
         return NULL;
     }
 
-    ptr = bplist->data + UINT_TO_HOST(idx_ptr, bplist->offset_size);
+    ptr = bplist->data + UINT_TO_HOST((void*)idx_ptr, bplist->offset_size);
     /* make sure the node offset is in a sane range */
     if ((ptr < bplist->data) || (ptr >= bplist->offset_table)) {
         PLIST_BIN_ERR("offset for node index %u points outside of valid range\n", node_index);
@@ -1207,7 +1207,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //serialize plist
     ser_s.objects = objects;
     ser_s.ref_table = ref_table;
-    serialize_plist(plist, &ser_s);
+    serialize_plist((node_t*)plist, &ser_s);
 
     //now stream to output buffer
     offset_size = 0;			//unknown yet
@@ -1272,10 +1272,10 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
             write_data(bplist_buff, data->buff, data->length);
             break;
         case PLIST_ARRAY:
-            write_array(bplist_buff, ptr_array_index(objects, i), ref_table, ref_size);
+            write_array(bplist_buff, (node_t*)ptr_array_index(objects, i), ref_table, ref_size);
             break;
         case PLIST_DICT:
-            write_dict(bplist_buff, ptr_array_index(objects, i), ref_table, ref_size);
+            write_dict(bplist_buff, (node_t*)ptr_array_index(objects, i), ref_table, ref_size);
             break;
         case PLIST_DATE:
             write_date(bplist_buff, data->realval);
@@ -1313,7 +1313,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     byte_array_append(bplist_buff, &trailer, sizeof(bplist_trailer_t));
 
     //set output buffer and size
-    *plist_bin = bplist_buff->data;
+    *plist_bin = (char*)bplist_buff->data;
     *length = bplist_buff->len;
 
     bplist_buff->data = NULL; // make sure we don't free the output buffer
