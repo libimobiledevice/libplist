@@ -701,6 +701,8 @@ int plist_data_compare(const void *a, const void *b)
     case PLIST_UINT:
     case PLIST_REAL:
     case PLIST_UID:
+        if (val_a->length != val_b->length)
+            return FALSE;
         if (val_a->intval == val_b->intval)	//it is an union so this is sufficient
             return TRUE;
         else
