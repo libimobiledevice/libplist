@@ -26,6 +26,7 @@ TESTS = \
 	timezone2.test \
 	signedunsigned1.test \
 	signedunsigned2.test \
+	signedunsigned3.test \
 	hex.test \
 	order.test \
 	recursion.test \
