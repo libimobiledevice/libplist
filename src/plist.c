@@ -91,7 +91,7 @@ plist_data_t plist_new_plist_data(void)
     return data;
 }
 
-static void plist_free_data(plist_data_t data)
+void plist_free_data(plist_data_t data)
 {
     if (data)
     {

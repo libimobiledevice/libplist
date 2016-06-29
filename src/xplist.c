@@ -337,6 +337,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
         for (j = num; j > 0; j--) {
             node_t* ch = node_nth_child(node, j-1);
             node_detach(node, ch);
+            plist_free_data((plist_data_t)((node_t*)ch)->data);
             node_destroy(ch);
         }
         node_data->type = PLIST_UID;
