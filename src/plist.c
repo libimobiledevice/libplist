@@ -38,7 +38,7 @@
 #include <libxml/threads.h>
 #include <libxml/xmlmemory.h>
 
-void plist_cleanup(void)
+PLIST_API void plist_cleanup(void)
 {
     /* free memory from parser initialization */
     xmlCleanupCharEncodingHandlers();
