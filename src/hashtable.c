@@ -44,7 +44,7 @@ void hash_table_destroy(hashtable_t *ht)
 			while (e) {
 				free(e->value);
 				hashentry_t* old = e;
-				e = e->next;
+				e = (hashentry_t*)e->next;
 				free(old);
 			}
 		}
@@ -68,7 +68,7 @@ void hash_table_insert(hashtable_t* ht, void *key, void *value)
 			e->value = value;
 			return;
 		}
-		e = e->next;
+		e = (hashentry_t*)e->next;
 	}
 
 	// if we get here, the element is not yet in the list.
@@ -100,7 +100,7 @@ void* hash_table_lookup(hashtable_t* ht, void *key)
 		if (ht->compare_func(e->key, key)) {
 			return e->value;
 		}
-		e = e->next;
+		e = (hashentry_t*)e->next;
 	}
 	return NULL;
 }

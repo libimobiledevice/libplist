@@ -29,7 +29,6 @@ extern "C"
 #endif
 
 #ifdef _MSC_VER
-    typedef __int8 int8_t;
     typedef __int16 int16_t;
     typedef __int32 int32_t;
     typedef __int64 int64_t;
@@ -42,6 +41,12 @@ extern "C"
 #else
 #include <stdint.h>
 #endif
+
+#ifdef _MSC_VER 
+#define PLIST_API_MSC __declspec( dllexport ) 
+#else  
+#define PLIST_API_MSC 
+#endif 
 
 #ifdef __llvm__
   #if defined(__has_extension)
@@ -136,7 +141,7 @@ extern "C"
      * @return the created plist
      * @sa #plist_type
      */
-    plist_t plist_new_dict(void);
+    PLIST_API_MSC plist_t plist_new_dict(void);
 
     /**
      * Create a new root plist_t type #PLIST_ARRAY
@@ -144,7 +149,7 @@ extern "C"
      * @return the created plist
      * @sa #plist_type
      */
-    plist_t plist_new_array(void);
+    PLIST_API_MSC plist_t plist_new_array(void);
 
     /**
      * Create a new plist_t type #PLIST_STRING
@@ -153,7 +158,7 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_string(const char *val);
+    PLIST_API_MSC plist_t plist_new_string(const char *val);
 
     /**
      * Create a new plist_t type #PLIST_BOOLEAN
@@ -162,7 +167,7 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_bool(uint8_t val);
+    PLIST_API_MSC plist_t plist_new_bool(uint8_t val);
 
     /**
      * Create a new plist_t type #PLIST_UINT
@@ -171,7 +176,7 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_uint(uint64_t val);
+    PLIST_API_MSC plist_t plist_new_uint(uint64_t val);
 
     /**
      * Create a new plist_t type #PLIST_REAL
@@ -180,7 +185,7 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_real(double val);
+    PLIST_API_MSC plist_t plist_new_real(double val);
 
     /**
      * Create a new plist_t type #PLIST_DATA
@@ -190,7 +195,7 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_data(const char *val, uint64_t length);
+    PLIST_API_MSC plist_t plist_new_data(const char *val, uint64_t length);
 
     /**
      * Create a new plist_t type #PLIST_DATE
@@ -200,7 +205,7 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_date(int32_t sec, int32_t usec);
+    PLIST_API_MSC plist_t plist_new_date(int32_t sec, int32_t usec);
 
     /**
      * Create a new plist_t type #PLIST_UID
@@ -209,14 +214,14 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    plist_t plist_new_uid(uint64_t val);
+    PLIST_API_MSC plist_t plist_new_uid(uint64_t val);
 
     /**
      * Destruct a plist_t node and all its children recursively
      *
      * @param plist the plist to free
      */
-    void plist_free(plist_t plist);
+    PLIST_API_MSC void plist_free(plist_t plist);
 
     /**
      * Return a copy of passed node and it's children
@@ -224,7 +229,7 @@ extern "C"
      * @param node the plist to copy
      * @return copied plist
      */
-    plist_t plist_copy(plist_t node);
+    PLIST_API_MSC plist_t plist_copy(plist_t node);
 
 
     /********************************************
@@ -239,7 +244,7 @@ extern "C"
      * @param node the node of type #PLIST_ARRAY
      * @return size of the #PLIST_ARRAY node
      */
-    uint32_t plist_array_get_size(plist_t node);
+    PLIST_API_MSC uint32_t plist_array_get_size(plist_t node);
 
     /**
      * Get the nth item in a #PLIST_ARRAY node.
@@ -248,7 +253,7 @@ extern "C"
      * @param n the index of the item to get. Range is [0, array_size[
      * @return the nth item or NULL if node is not of type #PLIST_ARRAY
      */
-    plist_t plist_array_get_item(plist_t node, uint32_t n);
+    PLIST_API_MSC plist_t plist_array_get_item(plist_t node, uint32_t n);
 
     /**
      * Get the index of an item. item must be a member of a #PLIST_ARRAY node.
@@ -256,7 +261,7 @@ extern "C"
      * @param node the node
      * @return the node index
      */
-    uint32_t plist_array_get_item_index(plist_t node);
+    PLIST_API_MSC uint32_t plist_array_get_item_index(plist_t node);
 
     /**
      * Set the nth item in a #PLIST_ARRAY node.
@@ -266,7 +271,7 @@ extern "C"
      * @param item the new item at index n. The array is responsible for freeing item when it is no longer needed.
      * @param n the index of the item to get. Range is [0, array_size[. Assert if n is not in range.
      */
-    void plist_array_set_item(plist_t node, plist_t item, uint32_t n);
+    PLIST_API_MSC void plist_array_set_item(plist_t node, plist_t item, uint32_t n);
 
     /**
      * Append a new item at the end of a #PLIST_ARRAY node.
@@ -274,7 +279,7 @@ extern "C"
      * @param node the node of type #PLIST_ARRAY
      * @param item the new item. The array is responsible for freeing item when it is no longer needed.
      */
-    void plist_array_append_item(plist_t node, plist_t item);
+    PLIST_API_MSC void plist_array_append_item(plist_t node, plist_t item);
 
     /**
      * Insert a new item at position n in a #PLIST_ARRAY node.
@@ -283,7 +288,7 @@ extern "C"
      * @param item the new item to insert. The array is responsible for freeing item when it is no longer needed.
      * @param n The position at which the node will be stored. Range is [0, array_size[. Assert if n is not in range.
      */
-    void plist_array_insert_item(plist_t node, plist_t item, uint32_t n);
+    PLIST_API_MSC void plist_array_insert_item(plist_t node, plist_t item, uint32_t n);
 
     /**
      * Remove an existing position in a #PLIST_ARRAY node.
@@ -292,7 +297,7 @@ extern "C"
      * @param node the node of type #PLIST_ARRAY
      * @param n The position to remove. Range is [0, array_size[. Assert if n is not in range.
      */
-    void plist_array_remove_item(plist_t node, uint32_t n);
+    PLIST_API_MSC void plist_array_remove_item(plist_t node, uint32_t n);
 
     /********************************************
      *                                          *
@@ -306,7 +311,7 @@ extern "C"
      * @param node the node of type #PLIST_DICT
      * @return size of the #PLIST_DICT node
      */
-    uint32_t plist_dict_get_size(plist_t node);
+    PLIST_API_MSC uint32_t plist_dict_get_size(plist_t node);
 
     /**
      * Create an iterator of a #PLIST_DICT node.
@@ -315,7 +320,7 @@ extern "C"
      * @param node the node of type #PLIST_DICT
      * @param iter iterator of the #PLIST_DICT node
      */
-    void plist_dict_new_iter(plist_t node, plist_dict_iter *iter);
+    PLIST_API_MSC void plist_dict_new_iter(plist_t node, plist_dict_iter *iter);
 
     /**
      * Increment iterator of a #PLIST_DICT node.
@@ -327,7 +332,7 @@ extern "C"
      * @param val a location to store the value, or NULL. The caller should *not*
      *		free the returned value.
      */
-    void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
+    PLIST_API_MSC void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
 
     /**
      * Get key associated to an item. Item must be member of a dictionary
@@ -335,7 +340,7 @@ extern "C"
      * @param node the node
      * @param key a location to store the key. The caller is responsible for freeing the returned string.
      */
-    void plist_dict_get_item_key(plist_t node, char **key);
+    PLIST_API_MSC void plist_dict_get_item_key(plist_t node, char **key);
 
     /**
      * Get the nth item in a #PLIST_DICT node.
@@ -345,7 +350,7 @@ extern "C"
      * @return the item or NULL if node is not of type #PLIST_DICT. The caller should not free
      *		the returned node.
      */
-    plist_t plist_dict_get_item(plist_t node, const char* key);
+    PLIST_API_MSC plist_t plist_dict_get_item(plist_t node, const char* key);
 
     /**
      * Set item identified by key in a #PLIST_DICT node.
@@ -356,7 +361,7 @@ extern "C"
      * @param item the new item associated to key
      * @param key the identifier of the item to set.
      */
-    void plist_dict_set_item(plist_t node, const char* key, plist_t item);
+    PLIST_API_MSC void plist_dict_set_item(plist_t node, const char* key, plist_t item);
 
     /**
      * Insert a new item into a #PLIST_DICT node.
@@ -368,7 +373,7 @@ extern "C"
      * @param key The identifier of the item to insert.
      */
     PLIST_WARN_DEPRECATED("use plist_dict_set_item instead")
-    void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
+    PLIST_API_MSC void plist_dict_insert_item(plist_t node, const char* key, plist_t item);
 
     /**
      * Remove an existing position in a #PLIST_DICT node.
@@ -377,7 +382,7 @@ extern "C"
      * @param node the node of type #PLIST_DICT
      * @param key The identifier of the item to remove. Assert if identifier is not present.
      */
-    void plist_dict_remove_item(plist_t node, const char* key);
+    PLIST_API_MSC void plist_dict_remove_item(plist_t node, const char* key);
 
     /**
      * Merge a dictionary into another. This will add all key/value pairs
@@ -387,7 +392,7 @@ extern "C"
      * @param target pointer to an existing node of type #PLIST_DICT
      * @param source node of type #PLIST_DICT that should be merged into target
      */
-    void plist_dict_merge(plist_t *target, plist_t source);
+    PLIST_API_MSC void plist_dict_merge(plist_t *target, plist_t source);
 
 
     /********************************************
@@ -401,7 +406,7 @@ extern "C"
      *
      * @param node the parent (NULL if node is root)
      */
-    plist_t plist_get_parent(plist_t node);
+    PLIST_API_MSC plist_t plist_get_parent(plist_t node);
 
     /**
      * Get the #plist_type of a node.
@@ -409,7 +414,7 @@ extern "C"
      * @param node the node
      * @return the type of the node
      */
-    plist_type plist_get_node_type(plist_t node);
+    PLIST_API_MSC plist_type plist_get_node_type(plist_t node);
 
     /**
      * Get the value of a #PLIST_KEY node.
@@ -419,7 +424,7 @@ extern "C"
      * @param val a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it.
      */
-    void plist_get_key_val(plist_t node, char **val);
+    PLIST_API_MSC void plist_get_key_val(plist_t node, char **val);
 
     /**
      * Get the value of a #PLIST_STRING node.
@@ -429,7 +434,7 @@ extern "C"
      * @param val a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it. Data is UTF-8 encoded.
      */
-    void plist_get_string_val(plist_t node, char **val);
+    PLIST_API_MSC void plist_get_string_val(plist_t node, char **val);
 
     /**
      * Get the value of a #PLIST_BOOLEAN node.
@@ -438,7 +443,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to a uint8_t variable.
      */
-    void plist_get_bool_val(plist_t node, uint8_t * val);
+    PLIST_API_MSC void plist_get_bool_val(plist_t node, uint8_t * val);
 
     /**
      * Get the value of a #PLIST_UINT node.
@@ -447,7 +452,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to a uint64_t variable.
      */
-    void plist_get_uint_val(plist_t node, uint64_t * val);
+    PLIST_API_MSC void plist_get_uint_val(plist_t node, uint64_t * val);
 
     /**
      * Get the value of a #PLIST_REAL node.
@@ -456,7 +461,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to a double variable.
      */
-    void plist_get_real_val(plist_t node, double *val);
+    PLIST_API_MSC void plist_get_real_val(plist_t node, double *val);
 
     /**
      * Get the value of a #PLIST_DATA node.
@@ -467,7 +472,7 @@ extern "C"
      *            caller is responsible for freeing it.
      * @param length the length of the buffer
      */
-    void plist_get_data_val(plist_t node, char **val, uint64_t * length);
+    PLIST_API_MSC void plist_get_data_val(plist_t node, char **val, uint64_t * length);
 
     /**
      * Get the value of a #PLIST_DATE node.
@@ -477,7 +482,7 @@ extern "C"
      * @param sec a pointer to an int32_t variable. Represents the number of seconds since 01/01/2001.
      * @param usec a pointer to an int32_t variable. Represents the number of microseconds
      */
-    void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
+    PLIST_API_MSC void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec);
 
     /**
      * Get the value of a #PLIST_UID node.
@@ -486,7 +491,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to a uint64_t variable.
      */
-    void plist_get_uid_val(plist_t node, uint64_t * val);
+    PLIST_API_MSC void plist_get_uid_val(plist_t node, uint64_t * val);
 
 
     /********************************************
@@ -502,7 +507,7 @@ extern "C"
      * @param node the node
      * @param val the key value
      */
-    void plist_set_key_val(plist_t node, const char *val);
+    PLIST_API_MSC void plist_set_key_val(plist_t node, const char *val);
 
     /**
      * Set the value of a node.
@@ -512,7 +517,7 @@ extern "C"
      * @param val the string value. The string is copied when set and will be
      *		freed by the node.
      */
-    void plist_set_string_val(plist_t node, const char *val);
+    PLIST_API_MSC void plist_set_string_val(plist_t node, const char *val);
 
     /**
      * Set the value of a node.
@@ -521,7 +526,7 @@ extern "C"
      * @param node the node
      * @param val the boolean value
      */
-    void plist_set_bool_val(plist_t node, uint8_t val);
+    PLIST_API_MSC void plist_set_bool_val(plist_t node, uint8_t val);
 
     /**
      * Set the value of a node.
@@ -530,7 +535,7 @@ extern "C"
      * @param node the node
      * @param val the unsigned integer value
      */
-    void plist_set_uint_val(plist_t node, uint64_t val);
+    PLIST_API_MSC void plist_set_uint_val(plist_t node, uint64_t val);
 
     /**
      * Set the value of a node.
@@ -539,7 +544,7 @@ extern "C"
      * @param node the node
      * @param val the real value
      */
-    void plist_set_real_val(plist_t node, double val);
+    PLIST_API_MSC void plist_set_real_val(plist_t node, double val);
 
     /**
      * Set the value of a node.
@@ -550,7 +555,7 @@ extern "C"
      *		be freed by the node.
      * @param length the length of the buffer
      */
-    void plist_set_data_val(plist_t node, const char *val, uint64_t length);
+    PLIST_API_MSC void plist_set_data_val(plist_t node, const char *val, uint64_t length);
 
     /**
      * Set the value of a node.
@@ -560,7 +565,7 @@ extern "C"
      * @param sec the number of seconds since 01/01/2001
      * @param usec the number of microseconds
      */
-    void plist_set_date_val(plist_t node, int32_t sec, int32_t usec);
+    PLIST_API_MSC void plist_set_date_val(plist_t node, int32_t sec, int32_t usec);
 
     /**
      * Set the value of a node.
@@ -569,7 +574,7 @@ extern "C"
      * @param node the node
      * @param val the unsigned integer value
      */
-    void plist_set_uid_val(plist_t node, uint64_t val);
+    PLIST_API_MSC void plist_set_uid_val(plist_t node, uint64_t val);
 
 
     /********************************************
@@ -586,7 +591,14 @@ extern "C"
      *            caller is responsible for freeing it. Data is UTF-8 encoded.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
      */
-    void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
+    PLIST_API_MSC void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
+
+    /**
+    * Frees the memory allocated by plist_to_xml
+    *
+    * @param plist_xml The object allocated by plist_to_xml
+    */
+    PLIST_API_MSC void plist_to_xml_free(char **plist_xml);
 
     /**
      * Export the #plist_t structure to binary format.
@@ -596,7 +608,14 @@ extern "C"
      *            caller is responsible for freeing it.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
      */
-    void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
+    PLIST_API_MSC void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
+
+    /**
+      * Frees the memory allocated by plist_to_bin
+      *
+      * @param plist_bin The object allocated by plist_to_bin
+      */
+    PLIST_API_MSC void plist_to_bin_free(char **plist_bin);
 
     /**
      * Import the #plist_t structure from XML format.
@@ -605,7 +624,7 @@ extern "C"
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
      */
-    void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
+    PLIST_API_MSC void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
 
     /**
      * Import the #plist_t structure from binary format.
@@ -614,7 +633,7 @@ extern "C"
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
      */
-    void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
+    PLIST_API_MSC void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
     /**
      * Import the #plist_t structure from memory data.
@@ -656,7 +675,7 @@ extern "C"
      * @param length length of the path to access
      * @return the value to access.
      */
-    plist_t plist_access_path(plist_t plist, uint32_t length, ...);
+    PLIST_API_MSC plist_t plist_access_path(plist_t plist, uint32_t length, ...);
 
     /**
      * Variadic version of #plist_access_path.
@@ -666,7 +685,7 @@ extern "C"
      * @param v list of array's index and dic'st key
      * @return the value to access.
      */
-    plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v);
+    PLIST_API_MSC plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v);
 
     /**
      * Compare two node values
@@ -675,7 +694,7 @@ extern "C"
      * @param node_r rigth node to compare
      * @return TRUE is type and value match, FALSE otherwise.
      */
-    char plist_compare_node_value(plist_t node_l, plist_t node_r);
+    PLIST_API_MSC char plist_compare_node_value(plist_t node_l, plist_t node_r);
 
     /*@}*/
 
