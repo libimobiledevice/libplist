@@ -56,7 +56,6 @@ struct plist_data_s
         double realval;
         char *strval;
         uint8_t *buff;
-        struct timeval timeval;
     };
     uint64_t length;
     plist_type type;

@@ -258,7 +258,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
     case PLIST_DATE:
         tag = XPLIST_DATE;
         {
-            time_t timev = (time_t)node_data->timeval.tv_sec + MAC_EPOCH;
+            time_t timev = (time_t)node_data->realval + MAC_EPOCH;
             struct tm *btime = gmtime(&timev);
             if (btime) {
                 val = (char*)malloc(24);
@@ -462,10 +462,9 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
                 tm_utc = gmtime(&timev);
                 timev -= (mktime(tm_utc) - timev);
             }
-            data->timeval.tv_sec = (long)(timev - MAC_EPOCH);
-            data->timeval.tv_usec = 0;
+            data->realval = (double)(timev - MAC_EPOCH);
             data->type = PLIST_DATE;
-            data->length = sizeof(struct timeval);
+            data->length = sizeof(double);
             xmlFree(strval);
             continue;
         }

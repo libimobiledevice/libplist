@@ -27,6 +27,7 @@
 #include "plist.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <node.h>
 #include <node_iterator.h>
@@ -214,9 +215,8 @@ PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec)
 {
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_DATE;
-    data->timeval.tv_sec = sec;
-    data->timeval.tv_usec = usec;
-    data->length = sizeof(struct timeval);
+    data->realval = (double)sec + (double)usec / 1000000;
+    data->length = sizeof(double);
     return plist_new_node(data);
 }
 
@@ -567,6 +567,7 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
         *((uint64_t *) value) = data->intval;
         break;
     case PLIST_REAL:
+    case PLIST_DATE:
         *((double *) value) = data->realval;
         break;
     case PLIST_KEY:
@@ -576,11 +577,6 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
     case PLIST_DATA:
         *((uint8_t **) value) = (uint8_t *) malloc(*length * sizeof(uint8_t));
         memcpy(*((uint8_t **) value), data->buff, *length * sizeof(uint8_t));
-        break;
-    case PLIST_DATE:
-        //exception : here we use memory on the stack since it is just a temporary buffer
-        ((struct timeval*) value)->tv_sec = data->timeval.tv_sec;
-        ((struct timeval*) value)->tv_usec = data->timeval.tv_usec;
         break;
     case PLIST_ARRAY:
     case PLIST_DICT:
@@ -670,12 +666,12 @@ PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
 {
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    struct timeval val = { 0, 0 };
+    double val = 0;
     if (PLIST_DATE == type)
         plist_get_type_and_value(node, &type, (void *) &val, &length);
-    assert(length == sizeof(struct timeval));
-    *sec = val.tv_sec;
-    *usec = val.tv_usec;
+    assert(length == sizeof(double));
+    *sec = (int32_t)val;
+    *usec = (int32_t)fabs((val - (int64_t)val) * 1000000);
 }
 
 int plist_data_compare(const void *a, const void *b)
@@ -700,6 +696,7 @@ int plist_data_compare(const void *a, const void *b)
     case PLIST_BOOLEAN:
     case PLIST_UINT:
     case PLIST_REAL:
+    case PLIST_DATE:
     case PLIST_UID:
         if (val_a->length != val_b->length)
             return FALSE;
@@ -730,11 +727,6 @@ int plist_data_compare(const void *a, const void *b)
         else
             return FALSE;
         break;
-    case PLIST_DATE:
-        if (!memcmp(&(val_a->timeval), &(val_b->timeval), sizeof(struct timeval)))
-            return TRUE;
-        else
-            return FALSE;
     default:
         break;
     }
@@ -782,6 +774,7 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
         data->intval = *((uint64_t *) value);
         break;
     case PLIST_REAL:
+    case PLIST_DATE:
         data->realval = *((double *) value);
         break;
     case PLIST_KEY:
@@ -791,10 +784,6 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     case PLIST_DATA:
         data->buff = (uint8_t *) malloc(length);
         memcpy(data->buff, value, length);
-        break;
-    case PLIST_DATE:
-        data->timeval.tv_sec = ((struct timeval*) value)->tv_sec;
-        data->timeval.tv_usec = ((struct timeval*) value)->tv_usec;
         break;
     case PLIST_ARRAY:
     case PLIST_DICT:
@@ -840,7 +829,7 @@ PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length
 
 PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 {
-    struct timeval val = { sec, usec };
+    double val = (double)sec + (double)usec / 1000000;
     plist_set_element_val(node, PLIST_DATE, &val, sizeof(struct timeval));
 }
 

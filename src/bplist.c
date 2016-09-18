@@ -284,11 +284,7 @@ static plist_t parse_date_node(const char **bnode, uint8_t size)
     plist_t node = parse_real_node(bnode, size);
     plist_data_t data = plist_get_data(node);
 
-    double time_real = data->realval;
-    data->timeval.tv_sec = (long) time_real;
-    data->timeval.tv_usec = (time_real - (long) time_real) * 1000000;
     data->type = PLIST_DATE;
-    data->length = sizeof(struct timeval);
 
     return node;
 }
@@ -728,6 +724,7 @@ static unsigned int plist_data_hash(const void* key)
     case PLIST_BOOLEAN:
     case PLIST_UINT:
     case PLIST_REAL:
+    case PLIST_DATE:
     case PLIST_UID:
         buff = (char *) &data->intval;	//works also for real as we use an union
         size = 8;
@@ -743,10 +740,6 @@ static unsigned int plist_data_hash(const void* key)
         //for these types only hash pointer
         buff = (char *) &key;
         size = sizeof(const void*);
-        break;
-    case PLIST_DATE:
-        buff = (char *) &(data->timeval);
-        size = data->length;
         break;
     default:
         break;
@@ -1183,7 +1176,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
             write_dict(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
             break;
         case PLIST_DATE:
-            write_date(bplist_buff, data->timeval.tv_sec + (double) data->timeval.tv_usec / 1000000);
+            write_date(bplist_buff, data->realval);
             break;
         case PLIST_UID:
             write_uid(bplist_buff, data->intval);
