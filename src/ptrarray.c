@@ -44,7 +44,7 @@ void ptr_array_add(ptrarray_t *pa, void *data)
 	if (!pa || !pa->pdata || !data) return;
 	size_t remaining = pa->capacity-pa->len;
 	if (remaining == 0) {
-		pa->pdata = realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
+		pa->pdata = (void **)realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
 		pa->capacity += pa->capacity_step;
 	}
 	pa->pdata[pa->len] = data;

@@ -21,6 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifdef _MSC_VER
+#include "msc_config.h"
+#endif
 
 #include <string.h>
 #include <assert.h>
@@ -156,7 +159,7 @@ static void dtostr(char *buf, size_t bufsize, double realval)
     size_t p;
 
     f = modf(f, &ip);
-    len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
+    len = snprintf(buf, bufsize, "%s%" PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
     if (len >= bufsize) {
         return;
     }
@@ -215,9 +218,9 @@ static void node_to_xml(node_t* node, void *xml_struct)
         tag = XPLIST_INT;
         val = (char*)malloc(64);
         if (node_data->length == 16) {
-	        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
+	        (void)snprintf(val, 64, "%" PRIu64, node_data->intval);
 	} else {
-	        (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
+	        (void)snprintf(val, 64, "%" PRIi64, node_data->intval);
 	}
         break;
 
@@ -389,7 +392,7 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         data = plist_new_plist_data();
         subnode = plist_new_node(data);
         if (*plist_node)
-            node_attach(*plist_node, subnode);
+            node_attach((node_t*)*plist_node, (node_t*)subnode);
         else
             *plist_node = subnode;
 
@@ -560,7 +563,7 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     root_node = xmlDocGetRootElement(plist_doc);
     root.xml = root_node;
 
-    node_to_xml(plist, &root);
+    node_to_xml((node_t*)plist, &root);
 
     xmlChar* tmp = NULL;
     xmlDocDumpMemory(plist_doc, &tmp, &size);

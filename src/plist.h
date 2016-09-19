@@ -30,13 +30,18 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #pragma warning(disable:4244)
+#include <winsock2.h>
+#else
+#include <sys/time.h>
 #endif
 
+#ifdef _MSC_VER
+  #define PLIST_API __declspec( dllexport )
+#else
 #ifdef WIN32
   #define PLIST_API __declspec( dllexport )
 #else
@@ -45,6 +50,7 @@
   #else
     #define PLIST_API
   #endif
+#endif
 #endif
 
 struct plist_data_s
