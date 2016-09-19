@@ -22,6 +22,7 @@ TESTS = \
 	largecmp.test \
 	hugecmp.test \
 	bigarraycmp.test \
+	dates.test \
 	timezone1.test \
 	timezone2.test \
 	signedunsigned1.test \
