@@ -10,6 +10,7 @@ libplist_la_SOURCES = base64.c base64.h \
 		      bytearray.c bytearray.h \
 		      hashtable.c hashtable.h \
 		      ptrarray.c ptrarray.h \
+		      time64.c time64.h time64_limits.h \
 		      xplist.c \
 		      bplist.c \
 		      plist.c plist.h

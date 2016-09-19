@@ -41,6 +41,7 @@
 
 #include "plist.h"
 #include "base64.h"
+#include "time64.h"
 
 #define XPLIST_TEXT	BAD_CAST("text")
 #define XPLIST_KEY	BAD_CAST("key")
@@ -258,12 +259,15 @@ static void node_to_xml(node_t* node, void *xml_struct)
     case PLIST_DATE:
         tag = XPLIST_DATE;
         {
-            time_t timev = (time_t)node_data->realval + MAC_EPOCH;
-            struct tm *btime = gmtime(&timev);
+            Time64_T timev = (Time64_T)node_data->realval + MAC_EPOCH;
+            struct TM _btime;
+            struct TM *btime = gmtime64_r(&timev, &_btime);
             if (btime) {
                 val = (char*)malloc(24);
                 memset(val, 0, 24);
-                if (strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", btime) <= 0) {
+                struct tm _tmcopy;
+                copy_TM64_to_tm(btime, &_tmcopy);
+                if (strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", &_tmcopy) <= 0) {
                     free (val);
                     val = NULL;
                 }
@@ -346,7 +350,7 @@ static void node_to_xml(node_t* node, void *xml_struct)
     return;
 }
 
-static void parse_date(const char *strval, struct tm *btime)
+static void parse_date(const char *strval, struct TM *btime)
 {
     if (!btime) return;
     memset(btime, 0, sizeof(struct tm));
@@ -354,7 +358,12 @@ static void parse_date(const char *strval, struct tm *btime)
 #ifdef strptime
     strptime((char*)strval, "%Y-%m-%dT%H:%M:%SZ", btime);
 #else
-    sscanf(strval, "%d-%d-%dT%d:%d:%dZ", &btime->tm_year, &btime->tm_mon, &btime->tm_mday, &btime->tm_hour, &btime->tm_min, &btime->tm_sec);
+#ifdef USE_TM64
+    #define PLIST_SSCANF_FORMAT "%lld-%d-%dT%d:%d:%dZ"
+#else
+    #define PLIST_SSCANF_FORMAT "%d-%d-%dT%d:%d:%dZ"
+#endif
+    sscanf(strval, PLIST_SSCANF_FORMAT, &btime->tm_year, &btime->tm_mon, &btime->tm_mday, &btime->tm_hour, &btime->tm_min, &btime->tm_sec);
     btime->tm_year-=1900;
     btime->tm_mon--;
 #endif
@@ -453,14 +462,11 @@ static void xml_to_node(xmlNodePtr xml_node, plist_t * plist_node)
         if (!xmlStrcmp(node->name, XPLIST_DATE))
         {
             xmlChar *strval = xmlNodeGetContent(node);
-            time_t timev = 0;
+            Time64_T timev = 0;
             if (strlen((const char*)strval) >= 11) {
-                struct tm btime;
-                struct tm* tm_utc;
+                struct TM btime;
                 parse_date((const char*)strval, &btime);
-                timev = mktime(&btime);
-                tm_utc = gmtime(&timev);
-                timev -= (mktime(tm_utc) - timev);
+                timev = timegm64(&btime);
             }
             data->realval = (double)(timev - MAC_EPOCH);
             data->type = PLIST_DATE;

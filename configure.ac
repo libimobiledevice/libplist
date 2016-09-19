@@ -56,7 +56,7 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([asprintf strcasecmp strdup strerror strndup stpcpy vasprintf])
+AC_CHECK_FUNCS([asprintf strcasecmp strdup strerror strndup stpcpy vasprintf gmtime_r localtime_r timegm])
 
 # Checking endianness
 AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
@@ -77,6 +77,32 @@ case ${host_os} in
     ;;
 esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
+
+# Check if struct tm has a tm_gmtoff member
+AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
+	AC_TRY_COMPILE([
+		#include <time.h>
+	], [
+		struct tm tm;
+		tm.tm_gmtoff = 1;
+	], ac_cv_struct_tm_gmtoff=yes, ac_cv_struct_tm_gmtoff=no))
+
+if (test "$ac_cv_struct_tm_gmtoff" = "yes"); then
+	AC_DEFINE(HAVE_TM_TM_GMTOFF, 1, [Define if struct tm has a tm_gmtoff member])
+fi
+
+# Check if struct tm has a tm_zone member
+AC_CACHE_CHECK(for tm_zone in struct tm, ac_cv_struct_tm_zone,
+	AC_TRY_COMPILE([
+		#include <time.h>
+	], [
+		struct tm tm;
+		tm.tm_zone = 1;
+	], ac_cv_struct_tm_zone=yes, ac_cv_struct_tm_zone=no))
+
+if (test "$ac_cv_struct_tm_zone" = "yes"); then
+	AC_DEFINE(HAVE_TM_TM_ZONE, 1, [Define if struct tm has a tm_zone member])
+fi
 
 # Cython Python Bindings
 AC_ARG_WITH([cython],
