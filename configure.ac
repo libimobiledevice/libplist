@@ -19,11 +19,6 @@ LIBPLIST_SO_VERSION=3:0:0
 
 AC_SUBST(LIBPLIST_SO_VERSION)
 
-dnl Minimum package versions
-LIBXML2_VERSION=2.7.8
-
-AC_SUBST(LIBXML2_VERSION)
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -39,9 +34,6 @@ AC_LANG_POP
 
 AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
-
-# Checks for libraries.
-PKG_CHECK_MODULES(libxml2, libxml-2.0 >= $LIBXML2_VERSION)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -139,6 +131,22 @@ AM_CONDITIONAL([HAVE_CYTHON],[test "x$CYTHON_SUB" = "xcython"])
 AC_SUBST([CYTHON_SUB])
 
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -fvisibility=hidden")
+
+AC_ARG_ENABLE(debug,
+AS_HELP_STRING([--enable-debug],
+               [enable debugging, default: no]),
+[case "${enableval}" in
+             yes) debug=yes ;;
+             no)  debug=no ;;
+             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],
+[debug=no])
+
+if (test "x$debug" = "xyes"); then
+       AC_DEFINE(DEBUG, 1, [Define if debug code should be enabled.])
+       GLOBAL_CFLAGS+=" -g"
+fi
+
 AC_SUBST(GLOBAL_CFLAGS)
 
 case "$GLOBAL_CFLAGS" in
@@ -165,7 +173,8 @@ echo "
 Configuration for $PACKAGE $VERSION:
 -------------------------------------------
 
-  Install prefix: .........: $prefix
+  Install prefix ..........: $prefix
+  Debug code ..............: $debug
   Python bindings .........: $cython_python_bindings
 
   Now type 'make' to build $PACKAGE $VERSION,

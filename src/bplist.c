@@ -2,7 +2,7 @@
  * bplist.c
  * Binary plist implementation
  *
- * Copyright (c) 2011-2015 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2011-2016 Nikias Bassen, All Rights Reserved.
  * Copyright (c) 2008-2010 Jonathan Beck, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <libxml/encoding.h>
 #include <ctype.h>
 
 #include <plist/plist.h>

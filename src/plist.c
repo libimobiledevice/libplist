@@ -2,8 +2,8 @@
  * plist.c
  * Builds plist XML structures
  *
+ * Copyright (c) 2009-2016 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2010-2015 Martin Szulecki All Rights Reserved.
- * Copyright (c) 2009-2014 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2008 Zach C. All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -29,26 +29,82 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
+
 #include <node.h>
 #include <node_iterator.h>
 
-#include <libxml/encoding.h>
-#include <libxml/dict.h>
-#include <libxml/xmlerror.h>
-#include <libxml/globals.h>
-#include <libxml/threads.h>
-#include <libxml/xmlmemory.h>
+extern void plist_xml_init(void);
+extern void plist_xml_deinit(void);
 
-PLIST_API void plist_cleanup(void)
+static void internal_plist_init(void)
 {
-    /* free memory from parser initialization */
-    xmlCleanupCharEncodingHandlers();
-    xmlDictCleanup();
-    xmlResetLastError();
-    xmlCleanupGlobals();
-    xmlCleanupThreads();
-    xmlCleanupMemory();
+    plist_xml_init();
 }
+
+static void internal_plist_deinit(void)
+{
+    plist_xml_deinit();
+}
+
+#ifdef WIN32
+
+typedef volatile struct {
+    LONG lock;
+    int state;
+} thread_once_t;
+
+static thread_once_t init_once = {0, 0};
+static thread_once_t deinit_once = {0, 0};
+
+void thread_once(thread_once_t *once_control, void (*init_routine)(void))
+{
+    while (InterlockedExchange(&(once_control->lock), 1) != 0) {
+        Sleep(1);
+    }
+    if (!once_control->state) {
+        once_control->state = 1;
+        init_routine();
+    }
+    InterlockedExchange(&(once_control->lock), 0);
+}
+
+BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, LPVOID lpReserved)
+{
+    switch (dwReason) {
+    case DLL_PROCESS_ATTACH:
+        thread_once(&init_once, internal_plist_init);
+        break;
+    case DLL_PROCESS_DETACH:
+        thread_once(&deinit_once, internal_plist_deinit);
+        break;
+    default:
+        break;
+    }
+    return 1;
+}
+
+#else
+
+static pthread_once_t init_once = PTHREAD_ONCE_INIT;
+static pthread_once_t deinit_once = PTHREAD_ONCE_INIT;
+
+static void __attribute__((constructor)) libplist_initialize(void)
+{
+    pthread_once(&init_once, internal_plist_init);
+}
+
+static void __attribute__((destructor)) libplist_deinitialize(void)
+{
+    pthread_once(&deinit_once, internal_plist_deinit);
+}
+
+#endif
+
 
 PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
 {

@@ -1,8 +1,9 @@
 /*
- * base64.h
- * base64 encode/decode implementation
+ * strbuf.h
+ * header file for simple string buffer, using the bytearray as underlying
+ * structure.
  *
- * Copyright (c) 2011 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2016 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +19,15 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-#ifndef BASE64_H
-#define BASE64_H
+#ifndef STRBUF_H
+#define STRBUF_H
 #include <stdlib.h>
+#include "bytearray.h"
 
-size_t base64encode(char *outbuf, const unsigned char *buf, size_t size);
-unsigned char *base64decode(const char *buf, size_t *size);
+typedef struct bytearray_t strbuf_t;
+
+#define str_buf_new() byte_array_new()
+#define str_buf_free(__ba) byte_array_free(__ba)
+#define str_buf_append(__ba, __str, __len) byte_array_append(__ba, (void*)(__str), __len)
 
 #endif
