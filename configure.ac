@@ -70,6 +70,12 @@ case ${host_os} in
 esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
+# if we are not on win32, check for pthread
+if test x"$win32" != x"true"; then
+  AX_PTHREAD([], [AC_MSG_ERROR([pthread is required to build libplist])])
+  AC_CHECK_LIB(pthread, [pthread_once], [], [AC_MSG_ERROR([pthread with pthread_once required to build libplist])])
+fi
+
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
 	AC_TRY_COMPILE([
@@ -130,7 +136,8 @@ fi
 AM_CONDITIONAL([HAVE_CYTHON],[test "x$CYTHON_SUB" = "xcython"])
 AC_SUBST([CYTHON_SUB])
 
-AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wmissing-declarations -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -fvisibility=hidden")
+AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -fvisibility=hidden $PTHREAD_CFLAGS")
+GLOBAL_LDFLAGS="$PTHREAD_LIBS"
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
@@ -148,6 +155,7 @@ if (test "x$debug" = "xyes"); then
 fi
 
 AC_SUBST(GLOBAL_CFLAGS)
+AC_SUBST(GLOBAL_LDFLAGS)
 
 case "$GLOBAL_CFLAGS" in
     *-fvisibility=hidden*)

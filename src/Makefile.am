@@ -1,7 +1,7 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -I$(top_srcdir)/libcnary/include
 
 AM_CFLAGS = $(GLOBAL_CFLAGS)
-AM_LDFLAGS =
+AM_LDFLAGS = $(GLOBAL_LDFLAGS)
 
 lib_LTLIBRARIES = libplist.la libplist++.la
 libplist_la_LIBADD = $(top_builddir)/libcnary/libcnary.la
