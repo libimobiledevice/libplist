@@ -662,7 +662,9 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 return;
             }
             if (*(ctx->pos-1) == '/') {
-                tag[ctx->pos - p - 1] = '\0';
+                int idx = ctx->pos - p - 1;
+                if (idx < taglen)
+                    tag[idx] = '\0';
                 is_empty = 1;
             }
             ctx->pos++;
