@@ -118,7 +118,7 @@ unsigned char *base64decode(const char *buf, size_t *size)
 			break;
 		}
 		len = strcspn(ptr, "\r\n\t ");
-		if (len > 0) {
+		if (len > 3) {
 			p+=base64decode_block(outbuf+p, ptr, len);
 			ptr += len;
 		} else {
