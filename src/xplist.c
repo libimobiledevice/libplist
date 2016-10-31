@@ -840,6 +840,11 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!is_empty) {
                         /* only if not empty */
                         node_from_xml(ctx, &subnode);
+                        if (ctx->err) {
+                            /* make sure to bail out if parsing failed */
+                            free(keyname);
+                            return;
+                        }
                         if ((data->type == PLIST_DICT) && (plist_dict_get_size(subnode) == 1)) {
                             /* convert XML CF$UID dictionaries to PLIST_UID nodes */
                             plist_t uid = plist_dict_get_item(subnode, "CF$UID");
