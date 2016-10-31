@@ -728,6 +728,14 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, XPLIST_REAL)) {
                 if (!is_empty) {
                     char *strval = get_text_content(ctx, tag, 1, 0);
+                    if (!strval) {
+                        PLIST_XML_ERR("Couldn't get text content for '%s' node\n", tag);
+                        ctx->pos = ctx->end;
+                        ctx->err++;
+                        free(tag);
+                        free(keyname);
+                        return;
+                    }
                     data->realval = atof((char *) strval);
                     free(strval);
                 }
