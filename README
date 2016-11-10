@@ -6,9 +6,6 @@ A small portable C library to handle Apple Property List files in binary or XML.
 Requirements
 ============
 
-Development Packages of:
-	libxml2
-
 Software:
 	make
 	autoheader
@@ -62,4 +59,4 @@ libimobiledevice is an independent software library and has not been
 authorized, sponsored, or otherwise approved by Apple Inc.
 
 README Updated on:
-	2015-01-28
+	2016-11-10
