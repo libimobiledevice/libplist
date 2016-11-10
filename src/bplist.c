@@ -568,15 +568,21 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         }
 
     case BPLIST_UINT:
+        if (*object - bplist->data + (uint64_t)(1 << size) >= bplist->size)
+            return NULL;
         return parse_uint_node(object, size);
 
     case BPLIST_REAL:
+        if (*object - bplist->data + (uint64_t)(1 << size) >= bplist->size)
+            return NULL;
         return parse_real_node(object, size);
 
     case BPLIST_DATE:
         if (3 != size)
             return NULL;
         else
+            if (*object - bplist->data + (uint64_t)(1 << size) >= bplist->size)
+                return NULL;
             return parse_date_node(object, size);
 
     case BPLIST_DATA:
@@ -587,6 +593,9 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
+
+        if (*object - bplist->data + size >= bplist->size)
+            return NULL;
         return parse_data_node(object, size);
 
     case BPLIST_STRING:
@@ -597,6 +606,9 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
+
+        if (*object - bplist->data + size >= bplist->size)
+            return NULL;
         return parse_string_node(object, size);
 
     case BPLIST_UNICODE:
@@ -607,6 +619,9 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
+
+        if (*object - bplist->data + size * 2 >= bplist->size)
+            return NULL;
         return parse_unicode_node(object, size);
 
     case BPLIST_SET:
@@ -618,6 +633,9 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
+
+        if (*object - bplist->data + size >= bplist->size)
+            return NULL;
         return parse_array_node(bplist, object, size);
 
     case BPLIST_UID:
@@ -631,6 +649,9 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             plist_get_uint_val(size_node, &size);
             plist_free(size_node);
         }
+
+        if (*object - bplist->data + size >= bplist->size)
+            return NULL;
         return parse_dict_node(bplist, object, size);
     default:
         return NULL;
