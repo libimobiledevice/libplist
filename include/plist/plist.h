@@ -664,6 +664,20 @@ extern "C"
      */
     char plist_compare_node_value(plist_t node_l, plist_t node_r);
 
+    #define _PLIST_IS_TYPE(__plist, __plist_type) (__plist && (plist_get_node_type(__plist) == PLIST_##__plist_type))
+
+    /* Helper macros for the different plist types */
+    #define PLIST_IS_BOOLEAN(__plist) _PLIST_IS_TYPE(__plist, BOOLEAN)
+    #define PLIST_IS_UINT(__plist)    _PLIST_IS_TYPE(__plist, UINT)
+    #define PLIST_IS_REAL(__plist)    _PLIST_IS_TYPE(__plist, REAL)
+    #define PLIST_IS_STRING(__plist)  _PLIST_IS_TYPE(__plist, STRING)
+    #define PLIST_IS_ARRAY(__plist)   _PLIST_IS_TYPE(__plist, ARRAY)
+    #define PLIST_IS_DICT(__plist)    _PLIST_IS_TYPE(__plist, DICT)
+    #define PLIST_IS_DATE(__plist)    _PLIST_IS_TYPE(__plist, DATE)
+    #define PLIST_IS_DATA(__plist)    _PLIST_IS_TYPE(__plist, DATA)
+    #define PLIST_IS_KEY(__plist)     _PLIST_IS_TYPE(__plist, KEY)
+    #define PLIST_IS_UID(__plist)     _PLIST_IS_TYPE(__plist, UID)
+
     /*@}*/
 
 #ifdef __cplusplus
