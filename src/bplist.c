@@ -661,11 +661,20 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
 
 static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index)
 {
-    int i;
-    const char* ptr;
-    plist_t plist;
+    int i = 0;
+    const char* ptr = NULL;
+    plist_t plist = NULL;
+    const char* idx_ptr = NULL;
 
-    ptr = bplist->data + UINT_TO_HOST(bplist->offset_table + node_index * bplist->offset_size, bplist->offset_size);
+    if (node_index > bplist->num_objects)
+        return NULL;
+
+    idx_ptr = bplist->offset_table + node_index * bplist->offset_size;
+    if (idx_ptr < bplist->offset_table ||
+        idx_ptr >= bplist->offset_table + bplist->num_objects * bplist->offset_size)
+        return NULL;
+
+    ptr = bplist->data + UINT_TO_HOST(idx_ptr, bplist->offset_size);
     /* make sure the node offset is in a sane range */
     if ((ptr < bplist->data) || (ptr >= bplist->offset_table)) {
         return NULL;
