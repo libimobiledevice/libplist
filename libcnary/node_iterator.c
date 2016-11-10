@@ -47,7 +47,7 @@ node_iterator_t* node_iterator_create(node_list_t* list) {
 
 	iterator->end = NULL;
 	iterator->begin = NULL;
-	iterator->value = list->begin;
+	iterator->value = NULL;
 
 	iterator->list = NULL;
 	iterator->next = node_iterator_next;
