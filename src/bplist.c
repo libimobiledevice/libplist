@@ -708,6 +708,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     uint64_t num_objects = 0;
     uint64_t root_object = 0;
     uint64_t offset_table_index = 0;
+    char *offset_table = NULL;
 
     //first check we have enough data
     if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + BPLIST_TRL_SIZE))
@@ -727,11 +728,18 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     num_objects = be64dec(trailer + BPLIST_TRL_NUMOBJ_IDX);
     root_object = be64dec(trailer + BPLIST_TRL_ROOTOBJ_IDX);
     offset_table_index = be64dec(trailer + BPLIST_TRL_OFFTAB_IDX);
+    offset_table = (char *) (plist_bin + offset_table_index);
 
     if (num_objects == 0)
         return;
 
     if (root_object >= num_objects)
+        return;
+
+    if (offset_table < plist_bin || offset_table >= plist_bin + length)
+        return;
+
+    if (offset_table + num_objects * offset_size >= plist_bin + length)
         return;
 
     struct bplist_data bplist;
@@ -740,7 +748,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     bplist.num_objects = num_objects;
     bplist.dict_size = dict_size;
     bplist.offset_size = offset_size;
-    bplist.offset_table = (char *) (plist_bin + offset_table_index);
+    bplist.offset_table = offset_table;
     bplist.level = 0;
     bplist.used_indexes = (uint32_t*)malloc(sizeof(uint32_t) * num_objects);
 
