@@ -742,6 +742,9 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     if (offset_table + num_objects * offset_size >= plist_bin + length)
         return;
 
+    if (sizeof(uint32_t) * num_objects < num_objects)
+        return;
+
     struct bplist_data bplist;
     bplist.data = plist_bin;
     bplist.size = length;
@@ -751,6 +754,9 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     bplist.offset_table = offset_table;
     bplist.level = 0;
     bplist.used_indexes = (uint32_t*)malloc(sizeof(uint32_t) * num_objects);
+
+    if (!bplist.used_indexes)
+        return;
 
     *plist = parse_bin_node_at_index(&bplist, root_object);
 
