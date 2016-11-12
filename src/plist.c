@@ -58,6 +58,14 @@ static void internal_plist_deinit(void)
 
 #ifdef WIN32
 
+// In libimobiledevice-win32, we build libplist as a .lib (static library) instead of a .dll
+// (dynamic library). A .lib file does not have a DllMain entry point, so we need to comment this
+// out.
+// internal_plist_init is defined in this file and calls plist_xml_init, which is defined in
+// plist_xml_init, and whose only purpose is to, in DEBUG mode, read the PLIST_XML_DEBUG environment
+// variable and set the debug level accordingly. internal_plist_deinit is a no-op.
+// Hence, it's fairly safe to disable this here for now.
+#if _USRDLL
 typedef volatile struct {
     LONG lock;
     int state;
@@ -92,6 +100,7 @@ BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, LPVOID lpReserved)
     }
     return 1;
 }
+#endif
 
 #else
 
