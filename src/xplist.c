@@ -518,7 +518,7 @@ static char* get_text_content(parse_ctx ctx, const char* tag, int skip_ws, int u
             if (i >= len) {
                 break;
             }
-            if (str+i > entp+1) {
+            if (str+i >= entp+1) {
                 int entlen = str+i - entp;
                 if (!strncmp(entp, "amp", 3)) {
                     /* the '&' is already there */
@@ -530,9 +530,57 @@ static char* get_text_content(parse_ctx ctx, const char* tag, int skip_ws, int u
                     *(entp-1) = '<';
                 } else if (!strncmp(entp, "gt", 2)) {
                     *(entp-1) = '>';
+                } else if (*entp == '#') {
+                    /* numerical  character reference */
+                    uint64_t val = 0;
+                    char* ep = NULL;
+                    if (entlen > 8) {
+                        PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too long: &%.*s;\n", entlen, entp);
+                        return NULL;
+                    }
+                    if (*(entp+1) == 'x' || *(entp+1) == 'X') {
+                        if (entlen < 3) {
+                            PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", entlen, entp);
+                            return NULL;
+                        }
+                        val = strtoull(entp+2, &ep, 16);
+                    } else {
+                        if (entlen < 2) {
+                            PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", entlen, entp);
+                            return NULL;
+                        }
+                        val = strtoull(entp+1, &ep, 10);
+                    }
+                    if (val == 0 || val > 0x10FFFF || ep-entp != entlen) {
+                        PLIST_XML_ERR("Invalid numerical character reference found: &%.*s;\n", entlen, entp);
+                        return NULL;
+                    }
+                    /* convert to UTF8 */
+                    if (val >= 0x10000) {
+                        /* four bytes */
+                        *(entp-1) = (char)(0xF0 + ((val >> 18) & 0x7));
+                        *(entp+0) = (char)(0x80 + ((val >> 12) & 0x3F));
+                        *(entp+1) = (char)(0x80 + ((val >> 6) & 0x3F));
+                        *(entp+2) = (char)(0x80 + (val & 0x3F));
+                        entp+=3;
+                    } else if (val >= 0x800) {
+                        /* three bytes */
+                        *(entp-1) = (char)(0xE0 + ((val >> 12) & 0xF));
+                        *(entp+0) = (char)(0x80 + ((val >> 6) & 0x3F));
+                        *(entp+1) = (char)(0x80 + (val & 0x3F));
+                        entp+=2;
+                    } else if (val >= 0x80) {
+                        /* two bytes */
+                        *(entp-1) = (char)(0xC0 + ((val >> 6) & 0x1F));
+                        *(entp+0) = (char)(0x80 + (val & 0x3F));
+                        entp++;
+                    } else {
+                        /* one byte */
+                        *(entp-1) = (char)(val & 0x7F);
+                    }
                 } else {
-                    /* unexpected entity, replace with ? */
-                    *(entp-1) = '?';
+                    PLIST_XML_ERR("Invalid entity encountered: &%.*s;\n", entlen, entp);
+                    return NULL;
                 }
                 memmove(entp, str+i+1, len - i);
                 i -= entlen;
