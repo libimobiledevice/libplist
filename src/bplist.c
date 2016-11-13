@@ -327,7 +327,7 @@ static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, l
 			if (read_lead_surrogate) {
 				read_lead_surrogate = 0;
 				w = w | (wc & 0x3FF);
-				outbuf[p++] = (char)(0xF0 + ((w >> 18) & 0x3));
+				outbuf[p++] = (char)(0xF0 + ((w >> 18) & 0x7));
 				outbuf[p++] = (char)(0x80 + ((w >> 12) & 0x3F));
 				outbuf[p++] = (char)(0x80 + ((w >> 6) & 0x3F));
 				outbuf[p++] = (char)(0x80 + (w & 0x3F));
@@ -1091,7 +1091,7 @@ static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, 
 		c3 = (i < size-3) ? unistr[i+3] : 0;
 		if ((c0 >= 0xF0) && (i < size-3) && (c1 >= 0x80) && (c2 >= 0x80) && (c3 >= 0x80)) {
 			// 4 byte sequence.  Need to generate UTF-16 surrogate pair
-			w = ((((c0 & 7) << 18) + ((c1 & 0x3F) << 12) + ((c2 & 0x3F) << 6) + (c3 & 0x3F)) & 0x0FFFFF) - 0x010000;
+			w = ((((c0 & 7) << 18) + ((c1 & 0x3F) << 12) + ((c2 & 0x3F) << 6) + (c3 & 0x3F)) & 0x1FFFFF) - 0x010000;
 			outbuf[p++] = 0xD800 + (w >> 10);
 			outbuf[p++] = 0xDC00 + (w & 0x3FF);
 			i+=4;
