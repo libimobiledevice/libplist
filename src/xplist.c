@@ -468,19 +468,35 @@ static void find_next(parse_ctx ctx, const char *nextchars, int skip_quotes)
 
 static char* get_text_content(parse_ctx ctx, const char* tag, int skip_ws, int unescape_entities)
 {
-    const char *p;
-    const char *q;
-    int taglen;
-    char *str;
+    const char *p = NULL;
+    const char *q = NULL;
+    int taglen = 0;
+    char *str = NULL;
     int i = 0;
 
     if (skip_ws) {
         parse_skip_ws(ctx);
     }
     p = ctx->pos;
-    find_char(ctx, '<', 1);
-    if (*ctx->pos != '<') { PLIST_XML_ERR("didn't find <\n"); return NULL; }
-    q = ctx->pos;
+    if (strncmp(ctx->pos, "<![CDATA[", 9) == 0) {
+        ctx->pos+=9;
+        p = ctx->pos;
+        find_str(ctx, "]]>", 0);
+        if (ctx->pos >= ctx->end || strncmp(ctx->pos, "]]>", 3) != 0) {
+            PLIST_XML_ERR("EOF while looking for end of CDATA block\n");
+            return NULL;
+        }
+        q = ctx->pos;
+        ctx->pos+=3;
+    }
+    find_char(ctx, '<', 0);
+    if (*ctx->pos != '<') {
+        PLIST_XML_ERR("EOF while looking for closing tag\n");
+        return NULL;
+    }
+    if (!q) {
+        q = ctx->pos;
+    }
     ctx->pos++;
     if (ctx->pos >= ctx->end || *ctx->pos != '/') { PLIST_XML_ERR("EOF or empty tag while parsing '%s'\n",p); return NULL; }
     ctx->pos++;
