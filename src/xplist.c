@@ -243,16 +243,6 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
                 str_buf_append(*outbuf, "&gt;", 4);
                 start = cur+1;
                 break;
-            case '\'':
-                str_buf_append(*outbuf, node_data->strval + start, cur - start);
-                str_buf_append(*outbuf, "&apos;", 6);
-                start = cur+1;
-                break;
-            case '"':
-                str_buf_append(*outbuf, node_data->strval + start, cur - start);
-                str_buf_append(*outbuf, "&quot;", 6);
-                start = cur+1;
-                break;
             case '&':
                 str_buf_append(*outbuf, node_data->strval + start, cur - start);
                 str_buf_append(*outbuf, "&amp;", 5);
