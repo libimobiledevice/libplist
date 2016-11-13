@@ -478,6 +478,7 @@ static char* get_text_content(parse_ctx ctx, const char* tag, int skip_ws, int u
         }
         q = ctx->pos;
         ctx->pos+=3;
+        unescape_entities = 0;
     }
     find_char(ctx, '<', 0);
     if (*ctx->pos != '<') {
