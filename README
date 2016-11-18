@@ -27,6 +27,13 @@ To compile run:
 	make
 	sudo make install
 
+If you require a custom prefix or other option to ./configure, use:
+
+	NOCONFIGURE=x ./autogen.sh
+	./configure --prefix=/custom-prefix
+	make
+	sudo make install
+
 Who/What/Where?
 ===============
 
