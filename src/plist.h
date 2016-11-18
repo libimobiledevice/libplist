@@ -56,6 +56,7 @@ struct plist_data_s
         double realval;
         char *strval;
         uint8_t *buff;
+        void *hashtable;
     };
     uint64_t length;
     plist_type type;

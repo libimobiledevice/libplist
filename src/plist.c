@@ -37,6 +37,7 @@
 
 #include <node.h>
 #include <node_iterator.h>
+#include <hashtable.h>
 
 extern void plist_xml_init(void);
 extern void plist_xml_deinit(void);
@@ -148,6 +149,31 @@ plist_data_t plist_new_plist_data(void)
     return data;
 }
 
+static unsigned int dict_key_hash(const void *data)
+{
+    plist_data_t keydata = (plist_data_t)data;
+    unsigned int hash = 5381;
+    size_t i;
+    char *str = keydata->strval;
+    for (i = 0; i < keydata->length; str++, i++) {
+        hash = ((hash << 5) + hash) + *str;
+    }
+    return hash;
+}
+
+static int dict_key_compare(const void* a, const void* b)
+{
+    plist_data_t data_a = (plist_data_t)a;
+    plist_data_t data_b = (plist_data_t)b;
+    if (data_a->strval == NULL || data_b->strval == NULL) {
+        return FALSE;
+    }
+    if (data_a->length != data_b->length) {
+        return FALSE;
+    }
+    return (strcmp(data_a->strval, data_b->strval) == 0) ? TRUE : FALSE;
+}
+
 void plist_free_data(plist_data_t data)
 {
     if (data)
@@ -160,6 +186,9 @@ void plist_free_data(plist_data_t data)
             break;
         case PLIST_DATA:
             free(data->buff);
+            break;
+        case PLIST_DICT:
+            hash_table_destroy(data->hashtable);
             break;
         default:
             break;
@@ -483,20 +512,27 @@ PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key)
 
     if (node && PLIST_DICT == plist_get_node_type(node))
     {
-
-        plist_t current = NULL;
-        for (current = (plist_t)node_first_child(node);
+        plist_data_t data = plist_get_data(node);
+        hashtable_t *ht = (hashtable_t*)data->hashtable;
+        if (ht) {
+            struct plist_data_s sdata;
+            sdata.strval = (char*)key;
+            sdata.length = strlen(key);
+            ret = (plist_t)hash_table_lookup(ht, &sdata);
+        } else {
+            plist_t current = NULL;
+            for (current = (plist_t)node_first_child(node);
                 current;
                 current = (plist_t)node_next_sibling(node_next_sibling(current)))
-        {
-
-            plist_data_t data = plist_get_data(current);
-            assert( PLIST_KEY == plist_get_node_type(current) );
-
-            if (data && !strcmp(key, data->strval))
             {
-                ret = (plist_t)node_next_sibling(current);
-                break;
+                data = plist_get_data(current);
+                assert( PLIST_KEY == plist_get_node_type(current) );
+
+                if (data && !strcmp(key, data->strval))
+                {
+                    ret = (plist_t)node_next_sibling(current);
+                    break;
+                }
             }
         }
     }
@@ -507,6 +543,7 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
     if (node && PLIST_DICT == plist_get_node_type(node)) {
         node_t* old_item = plist_dict_get_item(node, key);
+        plist_t key_node = NULL;
         if (old_item) {
             int idx = plist_free_node(old_item);
             if (idx < 0) {
@@ -514,9 +551,31 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
             } else {
                 node_insert(node, idx, item);
             }
+            key_node = node_prev_sibling(item);
         } else {
-            node_attach(node, plist_new_key(key));
+            key_node = plist_new_key(key);
+            node_attach(node, key_node);
             node_attach(node, item);
+        }
+
+        hashtable_t *ht = ((plist_data_t)((node_t*)node)->data)->hashtable;
+        if (ht) {
+            /* store pointer to item in hash table */
+            hash_table_insert(ht, (plist_data_t)((node_t*)key_node)->data, item);
+        } else {
+            if (((node_t*)node)->count > 500) {
+                /* make new hash table */
+                ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
+                /* calculate the hashes for all entries we have so far */
+                plist_t current = NULL;
+                for (current = (plist_t)node_first_child(node);
+                     ht && current;
+                     current = (plist_t)node_next_sibling(node_next_sibling(current)))
+                {
+                    hash_table_insert(ht, ((node_t*)current)->data, node_next_sibling(current));
+                }
+                ((plist_data_t)((node_t*)node)->data)->hashtable = ht;
+            }
         }
     }
     return;
@@ -535,6 +594,10 @@ PLIST_API void plist_dict_remove_item(plist_t node, const char* key)
         if (old_item)
         {
             plist_t key_node = node_prev_sibling(old_item);
+            hashtable_t* ht = ((plist_data_t)((node_t*)node)->data)->hashtable;
+            if (ht) {
+                hash_table_remove(ht, ((node_t*)key_node)->data);
+            }
             plist_free(key_node);
             plist_free(old_item);
         }

@@ -2,7 +2,7 @@
  * hashtable.c
  * really simple hash table implementation
  *
- * Copyright (c) 2011 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2011-2016 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,7 @@
  */
 #include "hashtable.h"
 
-hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func)
+hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func, free_func_t free_func)
 {
 	hashtable_t* ht = (hashtable_t*)malloc(sizeof(hashtable_t));
 	int i;
@@ -30,6 +30,7 @@ hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func)
 	ht->count = 0;
 	ht->hash_func = hash_func;
 	ht->compare_func = compare_func;
+	ht->free_func = free_func;
 	return ht;
 }
 
@@ -42,7 +43,9 @@ void hash_table_destroy(hashtable_t *ht)
 		if (ht->entries[i]) {
 			hashentry_t* e = ht->entries[i];
 			while (e) {
-				free(e->value);
+				if (ht->free_func) {
+					ht->free_func(e->value);
+				}
 				hashentry_t* old = e;
 				e = e->next;
 				free(old);
@@ -103,4 +106,35 @@ void* hash_table_lookup(hashtable_t* ht, void *key)
 		e = e->next;
 	}
 	return NULL;
+}
+
+void hash_table_remove(hashtable_t* ht, void *key)
+{
+	if (!ht || !key) return;
+
+	unsigned int hash = ht->hash_func(key);
+
+	int idx0 = hash & 0xFFF;
+
+	// get the idx0 list
+	hashentry_t* e = ht->entries[idx0];
+	hashentry_t* last = e;
+	while (e) {
+		if (ht->compare_func(e->key, key)) {
+			// found element, remove it from the list
+			hashentry_t* old = e;
+			if (e == ht->entries[idx0]) {
+				ht->entries[idx0] = e->next;
+			} else {
+				last->next = e->next;
+			}
+			if (ht->free_func) {
+				ht->free_func(old->value);
+			}
+			free(old);
+			return;
+		}
+		last = e;
+		e = e->next;
+	}
 }

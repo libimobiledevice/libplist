@@ -1156,7 +1156,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //list of objects
     objects = ptr_array_new(256);
     //hashtable to write only once same nodes
-    ref_table = hash_table_new(plist_data_hash, plist_data_compare);
+    ref_table = hash_table_new(plist_data_hash, plist_data_compare, free);
 
     //serialize plist
     ser_s.objects = objects;
