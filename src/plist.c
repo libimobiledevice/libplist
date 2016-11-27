@@ -325,10 +325,7 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
     memcpy(newdata, data, sizeof(struct plist_data_s));
 
     node_type = plist_get_node_type(node);
-    if (node_type == PLIST_DATA || node_type == PLIST_STRING || node_type == PLIST_KEY)
-    {
-        switch (node_type)
-        {
+    switch (node_type) {
         case PLIST_DATA:
             newdata->buff = (uint8_t *) malloc(data->length);
             memcpy(newdata->buff, data->buff, data->length);
@@ -337,9 +334,22 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
         case PLIST_STRING:
             newdata->strval = strdup((char *) data->strval);
             break;
+        case PLIST_DICT:
+            if (data->hashtable) {
+                hashtable_t* ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
+                assert(ht);
+                plist_t current = NULL;
+                for (current = (plist_t)node_first_child(node);
+                     ht && current;
+                     current = (plist_t)node_next_sibling(node_next_sibling(current)))
+                {
+                    hash_table_insert(ht, ((node_t*)current)->data, node_next_sibling(current));
+                }
+                newdata->hashtable = ht;
+            }
+            break;
         default:
             break;
-        }
     }
     newnode = plist_new_node(newdata);
 
