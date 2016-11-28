@@ -621,6 +621,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
         if (*ctx->pos != '<') {
             PLIST_XML_ERR("Failed to parse XML. Expected: opening tag, found: '%s', pos: %s\n", start, ctx->pos);
             ctx->pos = ctx->end;
+            ctx->err++;
             break;
         }
         ctx->pos++;
@@ -828,7 +829,6 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                         free(tag);
                         plist_free(subnode);
                         subnode = NULL;
-                        ctx->pos++;
                         continue;
                     } else {
                         data->strval = str;
@@ -953,7 +953,6 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 break;
             }
         }
-        ctx->pos++;
     }
     if (ctx->err) {
         plist_free(*plist);
