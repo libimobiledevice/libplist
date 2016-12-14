@@ -25,6 +25,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_STRPTIME
+#define _XOPEN_SOURCE 600
+#endif
+
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -354,7 +358,7 @@ static void parse_date(const char *strval, struct TM *btime)
     if (!btime) return;
     memset(btime, 0, sizeof(struct tm));
     if (!strval) return;
-#ifdef strptime
+#ifdef HAVE_STRPTIME
     strptime((char*)strval, "%Y-%m-%dT%H:%M:%SZ", btime);
 #else
 #ifdef USE_TM64
