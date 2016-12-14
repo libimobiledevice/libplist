@@ -47,17 +47,26 @@
 #include "strbuf.h"
 #include "time64.h"
 
-#define XPLIST_TEXT	"text"
 #define XPLIST_KEY	"key"
+#define XPLIST_KEY_LEN 3
 #define XPLIST_FALSE	"false"
+#define XPLIST_FALSE_LEN 5
 #define XPLIST_TRUE	"true"
+#define XPLIST_TRUE_LEN 4
 #define XPLIST_INT	"integer"
+#define XPLIST_INT_LEN 7
 #define XPLIST_REAL	"real"
+#define XPLIST_REAL_LEN 4
 #define XPLIST_DATE	"date"
+#define XPLIST_DATE_LEN 4
 #define XPLIST_DATA	"data"
+#define XPLIST_DATA_LEN 4
 #define XPLIST_STRING	"string"
+#define XPLIST_STRING_LEN 6
 #define XPLIST_ARRAY	"array"
+#define XPLIST_ARRAY_LEN 5
 #define XPLIST_DICT	"dict"
+#define XPLIST_DICT_LEN 4
 
 #define MAC_EPOCH 978307200
 
@@ -89,7 +98,7 @@ void plist_xml_deinit(void)
     /* deinit XML stuff */
 }
 
-static void dtostr(char *buf, size_t bufsize, double realval)
+static size_t dtostr(char *buf, size_t bufsize, double realval)
 {
     double f = realval;
     double ip = 0.0;
@@ -100,7 +109,7 @@ static void dtostr(char *buf, size_t bufsize, double realval)
     f = modf(f, &ip);
     len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
     if (len >= bufsize) {
-        return;
+        return 0;
     }
 
     if (f < 0) {
@@ -117,6 +126,7 @@ static void dtostr(char *buf, size_t bufsize, double realval)
         buf[p++] = (v + 0x30);
     }
     buf[p] = '\0';
+    return p;
 }
 
 static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
@@ -127,7 +137,9 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     char tagOpen = FALSE;
 
     const char *tag = NULL;
+    size_t tag_len = 0;
     char *val = NULL;
+    size_t val_len = 0;
 
     uint32_t i = 0;
 
@@ -140,53 +152,64 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     {
     case PLIST_BOOLEAN:
     {
-        if (node_data->boolval)
+        if (node_data->boolval) {
             tag = XPLIST_TRUE;
-        else
+            tag_len = XPLIST_TRUE_LEN;
+        } else {
             tag = XPLIST_FALSE;
+            tag_len = XPLIST_FALSE_LEN;
+        }
     }
     break;
 
     case PLIST_UINT:
         tag = XPLIST_INT;
+        tag_len = XPLIST_INT_LEN;
         val = (char*)malloc(64);
         if (node_data->length == 16) {
-	        (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
-	} else {
-	        (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
-	}
+            val_len = snprintf(val, 64, "%"PRIu64, node_data->intval);
+        } else {
+            val_len = snprintf(val, 64, "%"PRIi64, node_data->intval);
+        }
         break;
 
     case PLIST_REAL:
         tag = XPLIST_REAL;
+        tag_len = XPLIST_REAL_LEN;
         val = (char*)malloc(64);
-        dtostr(val, 64, node_data->realval);
+        val_len = dtostr(val, 64, node_data->realval);
         break;
 
     case PLIST_STRING:
         tag = XPLIST_STRING;
+        tag_len = XPLIST_STRING_LEN;
         /* contents processed directly below */
         break;
 
     case PLIST_KEY:
         tag = XPLIST_KEY;
+        tag_len = XPLIST_KEY_LEN;
         /* contents processed directly below */
         break;
 
     case PLIST_DATA:
         tag = XPLIST_DATA;
+        tag_len = XPLIST_DATA_LEN;
         /* contents processed directly below */
         break;
     case PLIST_ARRAY:
         tag = XPLIST_ARRAY;
+        tag_len = XPLIST_ARRAY_LEN;
         isStruct = TRUE;
         break;
     case PLIST_DICT:
         tag = XPLIST_DICT;
+        tag_len = XPLIST_DICT_LEN;
         isStruct = TRUE;
         break;
     case PLIST_DATE:
         tag = XPLIST_DATE;
+        tag_len = XPLIST_DATE_LEN;
         {
             Time64_T timev = (Time64_T)node_data->realval + MAC_EPOCH;
             struct TM _btime;
@@ -196,7 +219,8 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
                 memset(val, 0, 24);
                 struct tm _tmcopy;
                 copy_TM64_to_tm(btime, &_tmcopy);
-                if (strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", &_tmcopy) <= 0) {
+                val_len = strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", &_tmcopy);
+                if (val_len <= 0) {
                     free (val);
                     val = NULL;
                 }
@@ -205,12 +229,13 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         break;
     case PLIST_UID:
         tag = XPLIST_DICT;
+        tag_len = XPLIST_DICT_LEN;
         val = (char*)malloc(64);
         if (node_data->length == 16) {
-               (void)snprintf(val, 64, "%"PRIu64, node_data->intval);
-       } else {
-               (void)snprintf(val, 64, "%"PRIi64, node_data->intval);
-       }
+            val_len = snprintf(val, 64, "%"PRIu64, node_data->intval);
+        } else {
+            val_len = snprintf(val, 64, "%"PRIi64, node_data->intval);
+        }
         break;
     default:
         break;
@@ -222,7 +247,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
 
     /* append tag */
     str_buf_append(*outbuf, "<", 1);
-    str_buf_append(*outbuf, tag, strlen(tag));
+    str_buf_append(*outbuf, tag, tag_len);
     if (node_data->type == PLIST_STRING || node_data->type == PLIST_KEY) {
         size_t j;
         size_t len;
@@ -233,8 +258,8 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         tagOpen = TRUE;
 
         /* make sure we convert the following predefined xml entities */
-        /* < = &lt; > = &gt; ' = &apos; " = &quot; & = &amp; */
-        len = strlen(node_data->strval);
+        /* < = &lt; > = &gt; & = &amp; */
+        len = node_data->length;
         for (j = 0; j < len; j++) {
             switch (node_data->strval[j]) {
             case '<':
@@ -302,7 +327,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
             str_buf_append(*outbuf, "\t", 1);
         }
         str_buf_append(*outbuf, "<integer>", 9);
-        str_buf_append(*outbuf, val, strlen(val));
+        str_buf_append(*outbuf, val, val_len);
         str_buf_append(*outbuf, "</integer>", 10);
         str_buf_append(*outbuf, "\n", 1);
 
@@ -312,7 +337,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     } else if (val) {
         str_buf_append(*outbuf, ">", 1);
         tagOpen = TRUE;
-        str_buf_append(*outbuf, val, strlen(val));
+        str_buf_append(*outbuf, val, val_len);
     } else if (isStruct) {
         tagOpen = TRUE;
         str_buf_append(*outbuf, ">", 1);
@@ -345,7 +370,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     if (tagOpen) {
         /* add closing tag */
         str_buf_append(*outbuf, "</", 2);
-        str_buf_append(*outbuf, tag, strlen(tag));
+        str_buf_append(*outbuf, tag, tag_len);
         str_buf_append(*outbuf, ">", 1);
     }
     str_buf_append(*outbuf, "\n", 1);
@@ -419,9 +444,8 @@ static void find_char(parse_ctx ctx, char c, int skip_quotes)
     }
 }
 
-static void find_str(parse_ctx ctx, const char *str, int skip_quotes)
+static void find_str(parse_ctx ctx, const char *str, size_t len, int skip_quotes)
 {
-    size_t len = strlen(str);
     while (ctx->pos < (ctx->end - len)) {
         if (!strncmp(ctx->pos, str, len)) {
             break;
@@ -438,9 +462,8 @@ static void find_str(parse_ctx ctx, const char *str, int skip_quotes)
     }
 }
 
-static void find_next(parse_ctx ctx, const char *nextchars, int skip_quotes)
+static void find_next(parse_ctx ctx, const char *nextchars, int numchars, int skip_quotes)
 {
-    int numchars = strlen(nextchars);
     int i = 0;
     while (ctx->pos < ctx->end) {
         if (skip_quotes && (*(ctx->pos) == '"')) {
@@ -493,11 +516,10 @@ static text_part_t* text_part_append(text_part_t* parts, const char *begin, size
     return newpart;
 }
 
-static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, int skip_ws, text_part_t *parts)
+static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_len, int skip_ws, text_part_t *parts)
 {
     const char *p = NULL;
     const char *q = NULL;
-    int taglen = 0;
     text_part_t *last = NULL;
 
     if (skip_ws) {
@@ -527,7 +549,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, int skip_ws, 
                     last = text_part_init(parts, p, q-p, 0);
                 }
                 ctx->pos += 2;
-                find_str(ctx, "-->", 0);
+                find_str(ctx, "-->", 3, 0);
                 if (ctx->pos >= ctx->end || strncmp(ctx->pos, "-->", 3) != 0) {
                     PLIST_XML_ERR("EOF while looking for end of comment\n");
                     ctx->err++;
@@ -551,7 +573,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, int skip_ws, 
                     }
                     ctx->pos+=6;
                     p = ctx->pos;
-                    find_str(ctx, "]]>", 0);
+                    find_str(ctx, "]]>", 3, 0);
                     if (ctx->pos >= ctx->end || strncmp(ctx->pos, "]]>", 3) != 0) {
                         PLIST_XML_ERR("EOF while looking for end of CDATA block\n");
                         ctx->err++;
@@ -579,13 +601,12 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, int skip_ws, 
         }
     } while (1);
     ctx->pos++;
-    taglen = strlen(tag);
-    if (ctx->pos >= ctx->end-taglen || strncmp(ctx->pos, tag, taglen)) {
+    if (ctx->pos >= ctx->end-tag_len || strncmp(ctx->pos, tag, tag_len)) {
         PLIST_XML_ERR("EOF or end tag mismatch\n");
         ctx->err++;
         return NULL;
     }
-    ctx->pos+=taglen;
+    ctx->pos+=tag_len;
     if (ctx->pos >= ctx->end || *ctx->pos != '>') {
         PLIST_XML_ERR("EOF or no '>' after tag name\n");
         ctx->err++;
@@ -760,7 +781,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
         }
 
         if (*(ctx->pos) == '?') {
-            find_str(ctx, "?>", 1);
+            find_str(ctx, "?>", 2, 1);
             if (ctx->pos >= ctx->end) {
                 break;
             }
@@ -775,7 +796,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             /* comment or DTD */
             if (((ctx->end - ctx->pos) > 3) && !strncmp(ctx->pos, "!--", 3)) {
                 ctx->pos += 3;
-                find_str(ctx,"-->", 0);
+                find_str(ctx,"-->", 3, 0);
                 if (strncmp(ctx->pos, "-->", 3)) {
                     PLIST_XML_ERR("Couldn't find end of comment\n");
                     ctx->pos = ctx->end;
@@ -786,7 +807,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 int embedded_dtd = 0;
                 ctx->pos+=8;
                 while (ctx->pos < ctx->end) {
-                    find_next(ctx, " \t\r\n[>", 1);
+                    find_next(ctx, " \t\r\n[>", 6, 1);
                     if (*ctx->pos == '[') {
                         embedded_dtd = 1;
                         break;
@@ -799,7 +820,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                     }
                 }
                 if (embedded_dtd) {
-                    find_str(ctx, "]>", 1);
+                    find_str(ctx, "]>", 2, 1);
                     if (strncmp(ctx->pos, "]>", 2)) {
                         PLIST_XML_ERR("Couldn't find end of DOCTYPE\n");
                         ctx->pos = ctx->end;
@@ -816,7 +837,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             int is_empty = 0;
             int closing_tag = 0;
             const char *p = ctx->pos;
-            find_next(ctx," \r\n\t<>",0);
+            find_next(ctx," \r\n\t<>", 6, 0);
             if (ctx->pos >= ctx->end) {
                 PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
                 ctx->pos = ctx->end;
@@ -829,7 +850,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             strncpy(tag, p, taglen);
             tag[taglen] = '\0';
             if (*ctx->pos != '>') {
-                find_next(ctx, "<>", 1);
+                find_next(ctx, "<>", 2, 1);
             }
             if (ctx->pos >= ctx->end) {
                 PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
@@ -876,7 +897,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, XPLIST_INT)) {
                 if (!is_empty) {
                     text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, 1, &first_part);
+                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
@@ -930,7 +951,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, XPLIST_REAL)) {
                 if (!is_empty) {
                     text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, 1, &first_part);
+                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
@@ -960,14 +981,14 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 data->length = 8;
             } else if (!strcmp(tag, XPLIST_TRUE)) {
                 if (!is_empty) {
-                    get_text_parts(ctx, tag, 1, NULL);
+                    get_text_parts(ctx, tag, taglen, 1, NULL);
                 }
                 data->type = PLIST_BOOLEAN;
                 data->boolval = 1;
                 data->length = 1;
             } else if (!strcmp(tag, XPLIST_FALSE)) {
                 if (!is_empty) {
-                    get_text_parts(ctx, tag, 1, NULL);
+                    get_text_parts(ctx, tag, taglen, 1, NULL);
                 }
                 data->type = PLIST_BOOLEAN;
                 data->boolval = 0;
@@ -975,7 +996,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, XPLIST_STRING) || !strcmp(tag, XPLIST_KEY)) {
                 if (!is_empty) {
                     text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, 0, &first_part);
+                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 0, &first_part);
                     char *str = NULL;
                     size_t length = 0;
                     if (!tp) {
@@ -1012,7 +1033,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, XPLIST_DATA)) {
                 if (!is_empty) {
                     text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, 1, &first_part);
+                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
@@ -1045,7 +1066,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, XPLIST_DATE)) {
                 if (!is_empty) {
                     text_part_t first_part = { NULL, 0, 0, NULL };
-                    text_part_t *tp = get_text_parts(ctx, tag, 1, &first_part);
+                    text_part_t *tp = get_text_parts(ctx, tag, taglen, 1, &first_part);
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
