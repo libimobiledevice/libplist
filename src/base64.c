@@ -105,22 +105,23 @@ static int base64decode_block(unsigned char *target, const char *data, size_t da
 
 unsigned char *base64decode(const char *buf, size_t *size)
 {
-	if (!buf) return NULL;
-	size_t len = strlen(buf);
+	if (!buf || !size) return NULL;
+	size_t len = (*size > 0) ? *size : strlen(buf);
 	if (len <= 0) return NULL;
 	unsigned char *outbuf = (unsigned char*)malloc((len/4)*3+3);
 	const char *ptr = buf;
 	int p = 0;
+	size_t l = 0;
 
 	do {
 		ptr += strspn(ptr, "\r\n\t ");
-		if (*ptr == '\0') {
+		if (*ptr == '\0' || ptr >= buf+len) {
 			break;
 		}
-		len = strcspn(ptr, "\r\n\t ");
-		if (len > 3) {
-			p+=base64decode_block(outbuf+p, ptr, len);
-			ptr += len;
+		l = strcspn(ptr, "\r\n\t ");
+		if (l > 3 && ptr+l <= buf+len) {
+			p+=base64decode_block(outbuf+p, ptr, l);
+			ptr += l;
 		} else {
 			break;
 		}
