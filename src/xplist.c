@@ -1135,7 +1135,6 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                 free(keyname);
                 return;
             }
-            free(tag);
             if (subnode && !closing_tag) {
                 /* parse sub nodes for structured types */
                 if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
@@ -1144,6 +1143,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                         node_from_xml(ctx, &subnode, depth+1);
                         if (ctx->err) {
                             /* make sure to bail out if parsing failed */
+                            free(tag);
                             free(keyname);
                             return;
                         }
@@ -1212,8 +1212,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     ctx->err++;
                     break;
                 }
-                break;
             }
+            free(tag);
             free(keyname);
             keyname = NULL;
             plist_free(subnode);
