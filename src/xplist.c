@@ -762,7 +762,7 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
     return str;
 }
 
-static void node_from_xml(parse_ctx ctx, plist_t *plist)
+static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
 {
     char *keyname = NULL;
     while (ctx->pos < ctx->end && !ctx->err) {
@@ -886,9 +886,22 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 }
                 if (!*plist) {
                     /* only process first plist node found */
-                    node_from_xml(ctx, plist);
+                    node_from_xml(ctx, plist, depth+1);
                 }
                 continue;
+            } else if (depth == 1 && !strcmp(tag, "/plist")) {
+                if (!*plist) {
+                    PLIST_XML_ERR("Empty plist tag\n");
+                }
+                free(tag);
+                free(keyname);
+                return;
+            } else if (depth == 1 && *plist) {
+                PLIST_XML_ERR("Unexpected tag %s found while /plist is expected\n", tag);
+                ctx->err++;
+                free(tag);
+                free(keyname);
+                return;
             }
 
             plist_data_t data = plist_new_plist_data();
@@ -1128,7 +1141,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
                     if (!is_empty) {
                         /* only if not empty */
-                        node_from_xml(ctx, &subnode);
+                        node_from_xml(ctx, &subnode, depth+1);
                         if (ctx->err) {
                             /* make sure to bail out if parsing failed */
                             free(keyname);
@@ -1176,9 +1189,30 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                         break;
                     }
                 }
-            } else if (closing_tag && *plist && plist_get_node_type(*plist) == PLIST_DICT && keyname) {
-                PLIST_XML_ERR("missing value node in dict\n");
-                ctx->err++;
+            } else if (closing_tag && *plist) {
+                switch (plist_get_node_type(*plist)) {
+                case PLIST_DICT:
+                    if (keyname) {
+                        PLIST_XML_ERR("missing value node in dict\n");
+                        ctx->err++;
+                    } else if (strcmp(tag+1, XPLIST_DICT) != 0) {
+                        PLIST_XML_ERR("closing tag mismatch, expected: /%s found: %s\n", XPLIST_DICT, tag);
+                        ctx->err++;
+                    }
+                    break;
+                case PLIST_ARRAY:
+                    if (strcmp(tag+1, XPLIST_ARRAY) != 0) {
+                        PLIST_XML_ERR("closing tag mismatch, expected: /%s found: %s\n", XPLIST_ARRAY, tag);
+                        ctx->err++;
+                    }
+                    break;
+                default:
+                    /* should not happen */
+                    PLIST_XML_ERR("expected structered node but got type %d\n", plist_get_node_type(*plist));
+                    ctx->err++;
+                    break;
+                }
+                break;
             }
             free(keyname);
             keyname = NULL;
@@ -1187,6 +1221,10 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 break;
             }
         }
+    }
+    if (depth == 1) {
+        PLIST_XML_ERR("EOF while /plist tag is expected\n");
+        ctx->err++;
     }
     if (ctx->err) {
         plist_free(*plist);
@@ -1203,5 +1241,5 @@ PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * 
 
     struct _parse_ctx ctx = { plist_xml, plist_xml + length, 0 };
 
-    node_from_xml(&ctx, plist);
+    node_from_xml(&ctx, plist, 0);
 }
