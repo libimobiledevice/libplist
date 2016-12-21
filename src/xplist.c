@@ -624,7 +624,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
     return parts;
 }
 
-static void unescape_entities(char *str, size_t *length)
+static int unescape_entities(char *str, size_t *length)
 {
     size_t i = 0;
     size_t len = *length;
@@ -655,24 +655,24 @@ static void unescape_entities(char *str, size_t *length)
                     char* ep = NULL;
                     if (entlen > 8) {
                         PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too long: &%.*s;\n", entlen, entp);
-                        return;
+                        return -1;
                     }
                     if (*(entp+1) == 'x' || *(entp+1) == 'X') {
                         if (entlen < 3) {
                             PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", entlen, entp);
-                            return;
+                            return -1;
                         }
                         val = strtoull(entp+2, &ep, 16);
                     } else {
                         if (entlen < 2) {
                             PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", entlen, entp);
-                            return;
+                            return -1;
                         }
                         val = strtoull(entp+1, &ep, 10);
                     }
                     if (val == 0 || val > 0x10FFFF || ep-entp != entlen) {
                         PLIST_XML_ERR("Invalid numerical character reference found: &%.*s;\n", entlen, entp);
-                        return;
+                        return -1;
                     }
                     /* convert to UTF8 */
                     if (val >= 0x10000) {
@@ -699,7 +699,7 @@ static void unescape_entities(char *str, size_t *length)
                     }
                 } else {
                     PLIST_XML_ERR("Invalid entity encountered: &%.*s;\n", entlen, entp);
-                    return;
+                    return -1;
                 }
                 memmove(entp, str+i+1, len - i);
                 i -= entlen;
@@ -710,6 +710,7 @@ static void unescape_entities(char *str, size_t *length)
         i++;
     }
     *length = len;
+    return 0;
 }
 
 static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t *length, int *requires_free)
@@ -743,7 +744,10 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
         size_t len = tp->length;
         strncpy(p, tp->begin, len);
         if (!tp->is_cdata && unesc_entities) {
-            unescape_entities(p, &len);
+            if (unescape_entities(p, &len) < 0) {
+                free(str);
+                return NULL;
+            }
         }
         p += len;
         tp = tp->next;
