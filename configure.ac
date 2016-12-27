@@ -60,7 +60,6 @@ AC_MSG_CHECKING([wether we need platform-specific build settings])
 case ${host_os} in
   *mingw32*|*cygwin*)
     AC_MSG_RESULT([yes])
-    AC_SUBST(WINDRES)
     win32=true
     ;;
   darwin*)
