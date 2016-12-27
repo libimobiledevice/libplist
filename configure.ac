@@ -56,25 +56,23 @@ AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
 
 
 # Check for operating system
-AC_MSG_CHECKING([whether to enable WIN32 build settings])
+AC_MSG_CHECKING([wether we need platform-specific build settings])
 case ${host_os} in
   *mingw32*|*cygwin*)
-    win32=true
     AC_MSG_RESULT([yes])
     AC_SUBST(WINDRES)
+    win32=true
+    ;;
+  darwin*)
+    AC_MSG_RESULT([no])
     ;;
   *)
-    win32=false
-    AC_MSG_RESULT([no])
+    AC_MSG_RESULT([yes])
+    AX_PTHREAD([], [AC_MSG_ERROR([pthread is required to build libplist])])
+    AC_CHECK_LIB(pthread, [pthread_once], [], [AC_MSG_ERROR([pthread with pthread_once required to build libplist])])
     ;;
 esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
-
-# if we are not on win32, check for pthread
-if test x"$win32" != x"true"; then
-  AX_PTHREAD([], [AC_MSG_ERROR([pthread is required to build libplist])])
-  AC_CHECK_LIB(pthread, [pthread_once], [], [AC_MSG_ERROR([pthread with pthread_once required to build libplist])])
-fi
 
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
