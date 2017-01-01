@@ -633,7 +633,7 @@ static int unescape_entities(char *str, size_t *length)
 {
     size_t i = 0;
     size_t len = *length;
-    while (i < len-1) {
+    while (len > 0 && i < len-1) {
         if (str[i] == '&') {
             char *entp = str + i + 1;
             while (i < len && str[i] != ';') {
