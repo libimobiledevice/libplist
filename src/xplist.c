@@ -587,15 +587,25 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                     }
                     ctx->pos += 3;
                 } else {
-                    PLIST_XML_ERR("Invalid special tag <[%.6s encountered\n", ctx->pos);
+                    p = ctx->pos;
+                    find_next(ctx, " \r\n\t>", 5, 1);
+                    PLIST_XML_ERR("Invalid special tag '<[%.*s>' encountered inside '<%s>' tag\n", (int)(ctx->pos - p), p, tag);
                     ctx->err++;
                     return NULL;
                 }
+            } else {
+                p = ctx->pos;
+                find_next(ctx, " \r\n\t>", 5, 1);
+                PLIST_XML_ERR("Invalid special tag '<!%.*s>' encountered inside '<%s>' tag\n", (int)(ctx->pos - p), p, tag);
+                ctx->err++;
+                return NULL;
             }
         } else if (*ctx->pos == '/') {
             break;
         } else {
-            PLIST_XML_ERR("Invalid tag %.10s inside %s tag\n", ctx->pos, tag);
+            p = ctx->pos;
+            find_next(ctx, " \r\n\t>", 5, 1);
+            PLIST_XML_ERR("Invalid tag '<%.*s>' encountered inside '<%s>' tag\n", (int)(ctx->pos - p), p, tag);
             ctx->err++;
             return NULL;
         }
