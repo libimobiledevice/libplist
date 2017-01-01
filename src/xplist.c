@@ -607,8 +607,13 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
         return NULL;
     }
     ctx->pos+=tag_len;
-    if (ctx->pos >= ctx->end || *ctx->pos != '>') {
-        PLIST_XML_ERR("EOF or no '>' after tag name\n");
+    parse_skip_ws(ctx);
+    if (ctx->pos >= ctx->end) {
+        PLIST_XML_ERR("EOF while parsing closing tag\n");
+        ctx->err++;
+        return NULL;
+    } else if (*ctx->pos != '>') {
+        PLIST_XML_ERR("Invalid closing tag; expected '>', found '%c'\n", *ctx->pos);
         ctx->err++;
         return NULL;
     }
