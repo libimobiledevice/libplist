@@ -639,6 +639,7 @@ static int unescape_entities(char *str, size_t *length)
             }
             if (str+i >= entp+1) {
                 int entlen = str+i - entp;
+                int bytelen = 1;
                 if (!strncmp(entp, "amp", 3)) {
                     /* the '&' is already there */
                 } else if (!strncmp(entp, "apos", 4)) {
@@ -682,17 +683,20 @@ static int unescape_entities(char *str, size_t *length)
                         *(entp+1) = (char)(0x80 + ((val >> 6) & 0x3F));
                         *(entp+2) = (char)(0x80 + (val & 0x3F));
                         entp+=3;
+                        bytelen = 4;
                     } else if (val >= 0x800) {
                         /* three bytes */
                         *(entp-1) = (char)(0xE0 + ((val >> 12) & 0xF));
                         *(entp+0) = (char)(0x80 + ((val >> 6) & 0x3F));
                         *(entp+1) = (char)(0x80 + (val & 0x3F));
                         entp+=2;
+                        bytelen = 3;
                     } else if (val >= 0x80) {
                         /* two bytes */
                         *(entp-1) = (char)(0xC0 + ((val >> 6) & 0x1F));
                         *(entp+0) = (char)(0x80 + (val & 0x3F));
                         entp++;
+                        bytelen = 2;
                     } else {
                         /* one byte */
                         *(entp-1) = (char)(val & 0x7F);
@@ -702,8 +706,8 @@ static int unescape_entities(char *str, size_t *length)
                     return -1;
                 }
                 memmove(entp, str+i+1, len - i);
-                i -= entlen;
-                len -= (entlen+1);
+                i -= entlen+1 - bytelen;
+                len -= entlen+2 - bytelen;
                 continue;
             }
         }
