@@ -640,7 +640,8 @@ static int unescape_entities(char *str, size_t *length)
                 i++;
             }
             if (i >= len) {
-                break;
+                PLIST_XML_ERR("Invalid entity sequence encountered (missing terminating ';')\n");
+                return -1;
             }
             if (str+i >= entp+1) {
                 int entlen = str+i - entp;
@@ -714,6 +715,9 @@ static int unescape_entities(char *str, size_t *length)
                 i -= entlen+1 - bytelen;
                 len -= entlen+2 - bytelen;
                 continue;
+            } else {
+                PLIST_XML_ERR("Invalid empty entity sequence &;\n");
+                return -1;
             }
         }
         i++;
