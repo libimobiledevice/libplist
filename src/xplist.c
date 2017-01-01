@@ -1179,8 +1179,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                 } else {
                     switch (plist_get_node_type(*plist)) {
                     case PLIST_DICT:
-                        if (!keyname || *keyname == '\0') {
-                            PLIST_XML_ERR("missing or empty key name while adding dict item\n");
+                        if (!keyname) {
+                            PLIST_XML_ERR("missing key name while adding dict item\n");
                             ctx->err++;
                             break;
                         }
