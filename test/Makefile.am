@@ -31,9 +31,10 @@ TESTS = \
 	hex.test \
 	order.test \
 	recursion.test \
+	entities.test \
 	malformed_dict.test
 
-EXTRA_DIST = $(TESTS) data/1.plist data/2.plist data/3.plist data/4.plist data/5.plist data/6.plist data/7.plist data/signed.plist data/signed.bplist data/unsigned.plist data/unsigned.bplist data/hex.plist data/order.bplist data/recursion.bplist data/malformed_dict.bplist
+EXTRA_DIST = $(TESTS) data/1.plist data/2.plist data/3.plist data/4.plist data/5.plist data/6.plist data/7.plist data/signed.plist data/signed.bplist data/unsigned.plist data/unsigned.bplist data/hex.plist data/order.bplist data/recursion.bplist data/entities.plist data/malformed_dict.bplist
 
 TESTS_ENVIRONMENT = top_srcdir=$(top_srcdir) top_builddir=$(top_builddir)
 
