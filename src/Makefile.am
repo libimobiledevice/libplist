@@ -44,8 +44,8 @@ libplist___la_SOURCES = Node.cpp \
 		      $(top_srcdir)/include/plist/Uid.h
 
 if WIN32
-libplist_la_LDFLAGS += -avoid-version
-libplist___la_LDFLAGS += -avoid-version
+libplist_la_LDFLAGS += -avoid-version -static-libgcc
+libplist___la_LDFLAGS += -avoid-version -static-libgcc
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
