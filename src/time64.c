@@ -49,11 +49,6 @@ gmtime64_r() is a 64-bit equivalent of gmtime_r().
 #include "time64_limits.h"
 
 
-/* Spec says except for stftime() and the _r() functions, these
-   all return static memory.  Stabbings! */
-static struct TM   Static_Return_Date;
-static char        Static_Return_String[35];
-
 static const char days_in_month[2][12] = {
     {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
     {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
@@ -815,22 +810,3 @@ char *ctime64_r( const Time64_T* time, char* result ) {
     return asctime64_r( &date, result );
 }
 
-
-/* Non-thread safe versions of the above */
-struct TM *localtime64(const Time64_T *time) {
-    tzset();
-    return localtime64_r(time, &Static_Return_Date);
-}
-
-struct TM *gmtime64(const Time64_T *time) {
-    return gmtime64_r(time, &Static_Return_Date);
-}
-
-char *asctime64( const struct TM* date ) {
-    return asctime64_r( date, Static_Return_String );
-}
-
-char *ctime64( const Time64_T* time ) {
-    tzset();
-    return asctime64(localtime64(time));
-}

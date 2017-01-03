@@ -45,13 +45,9 @@ struct TM64 {
 /* Declare public functions */
 struct TM *gmtime64_r    (const Time64_T *, struct TM *);
 struct TM *localtime64_r (const Time64_T *, struct TM *);
-struct TM *gmtime64      (const Time64_T *);
-struct TM *localtime64   (const Time64_T *);
 
-char *asctime64          (const struct TM *);
 char *asctime64_r        (const struct TM *, char *);
 
-char *ctime64            (const Time64_T*);
 char *ctime64_r          (const Time64_T*, char*);
 
 Time64_T   timegm64      (const struct TM *);
