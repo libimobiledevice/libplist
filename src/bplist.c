@@ -441,6 +441,13 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
             plist_free(node);
             return NULL;
         }
+
+        if (plist_get_data(key)->type != PLIST_STRING) {
+            fprintf(stderr, "ERROR: Malformed binary plist dict, invalid node type for key!\n");
+            plist_free(node);
+            return NULL;
+        }
+
         /* enforce key type */
         plist_get_data(key)->type = PLIST_KEY;
         if (!plist_get_data(key)->strval) {
