@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     fclose(iplist);
 
     // convert from binary to xml or vice-versa
-    if (memcmp(plist_entire, "bplist00", 8) == 0)
+    if (plist_is_binary(plist_entire, read_size))
     {
         plist_from_bin(plist_entire, read_size, &root_node);
         plist_to_xml(root_node, &plist_out, &size);
