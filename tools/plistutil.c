@@ -129,6 +129,12 @@ int main(int argc, char *argv[])
     }
 
     stat(options->in_file, &filestats);
+
+    if (filestats.st_size < 8) {
+        printf("ERROR: Input file is too small to contain valid plist data.\n");
+        return -1;
+    }
+
     plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
     read_size = fread(plist_entire, sizeof(char), filestats.st_size, iplist);
     fclose(iplist);
