@@ -127,19 +127,6 @@ static void byte_convert(uint8_t * address, size_t size)
 #endif
 }
 
-static uint32_t uint24_from_be(union plist_uint_ptr buf)
-{
-    union plist_uint_ptr tmp;
-    uint32_t ret = 0;
-
-    tmp.src = &ret;
-
-    memcpy(tmp.u8ptr + 1, buf.u8ptr, 3 * sizeof(char));
-
-    byte_convert(tmp.u8ptr, sizeof(uint32_t));
-    return ret;
-}
-
 #ifndef be16toh
 #ifdef __BIG_ENDIAN__
 #define be16toh(x) (x)
@@ -174,15 +161,22 @@ static uint32_t uint24_from_be(union plist_uint_ptr buf)
 #endif
 #endif
 
+#ifdef __BIG_ENDIAN__
+#define beNtoh(x,n) (x >> ((8-n) << 3))
+#else
+#define beNtoh(x,n) be64toh(x << ((8-n) << 3))
+#endif
+
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
-		__up.src = x; \
-		(n == 8 ? be64toh( get_unaligned(__up.u64ptr) ) : \
+		__up.src = (n > 8) ? x + (n - 8) : x; \
+		(n >= 8 ? be64toh( get_unaligned(__up.u64ptr) ) : \
 		(n == 4 ? be32toh( get_unaligned(__up.u32ptr) ) : \
-		(n == 3 ? uint24_from_be( __up ) : \
 		(n == 2 ? be16toh( get_unaligned(__up.u16ptr) ) : \
-		*__up.u8ptr )))); \
+                (n == 1 ? *__up.u8ptr : \
+		beNtoh( get_unaligned(__up.u64ptr), n) \
+		)))); \
 	})
 
 #define be64dec(x) \
