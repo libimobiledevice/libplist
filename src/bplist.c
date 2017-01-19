@@ -40,19 +40,20 @@
 #include <node_iterator.h>
 
 /* Magic marker and size. */
-#define BPLIST_MAGIC		((uint8_t*)"bplist")
-#define BPLIST_MAGIC_SIZE	6
+#define BPLIST_MAGIC            ((uint8_t*)"bplist")
+#define BPLIST_MAGIC_SIZE       6
 
-#define BPLIST_VERSION		((uint8_t*)"00")
-#define BPLIST_VERSION_SIZE	2
+#define BPLIST_VERSION          ((uint8_t*)"00")
+#define BPLIST_VERSION_SIZE     2
 
-
-#define BPLIST_TRL_SIZE 	26
-#define BPLIST_TRL_OFFSIZE_IDX 	0
-#define BPLIST_TRL_PARMSIZE_IDX 1
-#define BPLIST_TRL_NUMOBJ_IDX 	2
-#define BPLIST_TRL_ROOTOBJ_IDX 	10
-#define BPLIST_TRL_OFFTAB_IDX 	18
+typedef struct __attribute__((packed)) {
+    uint8_t unused[6];
+    uint8_t offset_size;
+    uint8_t ref_size;
+    uint64_t num_objects;
+    uint64_t root_object_index;
+    uint64_t offset_table_offset;
+} bplist_trailer_t;
 
 enum
 {
@@ -177,13 +178,6 @@ static void byte_convert(uint8_t * address, size_t size)
                 (n == 1 ? *__up.u8ptr : \
 		beNtoh( get_unaligned(__up.u64ptr), n) \
 		)))); \
-	})
-
-#define be64dec(x) \
-	({ \
-		union plist_uint_ptr __up; \
-		__up.src = x; \
-		be64toh( get_unaligned(__up.u64ptr) ); \
 	})
 
 #define get_needed_bytes(x) \
@@ -701,17 +695,15 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
 
 PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 {
-    char *trailer = NULL;
-
+    bplist_trailer_t *trailer = NULL;
     uint8_t offset_size = 0;
-    uint8_t dict_size = 0;
+    uint8_t ref_size = 0;
     uint64_t num_objects = 0;
     uint64_t root_object = 0;
-    uint64_t offset_table_index = 0;
     char *offset_table = NULL;
 
     //first check we have enough data
-    if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + BPLIST_TRL_SIZE))
+    if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + sizeof(bplist_trailer_t)))
         return;
     //check that plist_bin in actually a plist
     if (memcmp(plist_bin, BPLIST_MAGIC, BPLIST_MAGIC_SIZE) != 0)
@@ -721,14 +713,13 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
         return;
 
     //now parse trailer
-    trailer = (char *) (plist_bin + (length - BPLIST_TRL_SIZE));
+    trailer = (bplist_trailer_t*)(plist_bin + (length - sizeof(bplist_trailer_t)));
 
-    offset_size = trailer[BPLIST_TRL_OFFSIZE_IDX];
-    dict_size = trailer[BPLIST_TRL_PARMSIZE_IDX];
-    num_objects = be64dec(trailer + BPLIST_TRL_NUMOBJ_IDX);
-    root_object = be64dec(trailer + BPLIST_TRL_ROOTOBJ_IDX);
-    offset_table_index = be64dec(trailer + BPLIST_TRL_OFFTAB_IDX);
-    offset_table = (char *) (plist_bin + offset_table_index);
+    offset_size = trailer->offset_size;
+    ref_size = trailer->ref_size;
+    num_objects = be64toh(trailer->num_objects);
+    root_object = be64toh(trailer->root_object_index);
+    offset_table = (char *)(plist_bin + be64toh(trailer->offset_table_offset));
 
     if (num_objects == 0)
         return;
@@ -752,7 +743,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     bplist.data = plist_bin;
     bplist.size = length;
     bplist.num_objects = num_objects;
-    bplist.dict_size = dict_size;
+    bplist.dict_size = ref_size;
     bplist.offset_size = offset_size;
     bplist.offset_table = offset_table;
     bplist.level = 0;
@@ -1142,8 +1133,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     uint64_t i = 0;
     uint8_t *buff = NULL;
     uint64_t *offsets = NULL;
-    uint8_t pad[6] = { 0, 0, 0, 0, 0, 0 };
-    uint8_t trailer[BPLIST_TRL_SIZE];
+    bplist_trailer_t trailer;
     //for string
     long len = 0;
     long items_read = 0;
@@ -1265,21 +1255,15 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         free(offsetbuff);
     }
 
-    //experimental pad to reflect apple's files
-    byte_array_append(bplist_buff, pad, 6);
-
     //setup trailer
-    num_objects = be64toh(num_objects);
-    root_object = be64toh(root_object);
-    offset_table_index = be64toh(offset_table_index);
+    memset(trailer.unused, '\0', sizeof(trailer.unused));
+    trailer.offset_size = offset_size;
+    trailer.ref_size = dict_param_size;
+    trailer.num_objects = be64toh(num_objects);
+    trailer.root_object_index = be64toh(root_object);
+    trailer.offset_table_offset = be64toh(offset_table_index);
 
-    memcpy(trailer + BPLIST_TRL_OFFSIZE_IDX, &offset_size, sizeof(uint8_t));
-    memcpy(trailer + BPLIST_TRL_PARMSIZE_IDX, &dict_param_size, sizeof(uint8_t));
-    memcpy(trailer + BPLIST_TRL_NUMOBJ_IDX, &num_objects, sizeof(uint64_t));
-    memcpy(trailer + BPLIST_TRL_ROOTOBJ_IDX, &root_object, sizeof(uint64_t));
-    memcpy(trailer + BPLIST_TRL_OFFTAB_IDX, &offset_table_index, sizeof(uint64_t));
-
-    byte_array_append(bplist_buff, trailer, BPLIST_TRL_SIZE);
+    byte_array_append(bplist_buff, &trailer, sizeof(bplist_trailer_t));
 
     //duplicate buffer
     *plist_bin = (char *) malloc(bplist_buff->len);
