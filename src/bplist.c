@@ -194,7 +194,7 @@ struct bplist_data {
     const char* data;
     uint64_t size;
     uint64_t num_objects;
-    uint8_t dict_size;
+    uint8_t ref_size;
     uint8_t offset_size;
     const char* offset_table;
     uint32_t level;
@@ -400,19 +400,19 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
     plist_t node = node_create(NULL, data);
 
     for (j = 0; j < data->length; j++) {
-        str_i = j * bplist->dict_size;
-        str_j = (j + size) * bplist->dict_size;
+        str_i = j * bplist->ref_size;
+        str_j = (j + size) * bplist->ref_size;
         index1_ptr = (*bnode) + str_i;
         index2_ptr = (*bnode) + str_j;
 
-        if ((index1_ptr < bplist->data || index1_ptr + bplist->dict_size >= end_data) ||
-            (index2_ptr < bplist->data || index2_ptr + bplist->dict_size >= end_data)) {
+        if ((index1_ptr < bplist->data || index1_ptr + bplist->ref_size >= end_data) ||
+            (index2_ptr < bplist->data || index2_ptr + bplist->ref_size >= end_data)) {
             plist_free(node);
             return NULL;
         }
 
-        index1 = UINT_TO_HOST(index1_ptr, bplist->dict_size);
-        index2 = UINT_TO_HOST(index2_ptr, bplist->dict_size);
+        index1 = UINT_TO_HOST(index1_ptr, bplist->ref_size);
+        index2 = UINT_TO_HOST(index2_ptr, bplist->ref_size);
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
@@ -474,8 +474,8 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
     plist_t node = node_create(NULL, data);
 
     for (j = 0; j < data->length; j++) {
-        str_j = j * bplist->dict_size;
-        index1 = UINT_TO_HOST((*bnode) + str_j, bplist->dict_size);
+        str_j = j * bplist->ref_size;
+        index1 = UINT_TO_HOST((*bnode) + str_j, bplist->ref_size);
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
@@ -743,7 +743,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     bplist.data = plist_bin;
     bplist.size = length;
     bplist.num_objects = num_objects;
-    bplist.dict_size = ref_size;
+    bplist.ref_size = ref_size;
     bplist.offset_size = offset_size;
     bplist.offset_table = offset_table;
     bplist.level = 0;
@@ -950,7 +950,7 @@ static void write_unicode(bytearray_t * bplist, uint16_t * val, uint64_t size)
     free(buff);
 }
 
-static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t dict_param_size)
+static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
 {
     uint64_t idx = 0;
     uint8_t *buff = NULL;
@@ -969,25 +969,25 @@ static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_tab
         byte_array_free(int_buff);
     }
 
-    buff = (uint8_t *) malloc(size * dict_param_size);
+    buff = (uint8_t *) malloc(size * ref_size);
 
     for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(cur), i++)
     {
         idx = *(uint64_t *) (hash_table_lookup(ref_table, cur));
 #ifdef __BIG_ENDIAN__
-	idx = idx << ((sizeof(uint64_t) - dict_param_size) * 8);
+	idx = idx << ((sizeof(uint64_t) - ref_size) * 8);
 #endif
-        memcpy(buff + i * dict_param_size, &idx, dict_param_size);
-        byte_convert(buff + i * dict_param_size, dict_param_size);
+        memcpy(buff + i * ref_size, &idx, ref_size);
+        byte_convert(buff + i * ref_size, ref_size);
     }
 
     //now append to bplist
-    byte_array_append(bplist, buff, size * dict_param_size);
+    byte_array_append(bplist, buff, size * ref_size);
     free(buff);
 
 }
 
-static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t dict_param_size)
+static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
 {
     uint64_t idx1 = 0;
     uint64_t idx2 = 0;
@@ -1007,26 +1007,26 @@ static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_tabl
         byte_array_free(int_buff);
     }
 
-    buff = (uint8_t *) malloc(size * 2 * dict_param_size);
+    buff = (uint8_t *) malloc(size * 2 * ref_size);
     for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(node_next_sibling(cur)), i++)
     {
         idx1 = *(uint64_t *) (hash_table_lookup(ref_table, cur));
 #ifdef __BIG_ENDIAN__
-	idx1 = idx1 << ((sizeof(uint64_t) - dict_param_size) * 8);
+	idx1 = idx1 << ((sizeof(uint64_t) - ref_size) * 8);
 #endif
-        memcpy(buff + i * dict_param_size, &idx1, dict_param_size);
-        byte_convert(buff + i * dict_param_size, dict_param_size);
+        memcpy(buff + i * ref_size, &idx1, ref_size);
+        byte_convert(buff + i * ref_size, ref_size);
 
         idx2 = *(uint64_t *) (hash_table_lookup(ref_table, cur->next));
 #ifdef __BIG_ENDIAN__
-	idx2 = idx2 << ((sizeof(uint64_t) - dict_param_size) * 8);
+	idx2 = idx2 << ((sizeof(uint64_t) - ref_size) * 8);
 #endif
-        memcpy(buff + (i + size) * dict_param_size, &idx2, dict_param_size);
-        byte_convert(buff + (i + size) * dict_param_size, dict_param_size);
+        memcpy(buff + (i + size) * ref_size, &idx2, ref_size);
+        byte_convert(buff + (i + size) * ref_size, ref_size);
     }
 
     //now append to bplist
-    byte_array_append(bplist, buff, size * 2 * dict_param_size);
+    byte_array_append(bplist, buff, size * 2 * ref_size);
     free(buff);
 
 }
@@ -1125,7 +1125,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     hashtable_t* ref_table = NULL;
     struct serialize_s ser_s;
     uint8_t offset_size = 0;
-    uint8_t dict_param_size = 0;
+    uint8_t ref_size = 0;
     uint64_t num_objects = 0;
     uint64_t root_object = 0;
     uint64_t offset_table_index = 0;
@@ -1159,7 +1159,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //now stream to output buffer
     offset_size = 0;			//unknown yet
     objects_len = objects->len;
-    dict_param_size = get_needed_bytes(objects_len);
+    ref_size = get_needed_bytes(objects_len);
     num_objects = objects->len;
     root_object = 0;			//root is first in list
     offset_table_index = 0;		//unknown yet
@@ -1217,10 +1217,10 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         case PLIST_DATA:
             write_data(bplist_buff, data->buff, data->length);
         case PLIST_ARRAY:
-            write_array(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
+            write_array(bplist_buff, ptr_array_index(objects, i), ref_table, ref_size);
             break;
         case PLIST_DICT:
-            write_dict(bplist_buff, ptr_array_index(objects, i), ref_table, dict_param_size);
+            write_dict(bplist_buff, ptr_array_index(objects, i), ref_table, ref_size);
             break;
         case PLIST_DATE:
             write_date(bplist_buff, data->realval);
@@ -1258,7 +1258,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //setup trailer
     memset(trailer.unused, '\0', sizeof(trailer.unused));
     trailer.offset_size = offset_size;
-    trailer.ref_size = dict_param_size;
+    trailer.ref_size = ref_size;
     trailer.num_objects = be64toh(num_objects);
     trailer.root_object_index = be64toh(root_object);
     trailer.offset_table_offset = be64toh(offset_table_index);
