@@ -727,6 +727,9 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     if (offset_size == 0)
         return;
 
+    if (ref_size == 0)
+        return;
+
     if (root_object >= num_objects)
         return;
 
