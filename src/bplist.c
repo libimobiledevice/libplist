@@ -496,22 +496,14 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
 static plist_t parse_uid_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
-
-    size = 1 << size;			// make length less misleading
-    switch (size)
-    {
-    case sizeof(uint8_t):
-    case sizeof(uint16_t):
-    case sizeof(uint32_t):
-    case sizeof(uint64_t):
-        memcpy(&data->intval, *bnode, size);
-        data->intval = UINT_TO_HOST(&data->intval, size);
-        break;
-    default:
+    size = size + 1;
+    data->intval = UINT_TO_HOST(*bnode, size);
+    if (data->intval > UINT32_MAX) {
         free(data);
         return NULL;
-    };
+    }
 
+    (*bnode) += size;
     data->type = PLIST_UID;
     data->length = sizeof(uint64_t);
 
@@ -1034,6 +1026,7 @@ static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_tabl
 
 static void write_uid(bytearray_t * bplist, uint64_t val)
 {
+    val = (uint32_t)val;
     uint64_t size = get_needed_bytes(val);
     uint8_t *buff = NULL;
     //do not write 3bytes int node
@@ -1045,7 +1038,7 @@ static void write_uid(bytearray_t * bplist, uint64_t val)
 #endif
 
     buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
-    buff[0] = BPLIST_UID | Log2(size);
+    buff[0] = BPLIST_UID | (size-1); // yes, this is what Apple does...
     memcpy(buff + 1, &val, size);
     byte_convert(buff + 1, size);
     byte_array_append(bplist, buff, sizeof(uint8_t) + size);
