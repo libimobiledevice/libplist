@@ -837,36 +837,27 @@ static void serialize_plist(node_t* node, void* data)
 
 static void write_int(bytearray_t * bplist, uint64_t val)
 {
-    uint64_t size = get_needed_bytes(val);
-    uint8_t *buff = NULL;
+    int size = get_needed_bytes(val);
+    uint8_t sz;
     //do not write 3bytes int node
     if (size == 3)
         size++;
+    sz = BPLIST_UINT | Log2(size);
 
-#ifdef __BIG_ENDIAN__
-    val = val << ((sizeof(uint64_t) - size) * 8);
-#endif
-
-    buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
-    buff[0] = BPLIST_UINT | Log2(size);
-    memcpy(buff + 1, &val, size);
-    byte_convert(buff + 1, size);
-    byte_array_append(bplist, buff, sizeof(uint8_t) + size);
-    free(buff);
+    val = be64toh(val);
+    byte_array_append(bplist, &sz, 1);
+    byte_array_append(bplist, (uint8_t*)&val + (8-size), size);
 }
 
 static void write_uint(bytearray_t * bplist, uint64_t val)
 {
-    uint64_t size = 16;
-    uint8_t *buff = NULL;
+    uint8_t sz = BPLIST_UINT | 4;
+    uint64_t zero = 0;
 
-    buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
-    buff[0] = BPLIST_UINT | 4;
-    memset(buff + 1, '\0', 8);
-    memcpy(buff + 9, &val, 8);
-    byte_convert(buff + 9, 8);
-    byte_array_append(bplist, buff, sizeof(uint8_t) + size);
-    free(buff);
+    val = be64toh(val);
+    byte_array_append(bplist, &sz, 1);
+    byte_array_append(bplist, &zero, sizeof(uint64_t));
+    byte_array_append(bplist, &val, sizeof(uint64_t));
 }
 
 static void write_real(bytearray_t * bplist, double val)
