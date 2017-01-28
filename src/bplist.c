@@ -1163,18 +1163,9 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     buff_len = bplist_buff->len;
     offset_size = get_needed_bytes(buff_len);
     offset_table_index = bplist_buff->len;
-    for (i = 0; i < num_objects; i++)
-    {
-        uint8_t *offsetbuff = (uint8_t *) malloc(offset_size);
-
-#ifdef __BIG_ENDIAN__
-	offsets[i] = offsets[i] << ((sizeof(uint64_t) - offset_size) * 8);
-#endif
-
-        memcpy(offsetbuff, &offsets[i], offset_size);
-        byte_convert(offsetbuff, offset_size);
-        byte_array_append(bplist_buff, offsetbuff, offset_size);
-        free(offsetbuff);
+    for (i = 0; i < num_objects; i++) {
+        uint64_t offset = be64toh(offsets[i]);
+        byte_array_append(bplist_buff, (uint8_t*)&offset + (sizeof(uint64_t) - offset_size), offset_size);
     }
 
     //setup trailer
