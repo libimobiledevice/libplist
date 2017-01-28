@@ -916,83 +916,46 @@ static void write_unicode(bytearray_t * bplist, uint16_t * val, uint64_t size)
 
 static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
 {
-    uint64_t idx = 0;
-    uint8_t *buff = NULL;
-
     node_t* cur = NULL;
     uint64_t i = 0;
 
     uint64_t size = node_n_children(node);
     uint8_t marker = BPLIST_ARRAY | (size < 15 ? size : 0xf);
     byte_array_append(bplist, &marker, sizeof(uint8_t));
-    if (size >= 15)
-    {
-        bytearray_t *int_buff = byte_array_new();
-        write_int(int_buff, size);
-        byte_array_append(bplist, int_buff->data, int_buff->len);
-        byte_array_free(int_buff);
+    if (size >= 15) {
+        write_int(bplist, size);
     }
 
-    buff = (uint8_t *) malloc(size * ref_size);
-
-    for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(cur), i++)
-    {
-        idx = *(uint64_t *) (hash_table_lookup(ref_table, cur));
-#ifdef __BIG_ENDIAN__
-	idx = idx << ((sizeof(uint64_t) - ref_size) * 8);
-#endif
-        memcpy(buff + i * ref_size, &idx, ref_size);
-        byte_convert(buff + i * ref_size, ref_size);
+    for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(cur), i++) {
+        uint64_t idx = *(uint64_t *) (hash_table_lookup(ref_table, cur));
+        idx = be64toh(idx);
+        byte_array_append(bplist, (uint8_t*)&idx + (sizeof(uint64_t) - ref_size), ref_size);
     }
-
-    //now append to bplist
-    byte_array_append(bplist, buff, size * ref_size);
-    free(buff);
-
 }
 
 static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
 {
-    uint64_t idx1 = 0;
-    uint64_t idx2 = 0;
-    uint8_t *buff = NULL;
-
     node_t* cur = NULL;
     uint64_t i = 0;
 
     uint64_t size = node_n_children(node) / 2;
     uint8_t marker = BPLIST_DICT | (size < 15 ? size : 0xf);
     byte_array_append(bplist, &marker, sizeof(uint8_t));
-    if (size >= 15)
-    {
-        bytearray_t *int_buff = byte_array_new();
-        write_int(int_buff, size);
-        byte_array_append(bplist, int_buff->data, int_buff->len);
-        byte_array_free(int_buff);
+    if (size >= 15) {
+        write_int(bplist, size);
     }
 
-    buff = (uint8_t *) malloc(size * 2 * ref_size);
-    for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(node_next_sibling(cur)), i++)
-    {
-        idx1 = *(uint64_t *) (hash_table_lookup(ref_table, cur));
-#ifdef __BIG_ENDIAN__
-	idx1 = idx1 << ((sizeof(uint64_t) - ref_size) * 8);
-#endif
-        memcpy(buff + i * ref_size, &idx1, ref_size);
-        byte_convert(buff + i * ref_size, ref_size);
-
-        idx2 = *(uint64_t *) (hash_table_lookup(ref_table, cur->next));
-#ifdef __BIG_ENDIAN__
-	idx2 = idx2 << ((sizeof(uint64_t) - ref_size) * 8);
-#endif
-        memcpy(buff + (i + size) * ref_size, &idx2, ref_size);
-        byte_convert(buff + (i + size) * ref_size, ref_size);
+    for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(node_next_sibling(cur)), i++) {
+        uint64_t idx1 = *(uint64_t *) (hash_table_lookup(ref_table, cur));
+        idx1 = be64toh(idx1);
+        byte_array_append(bplist, (uint8_t*)&idx1 + (sizeof(uint64_t) - ref_size), ref_size);
     }
 
-    //now append to bplist
-    byte_array_append(bplist, buff, size * 2 * ref_size);
-    free(buff);
-
+    for (i = 0, cur = node_first_child(node); cur && i < size; cur = node_next_sibling(node_next_sibling(cur)), i++) {
+        uint64_t idx2 = *(uint64_t *) (hash_table_lookup(ref_table, cur->next));
+        idx2 = be64toh(idx2);
+        byte_array_append(bplist, (uint8_t*)&idx2 + (sizeof(uint64_t) - ref_size), ref_size);
+    }
 }
 
 static void write_uid(bytearray_t * bplist, uint64_t val)
