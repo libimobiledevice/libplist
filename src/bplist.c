@@ -75,25 +75,6 @@ enum
     BPLIST_MASK = 0xF0
 };
 
-static void float_byte_convert(uint8_t * address, size_t size)
-{
-#if (defined(__LITTLE_ENDIAN__) \
-		&& !defined(__FLOAT_WORD_ORDER__)) \
-	|| (defined(__FLOAT_WORD_ORDER__) \
-		&& __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    uint8_t i = 0, j = 0;
-    uint8_t tmp = 0;
-
-    for (i = 0; i < (size / 2); i++)
-    {
-        tmp = address[i];
-        j = ((size - 1) + 0) - i;
-        address[i] = address[j];
-        address[j] = tmp;
-    }
-#endif
-}
-
 union plist_uint_ptr
 {
     const void *src;
@@ -128,11 +109,33 @@ static void byte_convert(uint8_t * address, size_t size)
 #endif
 }
 
+#ifndef bswap16
+#define bswap16(x)   ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
+#endif
+
+#ifndef bswap32
+#define bswap32(x)   ((((x) & 0xFF000000) >> 24) \
+                    | (((x) & 0x00FF0000) >>  8) \
+                    | (((x) & 0x0000FF00) <<  8) \
+                    | (((x) & 0x000000FF) << 24))
+#endif
+
+#ifndef bswap64
+#define bswap64(x)   ((((x) & 0xFF00000000000000ull) >> 56) \
+                    | (((x) & 0x00FF000000000000ull) >> 40) \
+                    | (((x) & 0x0000FF0000000000ull) >> 24) \
+                    | (((x) & 0x000000FF00000000ull) >>  8) \
+                    | (((x) & 0x00000000FF000000ull) <<  8) \
+                    | (((x) & 0x0000000000FF0000ull) << 24) \
+                    | (((x) & 0x000000000000FF00ull) << 40) \
+                    | (((x) & 0x00000000000000FFull) << 56))
+#endif
+
 #ifndef be16toh
 #ifdef __BIG_ENDIAN__
 #define be16toh(x) (x)
 #else
-#define be16toh(x) ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
+#define be16toh(x) bswap16(x)
 #endif
 #endif
 
@@ -140,10 +143,7 @@ static void byte_convert(uint8_t * address, size_t size)
 #ifdef __BIG_ENDIAN__
 #define be32toh(x) (x)
 #else
-#define be32toh(x) ((((x) & 0xFF000000) >> 24) \
-                    | (((x) & 0x00FF0000) >> 8) \
-                    | (((x) & 0x0000FF00) << 8) \
-                    | (((x) & 0x000000FF) << 24))
+#define be32toh(x) bswap32(x)
 #endif
 #endif
 
@@ -151,14 +151,7 @@ static void byte_convert(uint8_t * address, size_t size)
 #ifdef __BIG_ENDIAN__
 #define be64toh(x) (x)
 #else
-#define be64toh(x) ((((x) & 0xFF00000000000000ull) >> 56) \
-                    | (((x) & 0x00FF000000000000ull) >> 40) \
-                    | (((x) & 0x0000FF0000000000ull) >> 24) \
-                    | (((x) & 0x000000FF00000000ull) >> 8) \
-                    | (((x) & 0x00000000FF000000ull) << 8) \
-                    | (((x) & 0x0000000000FF0000ull) << 24) \
-                    | (((x) & 0x000000000000FF00ull) << 40) \
-                    | (((x) & 0x00000000000000FFull) << 56)) 
+#define be64toh(x) bswap64(x)
 #endif
 #endif
 
@@ -186,7 +179,19 @@ static void byte_convert(uint8_t * address, size_t size)
 		( ((uint64_t)x) < (1ULL << 24) ? 3 : \
 		( ((uint64_t)x) < (1ULL << 32) ? 4 : 8))))
 
-#define get_real_bytes(x) (x == (float) x ? 4 : 8)
+#define get_real_bytes(x) (x == (float) x ? sizeof(float) : sizeof(double))
+
+#if (defined(__LITTLE_ENDIAN__) \
+     && !defined(__FLOAT_WORD_ORDER__)) \
+ || (defined(__FLOAT_WORD_ORDER__) \
+     && __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define float_bswap64(x) bswap64(x)
+#define float_bswap32(x) bswap32(x)
+#else
+#define float_bswap64(x) (x)
+#define float_bswap32(x) (x)
+#endif
+
 
 #define NODE_IS_ROOT(x) (((node_t*)x)->isRoot)
 
@@ -235,29 +240,23 @@ static plist_t parse_uint_node(const char **bnode, uint8_t size)
 static plist_t parse_real_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
-    float floatval = 0.0;
-    uint8_t* buf;
+    uint8_t buf[8];
 
     size = 1 << size;			// make length less misleading
-    buf = malloc (size);
-    memcpy (buf, *bnode, size);
     switch (size)
     {
-    case sizeof(float):
-        float_byte_convert(buf, size);
-        floatval = *(float *) buf;
-        data->realval = floatval;
+    case sizeof(uint32_t):
+        *(uint32_t*)buf = float_bswap32(*(uint32_t*)*bnode);
+        data->realval = *(float *) buf;
         break;
-    case sizeof(double):
-        float_byte_convert(buf, size);
+    case sizeof(uint64_t):
+        *(uint64_t*)buf = float_bswap64(*(uint64_t*)*bnode);
         data->realval = *(double *) buf;
         break;
     default:
-        free(buf);
         free(data);
         return NULL;
     }
-    free (buf);
     data->type = PLIST_REAL;
     data->length = sizeof(double);
 
@@ -872,32 +871,24 @@ static void write_uint(bytearray_t * bplist, uint64_t val)
 
 static void write_real(bytearray_t * bplist, double val)
 {
-    uint64_t size = get_real_bytes(val);	//cheat to know used space
-    uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
+    int size = get_real_bytes(val);	//cheat to know used space
+    uint8_t buff[9];
     buff[0] = BPLIST_REAL | Log2(size);
-    if (size == sizeof(double))
-    {
-        memcpy(buff + 1, &val, size);
+    if (size == sizeof(float)) {
+        float floatval = (float)val;
+        *(uint32_t*)(buff+1) = float_bswap32(*(uint32_t*)&floatval);
+    } else {
+        *(uint64_t*)(buff+1) = float_bswap64(*(uint64_t*)&val);
     }
-    else if (size == sizeof(float))
-    {
-        float tmpval = (float) val;
-        memcpy(buff + 1, &tmpval, size);
-    }
-    float_byte_convert(buff + 1, size);
-    byte_array_append(bplist, buff, sizeof(uint8_t) + size);
-    free(buff);
+    byte_array_append(bplist, buff, size+1);
 }
 
 static void write_date(bytearray_t * bplist, double val)
 {
-    uint64_t size = 8;			//dates always use 8 bytes
-    uint8_t *buff = (uint8_t *) malloc(sizeof(uint8_t) + size);
-    buff[0] = BPLIST_DATE | Log2(size);
-    memcpy(buff + 1, &val, size);
-    float_byte_convert(buff + 1, size);
-    byte_array_append(bplist, buff, sizeof(uint8_t) + size);
-    free(buff);
+    uint8_t buff[9];
+    buff[0] = BPLIST_DATE | 3;
+    *(uint64_t*)(buff+1) = float_bswap64(*(uint64_t*)&val);
+    byte_array_append(bplist, buff, sizeof(buff));
 }
 
 static void write_raw_data(bytearray_t * bplist, uint8_t mark, uint8_t * val, uint64_t size)
