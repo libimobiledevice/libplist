@@ -93,22 +93,6 @@ union plist_uint_ptr
   })
 
 
-static void byte_convert(uint8_t * address, size_t size)
-{
-#ifdef __LITTLE_ENDIAN__
-    uint8_t i = 0, j = 0;
-    uint8_t tmp = 0;
-
-    for (i = 0; i < (size / 2); i++)
-    {
-        tmp = address[i];
-        j = ((size - 1) + 0) - i;
-        address[i] = address[j];
-        address[j] = tmp;
-    }
-#endif
-}
-
 #ifndef bswap16
 #define bswap16(x)   ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
 #endif
@@ -353,19 +337,22 @@ static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 
     data->type = PLIST_STRING;
     unicodestr = (uint16_t*) malloc(sizeof(uint16_t) * size);
-    memcpy(unicodestr, *bnode, sizeof(uint16_t) * size);
     for (i = 0; i < size; i++)
-        byte_convert((uint8_t *) (unicodestr + i), sizeof(uint16_t));
+        unicodestr[i] = be16toh(((uint16_t*)*bnode)[i]);
 
     tmpstr = plist_utf16_to_utf8(unicodestr, size, &items_read, &items_written);
     free(unicodestr);
+    if (!tmpstr) {
+        plist_free_data(data);
+        return NULL;
+    }
+    tmpstr[items_written] = '\0';
 
     data->type = PLIST_STRING;
-    data->strval = (char *) malloc(sizeof(char) * (items_written + 1));
-    memcpy(data->strval, tmpstr, items_written);
-    data->strval[items_written] = '\0';
-    data->length = strlen(data->strval);
-    free(tmpstr);
+    data->strval = realloc(tmpstr, items_written+1);
+    if (!data->strval)
+        data->strval = tmpstr;
+    data->length = items_written;
     return node_create(NULL, data);
 }
 
