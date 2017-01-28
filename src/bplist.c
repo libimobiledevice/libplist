@@ -1154,6 +1154,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         uint64_t offset = be64toh(offsets[i]);
         byte_array_append(bplist_buff, (uint8_t*)&offset + (sizeof(uint64_t) - offset_size), offset_size);
     }
+    free(offsets);
 
     //setup trailer
     memset(trailer.unused, '\0', sizeof(trailer.unused));
@@ -1165,11 +1166,10 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
     byte_array_append(bplist_buff, &trailer, sizeof(bplist_trailer_t));
 
-    //duplicate buffer
-    *plist_bin = (char *) malloc(bplist_buff->len);
-    memcpy(*plist_bin, bplist_buff->data, bplist_buff->len);
+    //set output buffer and size
+    *plist_bin = bplist_buff->data;
     *length = bplist_buff->len;
 
+    bplist_buff->data = NULL; // make sure we don't free the output buffer
     byte_array_free(bplist_buff);
-    free(offsets);
 }
