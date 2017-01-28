@@ -884,22 +884,13 @@ static void write_date(bytearray_t * bplist, double val)
 
 static void write_raw_data(bytearray_t * bplist, uint8_t mark, uint8_t * val, uint64_t size)
 {
-    uint8_t *buff = NULL;
     uint8_t marker = mark | (size < 15 ? size : 0xf);
     byte_array_append(bplist, &marker, sizeof(uint8_t));
-    if (size >= 15)
-    {
-        bytearray_t *int_buff = byte_array_new();
-        write_int(int_buff, size);
-        byte_array_append(bplist, int_buff->data, int_buff->len);
-        byte_array_free(int_buff);
+    if (size >= 15) {
+        write_int(bplist, size);
     }
-    //stupid unicode buffer length
-    if (BPLIST_UNICODE==mark) size *= 2;
-    buff = (uint8_t *) malloc(size);
-    memcpy(buff, val, size);
-    byte_array_append(bplist, buff, size);
-    free(buff);
+    if (BPLIST_UNICODE==mark) size <<= 1;
+    byte_array_append(bplist, val, size);
 }
 
 static void write_data(bytearray_t * bplist, uint8_t * val, uint64_t size)
@@ -916,12 +907,10 @@ static void write_string(bytearray_t * bplist, char *val)
 static void write_unicode(bytearray_t * bplist, uint16_t * val, uint64_t size)
 {
     uint64_t i = 0;
-    uint64_t size2 = size * sizeof(uint16_t);
-    uint8_t *buff = (uint8_t *) malloc(size2);
-    memcpy(buff, val, size2);
+    uint16_t *buff = (uint16_t*)malloc(size << 1);
     for (i = 0; i < size; i++)
-        byte_convert(buff + i * sizeof(uint16_t), sizeof(uint16_t));
-    write_raw_data(bplist, BPLIST_UNICODE, buff, size);
+        buff[i] = be16toh(val[i]);
+    write_raw_data(bplist, BPLIST_UNICODE, (uint8_t*)buff, size);
     free(buff);
 }
 
