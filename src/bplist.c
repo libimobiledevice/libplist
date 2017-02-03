@@ -516,6 +516,29 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
     size = (**object) & BPLIST_FILL;
     (*object)++;
 
+    if (size == BPLIST_FILL) {
+        switch (type) {
+        case BPLIST_DATA:
+        case BPLIST_STRING:
+        case BPLIST_UNICODE:
+        case BPLIST_ARRAY:
+        case BPLIST_SET:
+        case BPLIST_DICT:
+        {
+            uint16_t next_size = **object & BPLIST_FILL;
+            if ((**object & BPLIST_MASK) != BPLIST_UINT)
+                return NULL;
+            (*object)++;
+            next_size = 1 << next_size;
+            size = UINT_TO_HOST(*object, next_size);
+            (*object) += next_size;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
     switch (type)
     {
 
@@ -564,58 +587,22 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         return parse_date_node(object, size);
 
     case BPLIST_DATA:
-        if (BPLIST_FILL == size) {
-            uint8_t next_size = **object & BPLIST_FILL;
-            if ((**object & BPLIST_MASK) != BPLIST_UINT)
-                return NULL;
-            (*object)++;
-            size = UINT_TO_HOST(*object, (1 << next_size));
-            (*object) += (1 << next_size);
-        }
-
         if (*object - bplist->data + size >= bplist->size)
             return NULL;
         return parse_data_node(object, size);
 
     case BPLIST_STRING:
-        if (BPLIST_FILL == size) {
-            uint8_t next_size = **object & BPLIST_FILL;
-            if ((**object & BPLIST_MASK) != BPLIST_UINT)
-                return NULL;
-            (*object)++;
-            size = UINT_TO_HOST(*object, (1 << next_size));
-            (*object) += (1 << next_size);
-        }
-
         if (*object - bplist->data + size >= bplist->size)
             return NULL;
         return parse_string_node(object, size);
 
     case BPLIST_UNICODE:
-        if (BPLIST_FILL == size) {
-            uint8_t next_size = **object & BPLIST_FILL;
-            if ((**object & BPLIST_MASK) != BPLIST_UINT)
-                return NULL;
-            (*object)++;
-            size = UINT_TO_HOST(*object, (1 << next_size));
-            (*object) += (1 << next_size);
-        }
-
         if (*object - bplist->data + size * 2 >= bplist->size)
             return NULL;
         return parse_unicode_node(object, size);
 
     case BPLIST_SET:
     case BPLIST_ARRAY:
-        if (BPLIST_FILL == size) {
-            uint8_t next_size = **object & BPLIST_FILL;
-            if ((**object & BPLIST_MASK) != BPLIST_UINT)
-                return NULL;
-            (*object)++;
-            size = UINT_TO_HOST(*object, (1 << next_size));
-            (*object) += (1 << next_size);
-        }
-
         if (*object - bplist->data + size >= bplist->size)
             return NULL;
         return parse_array_node(bplist, object, size);
@@ -624,18 +611,10 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         return parse_uid_node(object, size);
 
     case BPLIST_DICT:
-        if (BPLIST_FILL == size) {
-	    uint8_t next_size = **object & BPLIST_FILL;
-            if ((**object & BPLIST_MASK) != BPLIST_UINT)
-                return NULL;
-            (*object)++;
-            size = UINT_TO_HOST(*object, (1 << next_size));
-            (*object) += (1 << next_size);
-        }
-
         if (*object - bplist->data + size >= bplist->size)
             return NULL;
         return parse_dict_node(bplist, object, size);
+
     default:
         return NULL;
     }
