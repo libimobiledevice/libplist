@@ -530,6 +530,8 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
                 return NULL;
             (*object)++;
             next_size = 1 << next_size;
+            if (*object + next_size >= bplist->data + bplist->size)
+                return NULL;
             size = UINT_TO_HOST(*object, next_size);
             (*object) += next_size;
             break;
