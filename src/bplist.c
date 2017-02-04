@@ -187,7 +187,7 @@ struct bplist_data {
     uint8_t offset_size;
     const char* offset_table;
     uint32_t level;
-    uint32_t *used_indexes;
+    plist_t used_indexes;
 };
 
 static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index);
@@ -645,11 +645,20 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     }
 
     /* store node_index for current recursion level */
-    bplist->used_indexes[bplist->level] = node_index;
+    if (plist_array_get_size(bplist->used_indexes) < bplist->level+1) {
+        while (plist_array_get_size(bplist->used_indexes) < bplist->level+1) {
+            plist_array_append_item(bplist->used_indexes, plist_new_uint(node_index));
+        }
+    } else {
+        plist_array_set_item(bplist->used_indexes, plist_new_uint(node_index), bplist->level);
+    }
+
     /* recursion check */
     if (bplist->level > 0) {
         for (i = bplist->level-1; i >= 0; i--) {
-            if (bplist->used_indexes[i] == bplist->used_indexes[bplist->level]) {
+            plist_t node_i = plist_array_get_item(bplist->used_indexes, i);
+            plist_t node_level = plist_array_get_item(bplist->used_indexes, bplist->level);
+            if (plist_compare_node_value(node_i, node_level)) {
                 fprintf(stderr, "Recursion detected in binary plist. Aborting.\n");
                 return NULL;
             }
@@ -709,9 +718,6 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     if (offset_table + num_objects * offset_size >= plist_bin + length)
         return;
 
-    if (sizeof(uint32_t) * num_objects < num_objects)
-        return;
-
     struct bplist_data bplist;
     bplist.data = plist_bin;
     bplist.size = length;
@@ -720,14 +726,14 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     bplist.offset_size = offset_size;
     bplist.offset_table = offset_table;
     bplist.level = 0;
-    bplist.used_indexes = (uint32_t*)malloc(sizeof(uint32_t) * num_objects);
+    bplist.used_indexes = plist_new_array();
 
     if (!bplist.used_indexes)
         return;
 
     *plist = parse_bin_node_at_index(&bplist, root_object);
 
-    free(bplist.used_indexes);
+    plist_free(bplist.used_indexes);
 }
 
 static unsigned int plist_data_hash(const void* key)
