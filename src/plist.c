@@ -41,14 +41,18 @@
 
 extern void plist_xml_init(void);
 extern void plist_xml_deinit(void);
+extern void plist_bin_init(void);
+extern void plist_bin_deinit(void);
 
 static void internal_plist_init(void)
 {
+    plist_bin_init();
     plist_xml_init();
 }
 
 static void internal_plist_deinit(void)
 {
+    plist_bin_deinit();
     plist_xml_deinit();
 }
 
