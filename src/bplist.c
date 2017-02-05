@@ -630,7 +630,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     plist_t plist = NULL;
     const char* idx_ptr = NULL;
 
-    if (node_index > bplist->num_objects)
+    if (node_index >= bplist->num_objects)
         return NULL;
 
     idx_ptr = bplist->offset_table + node_index * bplist->offset_size;
