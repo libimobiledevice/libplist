@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include <ctype.h>
+#include <inttypes.h>
 
 #include <plist/plist.h>
 #include "plist.h"
@@ -416,7 +417,7 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
         if ((index1_ptr < bplist->data || index1_ptr + bplist->ref_size > bplist->offset_table) ||
             (index2_ptr < bplist->data || index2_ptr + bplist->ref_size > bplist->offset_table)) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: dict entry %llu is outside of valid range\n", __func__, j);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 " is outside of valid range\n", __func__, j);
             return NULL;
         }
 
@@ -425,12 +426,12 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: dict entry %llu key index (%llu) must be smaller than the number of objects (%llu)\n", __func__, j, index1, bplist->num_objects);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 " key index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
             return NULL;
         }
         if (index2 >= bplist->num_objects) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: dict entry %llu value index (%llu) must be smaller than the number of objects (%llu)\n", __func__, j, index1, bplist->num_objects);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 " value index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
             return NULL;
         }
 
@@ -490,7 +491,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
 
         if (index1_ptr < bplist->data || index1_ptr + bplist->ref_size > bplist->offset_table) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: array item %llu is outside of valid range\n", __func__, j);
+            PLIST_BIN_ERR("%s: array item %" PRIu64 " is outside of valid range\n", __func__, j);
             return NULL;
         }
 
@@ -498,7 +499,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: array item %llu object index (%llu) must be smaller than the number of objects (%llu)\n", __func__, j, index1, bplist->num_objects);
+            PLIST_BIN_ERR("%s: array item %" PRIu64 " object index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
             return NULL;
         }
 
@@ -521,7 +522,7 @@ static plist_t parse_uid_node(const char **bnode, uint8_t size)
     size = size + 1;
     data->intval = UINT_TO_HOST(*bnode, size);
     if (data->intval > UINT32_MAX) {
-        PLIST_BIN_ERR("%s: value %llu too large for UID node (must be <= %u)\n", __func__, (uint64_t)data->intval, UINT32_MAX);
+        PLIST_BIN_ERR("%s: value %" PRIu64 " too large for UID node (must be <= %u)\n", __func__, (uint64_t)data->intval, UINT32_MAX);
         free(data);
         return NULL;
     }
@@ -687,7 +688,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     const char* idx_ptr = NULL;
 
     if (node_index >= bplist->num_objects) {
-        PLIST_BIN_ERR("node index (%u) must be smaller than the number of objects (%llu)\n", node_index, bplist->num_objects);
+        PLIST_BIN_ERR("node index (%u) must be smaller than the number of objects (%" PRIu64 ")\n", node_index, bplist->num_objects);
         return NULL;
     }
 
@@ -788,7 +789,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     }
 
     if (root_object >= num_objects) {
-        PLIST_BIN_ERR("root object index (%llu) must be smaller than number of objects (%llu)\n", root_object, num_objects);
+        PLIST_BIN_ERR("root object index (%" PRIu64 ") must be smaller than number of objects (%" PRIu64 ")\n", root_object, num_objects);
         return;
     }
 
