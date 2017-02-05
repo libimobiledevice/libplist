@@ -679,7 +679,9 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     uint8_t ref_size = 0;
     uint64_t num_objects = 0;
     uint64_t root_object = 0;
-    char *offset_table = NULL;
+    const char *offset_table = NULL;
+    const char *start_data = NULL;
+    const char *end_data = NULL;
 
     //first check we have enough data
     if (!(length >= BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE + sizeof(bplist_trailer_t)))
@@ -691,8 +693,11 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     if (memcmp(plist_bin + BPLIST_MAGIC_SIZE, BPLIST_VERSION, BPLIST_VERSION_SIZE) != 0)
         return;
 
+    start_data = plist_bin + BPLIST_MAGIC_SIZE + BPLIST_VERSION_SIZE;
+    end_data = plist_bin + length - sizeof(bplist_trailer_t);
+
     //now parse trailer
-    trailer = (bplist_trailer_t*)(plist_bin + (length - sizeof(bplist_trailer_t)));
+    trailer = (bplist_trailer_t*)end_data;
 
     offset_size = trailer->offset_size;
     ref_size = trailer->ref_size;
@@ -712,10 +717,10 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     if (root_object >= num_objects)
         return;
 
-    if (offset_table < plist_bin || offset_table >= plist_bin + length)
+    if (offset_table < start_data || offset_table >= end_data)
         return;
 
-    if (offset_table + num_objects * offset_size >= plist_bin + length)
+    if (offset_table + num_objects * offset_size > end_data)
         return;
 
     struct bplist_data bplist;
