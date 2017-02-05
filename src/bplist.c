@@ -374,7 +374,6 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
     uint64_t str_i = 0, str_j = 0;
     uint64_t index1, index2;
     plist_data_t data = plist_new_plist_data();
-    const char *const end_data = bplist->data + bplist->size;
     const char *index1_ptr = NULL;
     const char *index2_ptr = NULL;
 
@@ -389,8 +388,8 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
         index1_ptr = (*bnode) + str_i;
         index2_ptr = (*bnode) + str_j;
 
-        if ((index1_ptr < bplist->data || index1_ptr + bplist->ref_size >= end_data) ||
-            (index2_ptr < bplist->data || index2_ptr + bplist->ref_size >= end_data)) {
+        if ((index1_ptr < bplist->data || index1_ptr + bplist->ref_size > bplist->offset_table) ||
+            (index2_ptr < bplist->data || index2_ptr + bplist->ref_size > bplist->offset_table)) {
             plist_free(node);
             return NULL;
         }
@@ -450,7 +449,6 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
     uint64_t str_j = 0;
     uint64_t index1;
     plist_data_t data = plist_new_plist_data();
-    const char *const end_data = bplist->data + bplist->size;
     const char *index1_ptr = NULL;
 
     data->type = PLIST_ARRAY;
@@ -462,7 +460,7 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
         str_j = j * bplist->ref_size;
         index1_ptr = (*bnode) + str_j;
 
-        if (index1_ptr < bplist->data || index1_ptr + bplist->ref_size >= end_data) {
+        if (index1_ptr < bplist->data || index1_ptr + bplist->ref_size > bplist->offset_table) {
             plist_free(node);
             return NULL;
         }
@@ -530,7 +528,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
                 return NULL;
             (*object)++;
             next_size = 1 << next_size;
-            if (*object + next_size >= bplist->data + bplist->size)
+            if (*object + next_size > bplist->offset_table)
                 return NULL;
             size = UINT_TO_HOST(*object, next_size);
             (*object) += next_size;
@@ -572,48 +570,50 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         }
 
     case BPLIST_UINT:
-        if (*object - bplist->data + (uint64_t)(1 << size) >= bplist->size)
+        if (*object + (uint64_t)(1 << size) > bplist->offset_table)
             return NULL;
         return parse_uint_node(object, size);
 
     case BPLIST_REAL:
-        if (*object - bplist->data + (uint64_t)(1 << size) >= bplist->size)
+        if (*object + (uint64_t)(1 << size) > bplist->offset_table)
             return NULL;
         return parse_real_node(object, size);
 
     case BPLIST_DATE:
         if (3 != size)
             return NULL;
-        if (*object - bplist->data + (uint64_t)(1 << size) >= bplist->size)
+        if (*object + (uint64_t)(1 << size) > bplist->offset_table)
             return NULL;
         return parse_date_node(object, size);
 
     case BPLIST_DATA:
-        if (*object - bplist->data + size >= bplist->size)
+        if (*object + size > bplist->offset_table)
             return NULL;
         return parse_data_node(object, size);
 
     case BPLIST_STRING:
-        if (*object - bplist->data + size >= bplist->size)
+        if (*object + size > bplist->offset_table)
             return NULL;
         return parse_string_node(object, size);
 
     case BPLIST_UNICODE:
-        if (*object - bplist->data + size * 2 >= bplist->size)
+        if (*object + size*2 > bplist->offset_table)
             return NULL;
         return parse_unicode_node(object, size);
 
     case BPLIST_SET:
     case BPLIST_ARRAY:
-        if (*object - bplist->data + size >= bplist->size)
+        if (*object + size > bplist->offset_table)
             return NULL;
         return parse_array_node(bplist, object, size);
 
     case BPLIST_UID:
+        if (*object + size+1 > bplist->offset_table)
+            return NULL;
         return parse_uid_node(object, size);
 
     case BPLIST_DICT:
-        if (*object - bplist->data + size >= bplist->size)
+        if (*object + size > bplist->offset_table)
             return NULL;
         return parse_dict_node(bplist, object, size);
 
