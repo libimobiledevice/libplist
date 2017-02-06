@@ -944,9 +944,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
-                        free(tag);
-                        free(keyname);
-                        break;
+                        ctx->err++;
+                        goto err_out;
                     }
                     if (tp->begin) {
                         int requires_free = 0;
@@ -955,9 +954,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free(first_part.next);
                             ctx->err++;
-                            free(tag);
-                            free(keyname);
-                            break;
+                            goto err_out;
                         }
                         char *str = str_content;
                         int is_negative = 0;
@@ -998,9 +995,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
-                        free(tag);
-                        free(keyname);
-                        break;
+                        ctx->err++;
+                        goto err_out;
                     }
                     if (tp->begin) {
                         int requires_free = 0;
@@ -1009,9 +1005,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free(first_part.next);
                             ctx->err++;
-                            free(tag);
-                            free(keyname);
-                            break;
+                            goto err_out;
                         }
                         data->realval = atof(str_content);
                         if (requires_free) {
@@ -1045,18 +1039,15 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
-                        free(tag);
-                        free(keyname);
-                        break;
+                        ctx->err++;
+                        goto err_out;
                     }
                     str = text_parts_get_content(tp, 1, &length, NULL);
                     text_parts_free(first_part.next);
                     if (!str) {
                         PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                         ctx->err++;
-                        free(tag);
-                        free(keyname);
-                        return;
+                        goto err_out;
                     }
                     if (!strcmp(tag, "key") && !keyname && *plist && (plist_get_node_type(*plist) == PLIST_DICT)) {
                         keyname = str;
@@ -1080,9 +1071,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
-                        free(tag);
-                        free(keyname);
-                        break;
+                        ctx->err++;
+                        goto err_out;
                     }
                     if (tp->begin) {
                         int requires_free = 0;
@@ -1091,9 +1081,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free(first_part.next);
                             ctx->err++;
-                            free(tag);
-                            free(keyname);
-                            break;
+                            goto err_out;
                         }
                         size_t size = tp->length;
                         data->buff = base64decode(str_content, &size);
@@ -1113,9 +1101,8 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free(first_part.next);
-                        free(tag);
-                        free(keyname);
-                        break;
+                        ctx->err++;
+                        goto err_out;
                     }
                     Time64_T timev = 0;
                     if (tp->begin) {
@@ -1126,9 +1113,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free(first_part.next);
                             ctx->err++;
-                            free(tag);
-                            free(keyname);
-                            break;
+                            goto err_out;
                         }
 
                         if ((length >= 11) && (length < 32)) {
@@ -1157,9 +1142,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                 PLIST_XML_ERR("Unexpected tag <%s%s> encountered\n", tag, (is_empty) ? "/" : "");
                 ctx->pos = ctx->end;
                 ctx->err++;
-                free(tag);
-                free(keyname);
-                return;
+                goto err_out;
             }
             if (subnode && !closing_tag) {
                 /* parse sub nodes for structured types */
@@ -1169,9 +1152,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                         node_from_xml(ctx, &subnode, depth+1);
                         if (ctx->err) {
                             /* make sure to bail out if parsing failed */
-                            free(tag);
-                            free(keyname);
-                            return;
+                            goto err_out;
                         }
                         if ((data->type == PLIST_DICT) && (plist_dict_get_size(subnode) == 1)) {
                             /* convert XML CF$UID dictionaries to PLIST_UID nodes */
@@ -1239,11 +1220,13 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                     break;
                 }
             }
+err_out:
             free(tag);
             free(keyname);
             keyname = NULL;
             plist_free(subnode);
-            if (closing_tag) {
+            subnode = NULL;
+            if (closing_tag || ctx->err) {
                 break;
             }
         }
