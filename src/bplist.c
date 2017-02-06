@@ -444,6 +444,7 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
 
         if (plist_get_data(key)->type != PLIST_STRING) {
             PLIST_BIN_ERR("%s: dict entry %" PRIu64 ": invalid node type for key\n", __func__, j);
+            plist_free(key);
             plist_free(node);
             return NULL;
         }
