@@ -426,12 +426,12 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
 
         if (index1 >= bplist->num_objects) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: dict entry %" PRIu64 " key index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 ": key index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
             return NULL;
         }
         if (index2 >= bplist->num_objects) {
             plist_free(node);
-            PLIST_BIN_ERR("%s: dict entry %" PRIu64 " value index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 ": value index (%" PRIu64 ") must be smaller than the number of objects (%" PRIu64 ")\n", __func__, j, index1, bplist->num_objects);
             return NULL;
         }
 
@@ -443,7 +443,7 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
         }
 
         if (plist_get_data(key)->type != PLIST_STRING) {
-            PLIST_BIN_ERR("%s: malformed binary plist dict, invalid node type for key!\n", __func__);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 ": invalid node type for key\n", __func__, j);
             plist_free(node);
             return NULL;
         }
@@ -451,7 +451,7 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
         /* enforce key type */
         plist_get_data(key)->type = PLIST_KEY;
         if (!plist_get_data(key)->strval) {
-            PLIST_BIN_ERR("%s: malformed binary plist dict, invalid key node encountered!\n", __func__);
+            PLIST_BIN_ERR("%s: dict entry %" PRIu64 ": key must not be NULL\n", __func__, j);
             plist_free(key);
             plist_free(node);
             return NULL;
