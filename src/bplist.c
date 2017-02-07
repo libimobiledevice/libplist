@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -304,13 +305,19 @@ static plist_t parse_string_node(const char **bnode, uint64_t size)
 static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, long *items_written)
 {
 	if (!unistr || (len <= 0)) return NULL;
-	char *outbuf = (char*)malloc(4*(len+1));
+	char *outbuf;
 	int p = 0;
 	long i = 0;
 
 	uint16_t wc;
 	uint32_t w;
-	int read_lead_surrogate = 0; 
+	int read_lead_surrogate = 0;
+
+	outbuf = (char*)malloc(4*(len+1));
+	if (!outbuf) {
+		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)(4*(len+1)));
+		return NULL;
+	}
 
 	while (i < len) {
 		wc = unistr[i++];
@@ -906,6 +913,7 @@ static void serialize_plist(node_t* node, void* data)
     }
     //insert new ref
     index_val = (uint64_t *) malloc(sizeof(uint64_t));
+    assert(index_val != NULL);
     *index_val = current_index;
     hash_table_insert(ser->ref_table, node, index_val);
 
@@ -1079,7 +1087,7 @@ static int is_ascii_string(char* s, int len)
 
 static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
 {
-	uint16_t *outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
+	uint16_t *outbuf;
 	int p = 0;
 	long i = 0;
 
@@ -1089,6 +1097,12 @@ static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, 
 	unsigned char c3;
 
 	uint32_t w;
+
+	outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
+	if (!outbuf) {
+		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)((size*2)+1)*sizeof(uint16_t));
+		return NULL;
+	}
 
 	while (i < size) {
 		c0 = unistr[i];
@@ -1185,6 +1199,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
     //write objects and table
     offsets = (uint64_t *) malloc(num_objects * sizeof(uint64_t));
+    assert(offsets != NULL);
     for (i = 0; i < num_objects; i++)
     {
 
