@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
@@ -124,14 +125,18 @@ int main(int argc, char *argv[])
     // read input file
     iplist = fopen(options->in_file, "rb");
     if (!iplist) {
+        printf("ERROR: Could not open input file '%s': %s\n", options->in_file, strerror(errno));
         free(options);
         return 1;
     }
 
-    stat(options->in_file, &filestats);
+    memset(&filestats, '\0', sizeof(struct stat));
+    fstat(fileno(iplist), &filestats);
 
     if (filestats.st_size < 8) {
         printf("ERROR: Input file is too small to contain valid plist data.\n");
+        free(options);
+        fclose(iplist);
         return -1;
     }
 
@@ -159,6 +164,7 @@ int main(int argc, char *argv[])
         {
             FILE *oplist = fopen(options->out_file, "wb");
             if (!oplist) {
+                printf("ERROR: Could not open output file '%s': %s\n", options->out_file, strerror(errno));
                 free(options);
                 return 1;
             }
