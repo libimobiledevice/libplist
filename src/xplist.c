@@ -469,6 +469,10 @@ static void find_next(parse_ctx ctx, const char *nextchars, int numchars, int sk
         if (skip_quotes && (*(ctx->pos) == '"')) {
             ctx->pos++;
             find_char(ctx, '"', 0);
+            if (ctx->pos >= ctx->end) {
+                PLIST_XML_ERR("EOF while looking for matching double quote\n");
+                return;
+            }
             if (*(ctx->pos) != '"') {
                 PLIST_XML_ERR("Unmatched double quote\n");
                 return;
