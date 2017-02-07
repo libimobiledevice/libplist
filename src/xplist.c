@@ -546,6 +546,11 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
         }
         if (*ctx->pos == '!') {
             ctx->pos++;
+            if (ctx->pos >= ctx->end-1) {
+                PLIST_XML_ERR("EOF while parsing <! special tag\n");
+                ctx->err++;
+                return NULL;
+            }
             if (*ctx->pos == '-' && *(ctx->pos+1) == '-') {
                 if (last) {
                     last = text_part_append(last, p, q-p, 0);
@@ -844,6 +849,11 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                 ctx->pos+=8;
                 while (ctx->pos < ctx->end) {
                     find_next(ctx, " \t\r\n[>", 6, 1);
+                    if (ctx->pos >= ctx->end) {
+                        PLIST_XML_ERR("EOF while parsing !DOCTYPE\n");
+                        ctx->err++;
+                        goto err_out;
+                    }
                     if (*ctx->pos == '[') {
                         embedded_dtd = 1;
                         break;
