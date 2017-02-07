@@ -876,7 +876,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                 }
                 if (embedded_dtd) {
                     find_str(ctx, "]>", 2, 1);
-                    if (ctx->pos >= ctx->end || strncmp(ctx->pos, "]>", 2)) {
+                    if (ctx->pos > ctx->end-2 || strncmp(ctx->pos, "]>", 2)) {
                         PLIST_XML_ERR("Couldn't find end of DOCTYPE\n");
                         ctx->err++;
                         goto err_out;
