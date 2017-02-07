@@ -767,7 +767,7 @@ PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val)
     uint64_t length = 0;
     if (PLIST_UINT == type)
         plist_get_type_and_value(node, &type, (void *) val, &length);
-    assert(length == sizeof(uint64_t));
+    assert(length == sizeof(uint64_t) || length == 16);
 }
 
 PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val)
