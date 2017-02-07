@@ -783,6 +783,7 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
     while (tp && tp->begin) {
         size_t len = tp->length;
         strncpy(p, tp->begin, len);
+        p[len] = '\0';
         if (!tp->is_cdata && unesc_entities) {
             if (unescape_entities(p, &len) < 0) {
                 free(str);
