@@ -368,6 +368,11 @@ static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 
     data->type = PLIST_STRING;
     unicodestr = (uint16_t*) malloc(sizeof(uint16_t) * size);
+    if (!unicodestr) {
+        plist_free_data(data);
+        PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, sizeof(uint16_t) * size);
+        return NULL;
+    }
     for (i = 0; i < size; i++)
         unicodestr[i] = be16toh(((uint16_t*)*bnode)[i]);
 
