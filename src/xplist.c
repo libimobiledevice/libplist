@@ -567,7 +567,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                 }
                 ctx->pos += 2;
                 find_str(ctx, "-->", 3, 0);
-                if (ctx->pos >= ctx->end || strncmp(ctx->pos, "-->", 3) != 0) {
+                if (ctx->pos > ctx->end-3 || strncmp(ctx->pos, "-->", 3) != 0) {
                     PLIST_XML_ERR("EOF while looking for end of comment\n");
                     ctx->err++;
                     return NULL;
@@ -591,7 +591,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                     ctx->pos+=6;
                     p = ctx->pos;
                     find_str(ctx, "]]>", 3, 0);
-                    if (ctx->pos >= ctx->end || strncmp(ctx->pos, "]]>", 3) != 0) {
+                    if (ctx->pos > ctx->end-3 || strncmp(ctx->pos, "]]>", 3) != 0) {
                         PLIST_XML_ERR("EOF while looking for end of CDATA block\n");
                         ctx->err++;
                         return NULL;
@@ -830,7 +830,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
 
         if (*(ctx->pos) == '?') {
             find_str(ctx, "?>", 2, 1);
-            if (ctx->pos >= ctx->end-2) {
+            if (ctx->pos > ctx->end-2) {
                 PLIST_XML_ERR("EOF while looking for <? tag closing marker\n");
                 ctx->err++;
                 goto err_out;
@@ -847,7 +847,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
             if (((ctx->end - ctx->pos) > 3) && !strncmp(ctx->pos, "!--", 3)) {
                 ctx->pos += 3;
                 find_str(ctx,"-->", 3, 0);
-                if (strncmp(ctx->pos, "-->", 3)) {
+                if (ctx->pos > ctx->end-3 || strncmp(ctx->pos, "-->", 3)) {
                     PLIST_XML_ERR("Couldn't find end of comment\n");
                     ctx->err++;
                     goto err_out;
