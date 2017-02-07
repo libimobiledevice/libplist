@@ -528,7 +528,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
     do {
         p = ctx->pos;
         find_char(ctx, '<', 0);
-        if (*ctx->pos != '<') {
+        if (ctx->pos >= ctx->end || *ctx->pos != '<') {
             PLIST_XML_ERR("EOF while looking for closing tag\n");
             ctx->err++;
             return NULL;
