@@ -435,6 +435,10 @@ static void find_char(parse_ctx ctx, char c, int skip_quotes)
         if (skip_quotes && (c != '"') && (*(ctx->pos) == '"')) {
             ctx->pos++;
             find_char(ctx, '"', 0);
+            if (ctx->pos >= ctx->end) {
+                PLIST_XML_ERR("EOF while looking for matching double quote\n");
+                return;
+            }
             if (*(ctx->pos) != '"') {
                 PLIST_XML_ERR("Unmatched double quote\n");
                 return;
@@ -453,6 +457,10 @@ static void find_str(parse_ctx ctx, const char *str, size_t len, int skip_quotes
         if (skip_quotes && (*(ctx->pos) == '"')) {
             ctx->pos++;
             find_char(ctx, '"', 0);
+            if (ctx->pos >= ctx->end) {
+                PLIST_XML_ERR("EOF while looking for matching double quote\n");
+                return;
+            }
             if (*(ctx->pos) != '"') {
                 PLIST_XML_ERR("Unmatched double quote\n");
                 return;
