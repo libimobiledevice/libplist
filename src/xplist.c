@@ -984,11 +984,11 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                         }
                         data->intval = strtoull((char*)str, NULL, 0);
                         if (is_negative || (data->intval <= INT64_MAX)) {
-                            int64_t v = data->intval;
+                            uint64_t v = data->intval;
                             if (is_negative) {
                                 v = -v;
                             }
-                            data->intval = (uint64_t)v;
+                            data->intval = v;
                             data->length = 8;
                         } else {
                             data->length = 16;
