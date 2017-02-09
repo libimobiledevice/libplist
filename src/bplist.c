@@ -668,6 +668,10 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         return parse_string_node(object, size);
 
     case BPLIST_UNICODE:
+        if (size*2 < size) {
+            PLIST_BIN_ERR("%s: Integer overflow when calculating BPLIST_UNICODE data size.\n", __func__);
+            return NULL;
+        }
         if (*object + size*2 > bplist->offset_table) {
             PLIST_BIN_ERR("%s: BPLIST_UNICODE data bytes point outside of valid range\n", __func__);
             return NULL;
