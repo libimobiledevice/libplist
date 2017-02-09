@@ -1178,6 +1178,11 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                             plist_t uid = plist_dict_get_item(subnode, "CF$UID");
                             if (uid) {
                                 uint64_t val = 0;
+                                if (plist_get_node_type(uid) != PLIST_UINT) {
+                                    ctx->err++;
+                                    PLIST_XML_ERR("Invalid node type for CF$UID dict entry (must be PLIST_UINT)\n");
+                                    goto err_out;
+                                }
                                 plist_get_uint_val(uid, &val);
                                 plist_dict_remove_item(subnode, "CF$UID");
                                 plist_data_t nodedata = plist_get_data((node_t*)subnode);
