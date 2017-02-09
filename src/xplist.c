@@ -1103,8 +1103,10 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                             goto err_out;
                         }
                         size_t size = tp->length;
-                        data->buff = base64decode(str_content, &size);
-                        data->length = size;
+                        if (size > 0) {
+                            data->buff = base64decode(str_content, &size);
+                            data->length = size;
+                        }
 
                         if (requires_free) {
                             free(str_content);
