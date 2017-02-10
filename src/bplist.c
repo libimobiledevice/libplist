@@ -825,6 +825,11 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
         return;
     }
 
+    if (num_objects * offset_size < num_objects) {
+        PLIST_BIN_ERR("integer overflow when calculating offset table size (too many objects)\n");
+        return;
+    }
+
     if (offset_table + num_objects * offset_size > end_data) {
         PLIST_BIN_ERR("offset table points outside of valid range\n");
         return;
