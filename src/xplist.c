@@ -294,6 +294,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
             uint32_t maxread = ((76 - indent*8) / 4) * 3;
             size_t count = 0;
             size_t b64count = 0;
+            str_buf_grow(*outbuf, (node_data->length / 3 * 4) + 4 + (((node_data->length / maxread) + 1) * (indent+1)));
             while (j < node_data->length) {
                 for (i = 0; i < indent; i++) {
                     str_buf_append(*outbuf, "\t", 1);

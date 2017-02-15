@@ -41,15 +41,20 @@ void byte_array_free(bytearray_t *ba)
 	free(ba);
 }
 
+void byte_array_grow(bytearray_t *ba, size_t amount)
+{
+	size_t increase = (amount > PAGE_SIZE) ? (amount+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
+	ba->data = realloc(ba->data, ba->capacity + increase);
+	ba->capacity += increase;
+}
+
 void byte_array_append(bytearray_t *ba, void *buf, size_t len)
 {
 	if (!ba || !ba->data || (len <= 0)) return;
 	size_t remaining = ba->capacity-ba->len;
 	if (len > remaining) {
 		size_t needed = len - remaining;
-		size_t increase = (needed > PAGE_SIZE) ? (needed+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
-		ba->data = realloc(ba->data, ba->capacity + increase);
-		ba->capacity += increase;
+		byte_array_grow(ba, needed);
 	}
 	memcpy(((char*)ba->data) + ba->len, buf, len);
 	ba->len += len;

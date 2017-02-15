@@ -28,6 +28,7 @@ typedef struct bytearray_t strbuf_t;
 
 #define str_buf_new() byte_array_new()
 #define str_buf_free(__ba) byte_array_free(__ba)
+#define str_buf_grow(__ba, __am) byte_array_grow(__ba, __am)
 #define str_buf_append(__ba, __str, __len) byte_array_append(__ba, (void*)(__str), __len)
 
 #endif
