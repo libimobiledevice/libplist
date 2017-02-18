@@ -101,13 +101,13 @@ unsigned char *base64decode(const char *buf, size_t *size)
 			w3 = tmpval[2];
 			w4 = tmpval[3];
 
-			if (w2 >= 0) {
+			if (w1 >= 0 && w2 >= 0) {
 				outbuf[p++] = (unsigned char)(((w1 << 2) + (w2 >> 4)) & 0xFF);
 			}
-			if (w3 >= 0) {
+			if (w2 >= 0 && w3 >= 0) {
 				outbuf[p++] = (unsigned char)(((w2 << 4) + (w3 >> 2)) & 0xFF);
 			}
-			if (w4 >= 0) {
+			if (w3 >= 0 && w4 >= 0) {
 				outbuf[p++] = (unsigned char)(((w3 << 6) + w4) & 0xFF);
 			}
 		}
