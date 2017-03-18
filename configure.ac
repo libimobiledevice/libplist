@@ -56,13 +56,13 @@ AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
 
 
 # Check for operating system
-AC_MSG_CHECKING([wether we need platform-specific build settings])
+AC_MSG_CHECKING([wether we need platform-specific build settings for ${host_os}])
 case ${host_os} in
   *mingw32*|*cygwin*)
     AC_MSG_RESULT([yes])
     win32=true
     ;;
-  darwin*)
+  darwin*|*android*)
     AC_MSG_RESULT([no])
     ;;
   *)
