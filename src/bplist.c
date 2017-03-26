@@ -561,6 +561,8 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
 {
     uint16_t type = 0;
     uint64_t size = 0;
+    uint64_t pobject = 0;
+    uint64_t poffset_table = (uint64_t)bplist->offset_table;
 
     if (!object)
         return NULL;
@@ -598,6 +600,8 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         }
     }
 
+    pobject = (uint64_t)*object;
+
     switch (type)
     {
 
@@ -629,14 +633,14 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         }
 
     case BPLIST_UINT:
-        if (*object + (uint64_t)(1 << size) > bplist->offset_table) {
+        if (pobject + (uint64_t)(1 << size) > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_UINT data bytes point outside of valid range\n", __func__);
             return NULL;
         }
         return parse_uint_node(object, size);
 
     case BPLIST_REAL:
-        if (*object + (uint64_t)(1 << size) > bplist->offset_table) {
+        if (pobject + (uint64_t)(1 << size) > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_REAL data bytes point outside of valid range\n", __func__);
             return NULL;
         }
@@ -647,21 +651,21 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             PLIST_BIN_ERR("%s: invalid data size for BPLIST_DATE node\n", __func__);
             return NULL;
         }
-        if (*object + (uint64_t)(1 << size) > bplist->offset_table) {
+        if (pobject + (uint64_t)(1 << size) > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_DATE data bytes point outside of valid range\n", __func__);
             return NULL;
         }
         return parse_date_node(object, size);
 
     case BPLIST_DATA:
-        if (*object + size < *object || *object + size > bplist->offset_table) {
+        if (pobject + size < pobject || pobject + size > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_DATA data bytes point outside of valid range\n", __func__);
             return NULL;
         }
         return parse_data_node(object, size);
 
     case BPLIST_STRING:
-        if (*object + size < *object || *object + size > bplist->offset_table) {
+        if (pobject + size < pobject || pobject + size > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_STRING data bytes point outside of valid range\n", __func__);
             return NULL;
         }
@@ -672,7 +676,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             PLIST_BIN_ERR("%s: Integer overflow when calculating BPLIST_UNICODE data size.\n", __func__);
             return NULL;
         }
-        if (*object + size*2 < *object || *object + size*2 > bplist->offset_table) {
+        if (pobject + size*2 < pobject || pobject + size*2 > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_UNICODE data bytes point outside of valid range\n", __func__);
             return NULL;
         }
@@ -680,21 +684,21 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
 
     case BPLIST_SET:
     case BPLIST_ARRAY:
-        if (*object + size < *object || *object + size > bplist->offset_table) {
+        if (pobject + size < pobject || pobject + size > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_ARRAY data bytes point outside of valid range\n", __func__);
             return NULL;
         }
         return parse_array_node(bplist, object, size);
 
     case BPLIST_UID:
-        if (*object + size+1 > bplist->offset_table) {
+        if (pobject + size+1 > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_UID data bytes point outside of valid range\n", __func__);
             return NULL;
         }
         return parse_uid_node(object, size);
 
     case BPLIST_DICT:
-        if (*object + size < *object || *object + size > bplist->offset_table) {
+        if (pobject + size < pobject || pobject + size > poffset_table) {
             PLIST_BIN_ERR("%s: BPLIST_DICT data bytes point outside of valid range\n", __func__);
             return NULL;
         }
@@ -830,7 +834,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
         return;
     }
 
-    if (offset_table + num_objects * offset_size > end_data) {
+    if ((uint64_t)offset_table + num_objects * offset_size > (uint64_t)end_data) {
         PLIST_BIN_ERR("offset table points outside of valid range\n");
         return;
     }
