@@ -61,7 +61,7 @@ node_t* node_create(node_t* parent, void* data) {
 	node->isLeaf = TRUE;
 	node->isRoot = TRUE;
 	node->parent = NULL;
-	node->children = node_list_create(node);
+	node->children = node_list_create();
 
 	// Pass NULL to create a root node
 	if(parent != NULL) {
