@@ -2,7 +2,7 @@
  * xplist.c
  * XML plist implementation
  *
- * Copyright (c) 2010-2016 Nikias Bassen All Rights Reserved.
+ * Copyright (c) 2010-2017 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2010-2015 Martin Szulecki All Rights Reserved.
  * Copyright (c) 2008 Jonathan Beck All Rights Reserved.
  *
@@ -804,12 +804,21 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
     return str;
 }
 
-static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
+static void node_from_xml(parse_ctx ctx, plist_t *plist)
 {
     char *tag = NULL;
     char *keyname = NULL;
     plist_t subnode = NULL;
     const char *p = NULL;
+    plist_t parent = NULL;
+    int has_content = 0;
+
+    struct node_path_item {
+        const char *type;
+        void *prev;
+    };
+    struct node_path_item* node_path = NULL;
+
     while (ctx->pos < ctx->end && !ctx->err) {
         parse_skip_ws(ctx);
         if (ctx->pos >= ctx->end) {
@@ -929,28 +938,58 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
             if (!strcmp(tag, "plist")) {
                 free(tag);
                 tag = NULL;
-                if (is_empty) {
-                    PLIST_XML_ERR("Empty plist tag\n");
+                has_content = 0;
+
+                if (!node_path && *plist) {
+                    /* we don't allow another top-level <plist> */
                     break;
                 }
-                if (!*plist) {
-                    /* only process first plist node found */
-                    node_from_xml(ctx, plist, depth+1);
-                }
-                continue;
-            } else if (depth == 1 && !strcmp(tag, "/plist")) {
-                if (!*plist) {
+                if (is_empty) {
                     PLIST_XML_ERR("Empty plist tag\n");
+                    ctx->err++;
+                    goto err_out;
                 }
-                goto err_out;
-            } else if (depth == 1 && *plist) {
-                PLIST_XML_ERR("Unexpected tag <%s> found while </plist> is expected\n", tag);
-                ctx->err++;
-                goto err_out;
+
+                struct node_path_item *path_item = malloc(sizeof(struct node_path_item));
+                if (!path_item) {
+                    PLIST_XML_ERR("out of memory when allocating node path item\n");
+                    ctx->err++;
+                    goto err_out;
+                }
+                path_item->type = "plist";
+                path_item->prev = node_path;
+                node_path = path_item;
+
+                continue;
+            } else if (!strcmp(tag, "/plist")) {
+                if (!has_content) {
+                    PLIST_XML_ERR("encountered empty plist tag\n");
+                    ctx->err++;
+                    goto err_out;
+                }
+                if (!node_path) {
+                    PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
+                    ctx->err++;
+                    goto err_out;
+                }
+                if (strcmp(node_path->type, tag+1) != 0) {
+                    PLIST_XML_ERR("mismatching closing tag <%s> found for opening tag <%s>\n", tag, node_path->type);
+                    ctx->err++;
+                    goto err_out;
+                }
+                struct node_path_item *path_item = node_path;
+                node_path = node_path->prev;
+                free(path_item);
+
+                free(tag);
+                tag = NULL;
+
+                continue;
             }
 
             plist_data_t data = plist_new_plist_data();
             subnode = plist_new_node(data);
+            has_content = 1;
 
             if (!strcmp(tag, XPLIST_DICT)) {
                 data->type = PLIST_DICT;
@@ -1068,7 +1107,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                         ctx->err++;
                         goto err_out;
                     }
-                    if (!strcmp(tag, "key") && !keyname && *plist && (plist_get_node_type(*plist) == PLIST_DICT)) {
+                    if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
                         keyname = str;
                         free(tag);
                         tag = NULL;
@@ -1167,100 +1206,78 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist, uint32_t depth)
                 goto err_out;
             }
             if (subnode && !closing_tag) {
-                /* parse sub nodes for structured types */
-                if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-                    if (!is_empty) {
-                        /* only if not empty */
-                        node_from_xml(ctx, &subnode, depth+1);
-                        if (ctx->err) {
-                            /* make sure to bail out if parsing failed */
-                            goto err_out;
-                        }
-                        if ((data->type == PLIST_DICT) && (plist_dict_get_size(subnode) == 1)) {
-                            /* convert XML CF$UID dictionaries to PLIST_UID nodes */
-                            plist_t uid = plist_dict_get_item(subnode, "CF$UID");
-                            if (uid) {
-                                uint64_t val = 0;
-                                if (plist_get_node_type(uid) != PLIST_UINT) {
-                                    ctx->err++;
-                                    PLIST_XML_ERR("Invalid node type for CF$UID dict entry (must be PLIST_UINT)\n");
-                                    goto err_out;
-                                }
-                                plist_get_uint_val(uid, &val);
-                                plist_dict_remove_item(subnode, "CF$UID");
-                                plist_data_t nodedata = plist_get_data((node_t*)subnode);
-                                free(nodedata->buff);
-                                nodedata->type = PLIST_UID;
-                                nodedata->length = sizeof(uint64_t);
-                                nodedata->intval = val;
-                            }
-                        }
-                    }
-                }
                 if (!*plist) {
-                    /* no parent? make this node the new parent node */
+                    /* first node, make this node the parent node */
                     *plist = subnode;
-                    subnode = NULL;
-                } else {
-                    switch (plist_get_node_type(*plist)) {
+                    if (data->type != PLIST_DICT && data->type != PLIST_ARRAY) {
+                        /* if the first node is not a structered node, we're done */
+                        subnode = NULL;
+                        goto err_out;
+                    }
+                    parent = subnode;
+                } else if (parent) {
+                    switch (plist_get_node_type(parent)) {
                     case PLIST_DICT:
                         if (!keyname) {
                             PLIST_XML_ERR("missing key name while adding dict item\n");
                             ctx->err++;
                             break;
                         }
-                        plist_dict_set_item(*plist, keyname, subnode);
-                        subnode = NULL;
+                        plist_dict_set_item(parent, keyname, subnode);
                         break;
                     case PLIST_ARRAY:
-                        plist_array_append_item(*plist, subnode);
-                        subnode = NULL;
+                        plist_array_append_item(parent, subnode);
                         break;
                     default:
                         /* should not happen */
-                        PLIST_XML_ERR("while parsing XML plist: parent is not a structered node.\n");
+                        PLIST_XML_ERR("parent is not a structered node\n");
                         ctx->err++;
                         break;
                     }
                 }
-            } else if (closing_tag && *plist) {
-                switch (plist_get_node_type(*plist)) {
-                case PLIST_DICT:
-                    if (keyname) {
-                        PLIST_XML_ERR("missing value node in dict\n");
+                if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
+                    struct node_path_item *path_item = malloc(sizeof(struct node_path_item));
+                    if (!path_item) {
+                        PLIST_XML_ERR("out of memory when allocating node path item\n");
                         ctx->err++;
-                    } else if (strcmp(tag+1, XPLIST_DICT) != 0) {
-                        PLIST_XML_ERR("closing tag mismatch, expected: </%s> found: <%s>\n", XPLIST_DICT, tag);
-                        ctx->err++;
+                        goto err_out;
                     }
-                    break;
-                case PLIST_ARRAY:
-                    if (strcmp(tag+1, XPLIST_ARRAY) != 0) {
-                        PLIST_XML_ERR("closing tag mismatch, expected: </%s> found: <%s>\n", XPLIST_ARRAY, tag);
-                        ctx->err++;
-                    }
-                    break;
-                default:
-                    /* should not happen */
-                    PLIST_XML_ERR("expected structered node but got type %d\n", plist_get_node_type(*plist));
-                    ctx->err++;
-                    break;
+                    path_item->type = (data->type == PLIST_DICT) ? XPLIST_DICT : XPLIST_ARRAY;
+                    path_item->prev = node_path;
+                    node_path = path_item;
+
+                    parent = subnode;
                 }
+                subnode = NULL;
+            } else if (closing_tag) {
+                if (!node_path) {
+                    PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
+                    ctx->err++;
+                    goto err_out;
+                }
+                if (strcmp(node_path->type, tag+1) != 0) {
+                    PLIST_XML_ERR("unexpected %s found (for opening %s)\n", tag, node_path->type);
+                    ctx->err++;
+                    goto err_out;
+                }
+                struct node_path_item *path_item = node_path;
+                node_path = node_path->prev;
+                free(path_item);
+
+                parent = ((node_t*)parent)->parent;
             }
+
             free(tag);
             tag = NULL;
             free(keyname);
             keyname = NULL;
             plist_free(subnode);
             subnode = NULL;
-            if (closing_tag) {
-                break;
-            }
         }
     }
 
-    if (depth == 1) {
-        PLIST_XML_ERR("EOF while </plist> tag is expected\n");
+    if (node_path) {
+        PLIST_XML_ERR("EOF encountered while </%s> was expected\n", node_path->type);
         ctx->err++;
     }
 
@@ -1268,6 +1285,13 @@ err_out:
     free(tag);
     free(keyname);
     plist_free(subnode);
+
+    /* clean up node_path if required */
+    while (node_path) {
+        struct node_path_item *path_item = node_path;
+        node_path = path_item->prev;
+        free(path_item);
+    }
 
     if (ctx->err) {
         plist_free(*plist);
@@ -1284,5 +1308,5 @@ PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * 
 
     struct _parse_ctx ctx = { plist_xml, plist_xml + length, 0 };
 
-    node_from_xml(&ctx, plist, 0);
+    node_from_xml(&ctx, plist);
 }
