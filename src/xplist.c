@@ -1221,7 +1221,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                         if (!keyname) {
                             PLIST_XML_ERR("missing key name while adding dict item\n");
                             ctx->err++;
-                            break;
+                            goto err_out;
                         }
                         plist_dict_set_item(parent, keyname, subnode);
                         break;
@@ -1232,7 +1232,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                         /* should not happen */
                         PLIST_XML_ERR("parent is not a structered node\n");
                         ctx->err++;
-                        break;
+                        goto err_out;
                     }
                 }
                 if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
