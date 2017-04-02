@@ -1265,6 +1265,9 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                 free(path_item);
 
                 parent = ((node_t*)parent)->parent;
+                if (!parent) {
+                    goto err_out;
+                }
             }
 
             free(tag);
