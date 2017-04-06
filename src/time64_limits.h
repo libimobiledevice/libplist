@@ -8,6 +8,8 @@
 #ifndef TIME64_LIMITS_H
 #define TIME64_LIMITS_H
 
+#include <time.h>
+
 /* Max/min for localtime() */
 #define SYSTEM_LOCALTIME_MAX     2147483647
 #define SYSTEM_LOCALTIME_MIN    -2147483647-1
