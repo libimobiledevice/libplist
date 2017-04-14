@@ -346,11 +346,11 @@ static Year cycle_offset(Year year)
 */
 static int safe_year(const Year year)
 {
-    int safe_year;
+    int safe_year= (int)year;
     Year year_cycle;
 
     if( year >= MIN_SAFE_YEAR && year <= MAX_SAFE_YEAR ) {
-        return (int)year;
+        return safe_year;
     }
 
     year_cycle = year + cycle_offset(year);
