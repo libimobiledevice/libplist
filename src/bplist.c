@@ -178,6 +178,19 @@ union plist_uint_ptr
 #define float_bswap32(x) (x)
 #endif
 
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
+
+#if __has_builtin(__builtin_umulll_overflow) || __GNUC__ >= 5
+#define uint64_mul_overflow(a, b, r) __builtin_umulll_overflow(a, b, r)
+#else
+static int uint64_mul_overflow(uint64_t a, uint64_t b, uint64_t *res)
+{
+    *res = a * b;
+    return (a > UINT64_MAX / b);
+}
+#endif
 
 #define NODE_IS_ROOT(x) (((node_t*)x)->isRoot)
 
@@ -773,6 +786,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     uint64_t num_objects = 0;
     uint64_t root_object = 0;
     const char *offset_table = NULL;
+    uint64_t offset_table_size = 0;
     const char *start_data = NULL;
     const char *end_data = NULL;
 
@@ -829,12 +843,12 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
         return;
     }
 
-    if (num_objects * offset_size < num_objects) {
-        PLIST_BIN_ERR("integer overflow when calculating offset table size (too many objects)\n");
+    if (uint64_mul_overflow(num_objects, offset_size, &offset_table_size)) {
+        PLIST_BIN_ERR("integer overflow when calculating offset table size\n");
         return;
     }
 
-    if ((uint64_t)offset_table + num_objects * offset_size > (uint64_t)end_data) {
+    if ((offset_table + offset_table_size < offset_table) || (offset_table + offset_table_size > end_data)) {
         PLIST_BIN_ERR("offset table points outside of valid range\n");
         return;
     }
