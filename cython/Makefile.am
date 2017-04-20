@@ -1,7 +1,7 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
-AM_CFLAGS = $(GLOBAL_CFLAGS) $(libxml2_CFLAGS)
-AM_LDFLAGS = $(libxml2_LIBS)
+AM_CFLAGS = $(GLOBAL_CFLAGS)
+AM_LDFLAGS = $(GLOBAL_LDFLAGS)
 
 if HAVE_CYTHON
 
