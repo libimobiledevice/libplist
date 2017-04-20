@@ -1270,6 +1270,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
             break;
         case PLIST_DATA:
             write_data(bplist_buff, data->buff, data->length);
+            break;
         case PLIST_ARRAY:
             write_array(bplist_buff, ptr_array_index(objects, i), ref_table, ref_size);
             break;
