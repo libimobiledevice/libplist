@@ -183,7 +183,7 @@ union plist_uint_ptr
 #endif
 
 #if __has_builtin(__builtin_umulll_overflow) || __GNUC__ >= 5
-#define uint64_mul_overflow(a, b, r) __builtin_umulll_overflow(a, b, r)
+#define uint64_mul_overflow(a, b, r) __builtin_umulll_overflow(a, b, (unsigned long long*)r)
 #else
 static int uint64_mul_overflow(uint64_t a, uint64_t b, uint64_t *res)
 {
@@ -575,7 +575,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
     uint16_t type = 0;
     uint64_t size = 0;
     uint64_t pobject = 0;
-    uint64_t poffset_table = (uint64_t)bplist->offset_table;
+    uint64_t poffset_table = (uint64_t)(uintptr_t)bplist->offset_table;
 
     if (!object)
         return NULL;
@@ -613,7 +613,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         }
     }
 
-    pobject = (uint64_t)*object;
+    pobject = (uint64_t)(uintptr_t)*object;
 
     switch (type)
     {
