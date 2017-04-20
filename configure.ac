@@ -117,21 +117,17 @@ if [test "x$CYTHON" != "xfalse"]; then
             CYTHON_PLIST_INCLUDE_DIR=$($PKG_CONFIG --variable=includedir libplist)/plist/cython
             if [test ! -d "$CYTHON_PLIST_INCLUDE_DIR"]; then
                 CYTHON_PLIST_INCLUDE_DIR=.
-                CYTHON_SUB=cython
                 cython_python_bindings=yes
                 AC_MSG_RESULT([Using built-in libplist Cython bindings (assuming this is a first build)])
             else
                 AC_SUBST([CYTHON_PLIST_INCLUDE_DIR])
                 AC_MSG_RESULT([$CYTHON_PLIST_INCLUDE_DIR])
-                CYTHON_SUB=cython
                 cython_python_bindings=yes
             fi
 else
-            CYTHON_SUB=
             cython_python_bindings=no
 fi
-AM_CONDITIONAL([HAVE_CYTHON],[test "x$CYTHON_SUB" = "xcython"])
-AC_SUBST([CYTHON_SUB])
+AM_CONDITIONAL([HAVE_CYTHON],[test "x$cython_python_bindings" = "xyes"])
 
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing -fvisibility=hidden $PTHREAD_CFLAGS")
 GLOBAL_LDFLAGS="$PTHREAD_LIBS"
