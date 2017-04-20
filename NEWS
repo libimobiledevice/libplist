@@ -1,3 +1,33 @@
+Version 2.0.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * New light-weight custom XML parser
+  * Remove libxml2 dependency
+  * Refactor binary plist parsing
+  * Improved malformed XML and binary plist detection and error handling
+  * Add parser debug/error output (when compiled with --enable-debug), controlled via environment variables
+  * Fix unicode character handling
+  * Add PLIST_IS_* helper macros for the different node types
+  * Extend date/time range and date conversion issues
+  * Add plist_is_binary() and plist_from_memory() functions to the interface
+  * Plug several memory leaks
+  * Speed improvements for handling large plist files
+
+- Includes security fixes for:
+  * CVE-2017-6440
+  * CVE-2017-6439
+  * CVE-2017-6438
+  * CVE-2017-6437
+  * CVE-2017-6436
+  * CVE-2017-6435
+  * CVE-2017-5836
+  * CVE-2017-5835
+  * CVE-2017-5834
+  * CVE-2017-5545
+  * CVE-2017-5209
+  ... and several others that didn't receive any CVE (yet).
+
 Version 1.12
 ~~~~~~~~~~~~
 
