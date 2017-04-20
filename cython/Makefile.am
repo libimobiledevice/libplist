@@ -3,18 +3,17 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_CFLAGS = $(GLOBAL_CFLAGS)
 AM_LDFLAGS = $(GLOBAL_LDFLAGS)
 
+EXTRA_DIST = plist.pyx plist.pxd
+
 if HAVE_CYTHON
 
 BUILT_SOURCES = plist.c
 PXDINCLUDES = plist.pxd $(CYTHON_PLIST_INCLUDE_DIR)/plist.pxd
-PXIINCLUDES =
 
 CLEANFILES =                \
         *.pyc               \
         *.pyo               \
         plist.c
-
-EXTRA_DIST = plist.pyx plist.pxd $(PXIINCLUDES)
 
 plistdir = $(pyexecdir)
 plist_LTLIBRARIES = plist.la
