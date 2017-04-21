@@ -12,6 +12,7 @@ language: c
 env:
   global:
   - CFLAGS=-fPIC
+  - LIBPLIST_VERSION_PREFIX=2.0.1
 
 addons:
   apt:

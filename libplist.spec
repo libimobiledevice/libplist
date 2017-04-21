@@ -1,7 +1,7 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:          libplist
-Version:       1.13.build
+Version:       2.0.1.build
 Release:       0%{?dist}
 Summary:       Library for manipulating Apple Binary and XML Property Lists
 

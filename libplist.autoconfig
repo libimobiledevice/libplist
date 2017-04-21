@@ -12,7 +12,7 @@ configurations {
 nuget{
     nuspec{
         id = libplist;
-        version : 1.12.{build};
+        version : 2.0.1.{build};
         title: libplist;
         authors: {libimobiledevice Project};
         owners: {quamotion};
@@ -23,7 +23,7 @@ nuget{
         description: "A small portable C library to handle Apple Property List files in binary or XML.";
         summary: "A small portable C library to handle Apple Property List files in binary or XML.";
         copyright: Copyright 2013;
-        releaseNotes: "Release 1.12 of libplist. See https://github.com/libimobiledevice-win32/libplist/tree/msvc-1.12 for more.";
+        releaseNotes: "Release 2.0.1 of libplist. See https://github.com/libimobiledevice-win32/libplist/tree/msvc-master for more.";
         tags: { libplist, libimobiledevice, native };
     }
 
