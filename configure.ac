@@ -19,6 +19,12 @@ LIBPLIST_SO_VERSION=4:0:1
 
 AC_SUBST(LIBPLIST_SO_VERSION)
 
+# prefer clang if it is available and CC is not set
+if test -z "$CC" && test -z "$CXX" && test -x "`which clang`"; then
+    CC=clang
+    CXX=clang++
+fi
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -162,6 +168,9 @@ AC_ARG_WITH([fuzzers],
             [build_fuzzers=true],
             [build_fuzzers=false])
 if test "x$build_fuzzers" = "xtrue"; then
+    if test "$CXX" != "clang++"; then
+        AC_MSG_WARN([building fuzzers requires clang/clang++ (continuing anyway)])
+    fi
     AS_COMPILER_FLAG([-fsanitize=address], [
         SANITIZER_FLAGS+=" -fsanitize=address"
         ASAN_AVAILABLE=yes
