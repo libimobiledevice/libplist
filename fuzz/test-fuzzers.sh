@@ -18,13 +18,13 @@ if ! test -d xplist-input || ! test -d bplist-input; then
 fi
 
 echo "### TESTING xplist_fuzzer ###"
-if ! ./xplist_fuzzer xplist-input -dict=xplist.dict -runs=10000; then
+if ! ./xplist_fuzzer xplist-input -dict=xplist.dict -max_len=65536 -runs=10000; then
 	cd ${CURDIR}
 	exit 1
 fi
 
 echo "### TESTING bplist_fuzzer ###"
-if ! ./bplist_fuzzer bplist-input -dict=bplist.dict -runs=10000; then
+if ! ./bplist_fuzzer bplist-input -dict=bplist.dict -max_len=4096 -runs=10000; then
 	cd ${CURDIR}
 	exit 1
 fi
