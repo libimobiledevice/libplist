@@ -988,23 +988,23 @@ static void write_uint(bytearray_t * bplist, uint64_t val)
 static void write_real(bytearray_t * bplist, double val)
 {
     int size = get_real_bytes(val);	//cheat to know used space
-    uint8_t buff[9];
-    buff[0] = BPLIST_REAL | Log2(size);
+    uint8_t buff[16];
+    buff[7] = BPLIST_REAL | Log2(size);
     if (size == sizeof(float)) {
         float floatval = (float)val;
-        *(uint32_t*)(buff+1) = float_bswap32(*(uint32_t*)&floatval);
+        *(uint32_t*)(buff+8) = float_bswap32(*(uint32_t*)&floatval);
     } else {
-        *(uint64_t*)(buff+1) = float_bswap64(*(uint64_t*)&val);
+        *(uint64_t*)(buff+8) = float_bswap64(*(uint64_t*)&val);
     }
-    byte_array_append(bplist, buff, size+1);
+    byte_array_append(bplist, buff+7, size+1);
 }
 
 static void write_date(bytearray_t * bplist, double val)
 {
-    uint8_t buff[9];
-    buff[0] = BPLIST_DATE | 3;
-    *(uint64_t*)(buff+1) = float_bswap64(*(uint64_t*)&val);
-    byte_array_append(bplist, buff, sizeof(buff));
+    uint8_t buff[16];
+    buff[7] = BPLIST_DATE | 3;
+    *(uint64_t*)(buff+8) = float_bswap64(*(uint64_t*)&val);
+    byte_array_append(bplist, buff+7, 9);
 }
 
 static void write_raw_data(bytearray_t * bplist, uint8_t mark, uint8_t * val, uint64_t size)
