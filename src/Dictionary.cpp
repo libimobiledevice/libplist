@@ -135,7 +135,22 @@ Dictionary::iterator Dictionary::End()
     return _map.end();
 }
 
+Dictionary::const_iterator Dictionary::Begin() const
+{
+    return _map.begin();
+}
+
+Dictionary::const_iterator Dictionary::End() const
+{
+    return _map.end();
+}
+
 Dictionary::iterator Dictionary::Find(const std::string& key)
+{
+    return _map.find(key);
+}
+
+Dictionary::const_iterator Dictionary::Find(const std::string& key) const
 {
     return _map.find(key);
 }
