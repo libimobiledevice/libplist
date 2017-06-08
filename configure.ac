@@ -162,15 +162,26 @@ case "$GLOBAL_CFLAGS" in
         AC_DEFINE([HAVE_FVISIBILITY], [1], [Define if compiled with -fvisibility=hidden])
 esac
 
+AC_ARG_WITH([sanitizers],
+            [AS_HELP_STRING([--with-sanitizers],
+            [build libplist with sanitizers (default is no)])],
+            [build_sanitizers=${withval}],
+            [])
+
 AC_ARG_WITH([fuzzers],
             [AS_HELP_STRING([--with-fuzzers],
-            [build fuzzers and libplist with sanitizers (default is no)])],
-            [build_fuzzers=true],
-            [build_fuzzers=false])
-if test "x$build_fuzzers" = "xtrue"; then
-    if test "$CXX" != "clang++"; then
-        AC_MSG_WARN([building fuzzers requires clang/clang++ (continuing anyway)])
+            [build fuzzers (implies --with-sanitizers, default is no)])],
+            [build_fuzzers=${withval}],
+            [build_fuzzers=no])
+
+if test "x$build_fuzzers" = "xyes"; then
+    if test "x$build_sanitizers" = "xno"; then
+        AC_MSG_ERROR([--with-fuzzers implies --with-sanitizers, but --without-sanitizers was given. This does not work.])
     fi
+    build_sanitizers=yes
+fi
+
+if test "x$build_sanitizers" = "xyes"; then
     AS_COMPILER_FLAG([-fsanitize=address], [
         SANITIZER_FLAGS+=" -fsanitize=address"
         ASAN_AVAILABLE=yes
@@ -207,6 +218,7 @@ if test "x$build_fuzzers" = "xtrue"; then
     done
     if test -n "$SAN_COV_FLAGS"; then
         SANITIZER_FLAGS+=" -fsanitize-coverage=$SAN_COV_FLAGS"
+        SANITIZERS+="+coverage "
     else
         AC_MSG_WARN([No sanitizer coverage supported by compiler])
     fi
@@ -224,16 +236,29 @@ if test "x$build_fuzzers" = "xtrue"; then
         CFLAGS+=" -g"
     ])
 
-    CFLAGS+=" -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
-    CFLAGS+=" $SANITIZER_FLAGS"
-    CXXFLAGS="$CFLAGS -std=c++11"
-    EXTRA_CONF+="  Build fuzzers ...........: yes
-"
     EXTRA_CONF+="  Enabled sanitizers ......: $SANITIZERS
 "
+
+    CFLAGS+=" $SANITIZER_FLAGS"
+    CXXFLAGS="$CFLAGS -std=c++11"
+fi
+
+if test "x$build_fuzzers" = "xyes"; then
+    if test "$CXX" != "clang++"; then
+        AC_MSG_WARN([building fuzzers requires clang/clang++ (continuing anyway)])
+    fi
+
+    CFLAGS+=" -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
+
+    EXTRA_CONF+="  Build fuzzers ...........: yes
+"
+fi
+
+AM_CONDITIONAL([BUILD_FUZZERS],[test "x$build_fuzzers" = "xyes"])
+
+if test "x$build_fuzzers" = "xyes" || test "x$build_sanitizers" = "xyes"; then
     AS_COMPILER_FLAGS(TEST_CFLAGS, [$CFLAGS])
 fi
-AM_CONDITIONAL([BUILD_FUZZERS],[test "x$build_fuzzers" = "xtrue"])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
