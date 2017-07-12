@@ -312,11 +312,20 @@ static plist_t parse_real_node(const char **bnode, uint8_t size)
     switch (size)
     {
     case sizeof(uint32_t):
-        *(uint32_t*)buf = float_bswap32(get_unaligned((uint32_t*)*bnode));
+		
+#ifdef _MSC_VER
+		*(uint32_t*)buf = float_bswap32(get_unaligned_32((uint32_t*)*bnode));
+#else
+		*(uint32_t*)buf = float_bswap32(get_unaligned((uint32_t*)*bnode));
+#endif
         data->realval = *(float *) buf;
         break;
     case sizeof(uint64_t):
-        *(uint64_t*)buf = float_bswap64(get_unaligned((uint64_t*)*bnode));
+#ifdef _MSC_VER
+        *(uint64_t*)buf = float_bswap64(get_unaligned_64((uint64_t*)*bnode));
+#else
+		*(uint64_t*)buf = float_bswap64(get_unaligned((uint64_t*)*bnode));
+#endif
         data->realval = *(double *) buf;
         break;
     default:
@@ -437,7 +446,11 @@ static plist_t parse_unicode_node(const char **bnode, uint64_t size)
         return NULL;
     }
     for (i = 0; i < size; i++)
+#ifdef _MSC_VER
+		unicodestr[i] = be16toh(get_unaligned_16((uint16_t*)(*bnode + (i << 1))));
+#else
         unicodestr[i] = be16toh(get_unaligned((uint16_t*)(*bnode+(i<<1))));
+#endif
 
     tmpstr = plist_utf16_to_utf8(unicodestr, size, &items_read, &items_written);
     free(unicodestr);
