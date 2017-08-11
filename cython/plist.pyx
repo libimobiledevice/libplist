@@ -116,7 +116,7 @@ cdef class Node:
         plist_to_bin(self._c_node, &out, &length)
 
         try:
-            return _from_string_and_size(out, length)
+            return bytes(out[:length])
         finally:
             if out != NULL:
                 libc.stdlib.free(out)
