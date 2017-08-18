@@ -213,7 +213,8 @@ uint64_t UINT_TO_HOST(void* x, uint8_t n)
 #if (defined(__LITTLE_ENDIAN__) \
      && !defined(__FLOAT_WORD_ORDER__)) \
  || (defined(__FLOAT_WORD_ORDER__) \
-     && __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+     && __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__) \
+ || (defined(_MSC_VER) && (REG_DWORD == REG_DWORD_LITTLE_ENDIAN))
 #define float_bswap64(x) bswap64(x)
 #define float_bswap32(x) bswap32(x)
 #else
