@@ -3,7 +3,6 @@ install:
 
 before_build:
   - vcpkg install libiconv
-  - nuget restore
 
 build_script:
   - msbuild libplist.sln /p:Configuration=Debug /p:Platform=Win32 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
