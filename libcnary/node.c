@@ -142,6 +142,7 @@ void node_debug(node_t* node) {
 		for(current = iter->begin; current != NULL; current = iter->next(iter)) {
 			node_debug(current);
 		}
+		node_iterator_destroy(iter);
 	}
 
 }
