@@ -1230,7 +1230,7 @@ static void node_from_xml(parse_ctx ctx, plist_t *plist)
                         break;
                     default:
                         /* should not happen */
-                        PLIST_XML_ERR("parent is not a structered node\n");
+                        PLIST_XML_ERR("parent is not a structured node\n");
                         ctx->err++;
                         goto err_out;
                     }
