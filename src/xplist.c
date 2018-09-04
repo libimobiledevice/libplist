@@ -353,6 +353,9 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         str_buf_append(*outbuf, "\n", 1);
 
     if (isStruct) {
+        if (node_data->type == PLIST_DICT) {
+            assert((node->children->count % 2) == 0);
+        }
         node_iterator_t *ni = node_iterator_create(node->children);
         node_t *ch;
         while ((ch = node_iterator_next(ni))) {
