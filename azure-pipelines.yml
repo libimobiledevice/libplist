@@ -1,6 +1,7 @@
 jobs:
 - job: windows
   strategy:
+    maxParallel: 2
     matrix:
       x64:
         BUILD_ARCH: x64
@@ -42,6 +43,19 @@ jobs:
     inputs:
       testResultsFormat: 'NUnit'
       testResultsFiles: 'TestResults.xml'
+  - script: |
+      mkdir %BUILD_ARTIFACTSTAGINGDIRECTORY%\libplist\%RID%\bin\
+      mkdir %BUILD_ARTIFACTSTAGINGDIRECTORY%\libplist\%RID%\licenses\
+      copy %PLATFORM%\Release\plist.dll %BUILD_ARTIFACTSTAGINGDIRECTORY%\libplist\%RID%\bin\
+      copy %PLATFORM%\Release\*.exe %BUILD_ARTIFACTSTAGINGDIRECTORY%\libplist\%RID%\bin\
+      copy COPYING.LESSER %BUILD_ARTIFACTSTAGINGDIRECTORY%\libplist\%RID%\licenses\libplist.copyright
+    displayName: 'Install'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/libplist/' 
+      artifactName: 'libplist'
+      publishLocation: 'Container'
+    displayName: Publish
 
 - job: macos
   pool:
@@ -54,7 +68,7 @@ jobs:
       brew install autoconf automake libtool pkg-config
     displayName: Install autotools
   - script: |
-      ./autogen.sh --prefix=$BUILD_ARTIFACTSTAGINGDIRECTORY/$RID --host=$TARGET --without-cython --enable-static=yes --enable-shared=no
+      ./autogen.sh --prefix=$BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/$RID --host=$TARGET --without-cython --enable-static=no --enable-shared=yes
       make
     displayName: Build
   - script: |
@@ -62,10 +76,16 @@ jobs:
     displayName: test
   - script: |
       make install
+
+      export INSTALLDIR=$SYSTEM_ARTIFACTSDIRECTORY/libplist/$RID
+      ./build/patchdylib.sh
+
+      echo $BUILD_REPOSITORY_URI\n >> $BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/$RID/gitinfo
+      echo $BUILD_SOURCEVERSION >> $BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/$RID/gitinfo
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
-      artifactName: 'drop' 
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/libplist' 
+      artifactName: 'libplist' 
       publishLocation: 'Container'
     displayName: Publish
 
@@ -73,6 +93,7 @@ jobs:
   variables:
     TARGET: x86_64-unknown-linux-gnu
     RID: ubuntu.16.04-x64
+    CFLAGS: -fPIC
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
@@ -104,7 +125,7 @@ jobs:
     displayName: Build source tarball
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
-      artifactName: 'drop' 
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/libplist' 
+      artifactName: 'libplist' 
       publishLocation: 'Container'
     displayName: Publish
