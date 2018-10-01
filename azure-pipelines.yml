@@ -1,0 +1,110 @@
+jobs:
+- job: windows
+  strategy:
+    matrix:
+      x64:
+        BUILD_ARCH: x64
+        PLATFORM: x64
+        RID: win7-x64
+      x86:
+        BUILD_ARCH: x86
+        PLATFORM: Win32
+        RID: win7-x86
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      git clone https://github.com/microsoft/vcpkg
+      vcpkg\bootstrap-vcpkg.bat
+    displayName: Install vcpkg
+  - script: |
+      vcpkg\vcpkg version
+      vcpkg\vcpkg integrate install
+      set VCPKG_BUILD_TYPE=release
+      vcpkg\vcpkg install libiconv:%BUILD_ARCH%-windows
+    displayName: Install libiconv
+  - task: MSBuild@1
+    inputs:
+      solution: 'libplist.sln' 
+      platform: $(PLATFORM)
+      configuration: Release
+    displayName: 'Release build'
+  - task: MSBuild@1
+    inputs:
+      solution: 'libplist.sln' 
+      platform: $(PLATFORM)
+      configuration: Debug
+    displayName: 'Debug build'
+  - powershell: |
+      Invoke-Pester -Path ".\test" -OutputFormat NUnitXml -OutputFile TestResults.xml -PassThru
+    displayName: Test
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'NUnit'
+      testResultsFiles: 'TestResults.xml'
+
+- job: macos
+  pool:
+    vmImage: 'xcode9-macos10.13'
+  variables:
+    TARGET: x86_64-apple-darwin
+    RID: osx-x64
+  steps:
+  - script: |
+      brew install autoconf automake libtool pkg-config
+    displayName: Install autotools
+  - script: |
+      ./autogen.sh --prefix=$BUILD_ARTIFACTSTAGINGDIRECTORY/$RID --host=$TARGET --without-cython --enable-static=yes --enable-shared=no
+      make
+    displayName: Build
+  - script: |
+      make check
+    displayName: test
+  - script: |
+      make install
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+      artifactName: 'drop' 
+      publishLocation: 'Container'
+    displayName: Publish
+
+- job: linux
+  variables:
+    TARGET: x86_64-unknown-linux-gnu
+    RID: ubuntu.16.04-x64
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: |
+      lsb_release -a
+      sudo apt-get remove -y libssl1.1 ant
+      sudo apt-get install -y software-properties-common
+      sudo add-apt-repository --remove -y ppa:ondrej/php
+      sudo apt-get update
+    displayName: Check Ubuntu version, remove non-standard libssl1.1
+  - script: |
+      ./autogen.sh --prefix=$BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/$RID --host=$TARGET --without-cython --enable-static=no --enable-shared=yes
+      make
+    displayName: Build
+  - script: |
+      make check
+    displayName: test
+  - script: |
+      make install
+
+      export INSTALLDIR=$SYSTEM_ARTIFACTSDIRECTORY/libplist/$RID
+      ./build/install-patchelf.sh
+      ./build/run-patchelf.sh
+
+      echo $BUILD_REPOSITORY_URI\n >> $BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/$RID/gitinfo
+      echo $BUILD_SOURCEVERSION >> $BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/$RID/gitinfo
+  - script: |
+      git archive --format tar.gz -o $BUILD_ARTIFACTSTAGINGDIRECTORY/libplist/libplist.orig.tar.gz $BUILD_SOURCEVERSION
+    displayName: Build source tarball
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+      artifactName: 'drop' 
+      publishLocation: 'Container'
+    displayName: Publish
