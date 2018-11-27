@@ -877,7 +877,6 @@ static unsigned int plist_data_hash(const void* key)
 {
     plist_data_t data = plist_get_data((plist_t) key);
 
-	unsigned int seed = 131;
     unsigned int hash = data->type;
     unsigned int i = 0;
 
