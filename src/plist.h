@@ -58,7 +58,7 @@ struct plist_data_s
         uint8_t *buff;
         void *hashtable;
     };
-    uint64_t length;
+    uint32_t length;
     plist_type type;
 };
 

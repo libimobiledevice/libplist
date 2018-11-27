@@ -58,10 +58,10 @@ node_t* node_create(node_t* parent, void* data) {
 	node->next = NULL;
 	node->prev = NULL;
 	node->count = 0;
-	node->isLeaf = TRUE;
-	node->isRoot = TRUE;
+//	node->isLeaf = TRUE;
+//	node->isRoot = TRUE;
 	node->parent = NULL;
-	node->children = node_list_create();
+	node->children = NULL/*node_list_create()*/;
 
 	// Pass NULL to create a root node
 	if(parent != NULL) {
@@ -80,12 +80,15 @@ node_t* node_create(node_t* parent, void* data) {
 
 int node_attach(node_t* parent, node_t* child) {
 	if (!parent || !child) return -1;
-	child->isLeaf = TRUE;
-	child->isRoot = FALSE;
+//	child->isLeaf = TRUE;
+//	child->isRoot = FALSE;
 	child->parent = parent;
 	child->depth = parent->depth + 1;
-	if(parent->isLeaf == TRUE) {
-		parent->isLeaf = FALSE;
+//	if(parent->isLeaf == TRUE) {
+//		parent->isLeaf = FALSE;
+//	}
+	if(!parent->children){
+		parent->children = node_list_create();
 	}
 	int res = node_list_add(parent->children, child);
 	if (res == 0) {
@@ -106,12 +109,15 @@ int node_detach(node_t* parent, node_t* child) {
 int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 {
 	if (!parent || !child) return -1;
-	child->isLeaf = TRUE;
-	child->isRoot = FALSE;
+//	child->isLeaf = TRUE;
+//	child->isRoot = FALSE;
 	child->parent = parent;
 	child->depth = parent->depth + 1;
-	if(parent->isLeaf == TRUE) {
-		parent->isLeaf = FALSE;
+//	if(parent->isLeaf == TRUE) {
+//		parent->isLeaf = FALSE;
+//	}
+	if(!parent->children){
+		parent->children = node_list_create();
 	}
 	int res = node_list_insert(parent->children, node_index, child);
 	if (res == 0) {
@@ -127,15 +133,15 @@ void node_debug(node_t* node) {
 	for(i = 0; i < node->depth; i++) {
 		printf("\t");
 	}
-	if(node->isRoot) {
+	if(!node->parent/*node->isRoot*/) {
 		printf("ROOT\n");
 	}
 
-	if(node->isLeaf && !node->isRoot) {
+	if(node->children/*node->isLeaf */&& node->parent/*!node->isRoot*/) {
 		printf("LEAF\n");
 
 	} else {
-		if(!node->isRoot) {
+		if(node->parent/*!node->isRoot*/) {
 			printf("NODE\n");
 		}
 		iter = node_iterator_create(node->children);

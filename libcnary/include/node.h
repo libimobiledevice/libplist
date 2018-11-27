@@ -38,8 +38,8 @@ typedef struct node_t {
 	unsigned int count;
 
 	// Local Properties
-	int isRoot;
-	int isLeaf;
+	//int isRoot;
+	//int isLeaf;
 
 	// Local Members
 	void *data;
@@ -48,8 +48,8 @@ typedef struct node_t {
 	struct node_list_t* children;
 
 	// Virtual Functions
-	int(*attach)(struct node_t* parent, struct node_t* child);
-	int(*detach)(struct node_t* parent, struct node_t* child);
+	//int(*attach)(struct node_t* parent, struct node_t* child);
+	//int(*detach)(struct node_t* parent, struct node_t* child);
 
 } node_t;
 
