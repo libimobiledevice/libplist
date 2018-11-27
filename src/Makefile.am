@@ -1,15 +1,17 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir) -I$(top_srcdir)/libcnary/include
 
-AM_CFLAGS = $(GLOBAL_CFLAGS) $(libxml2_CFLAGS)
-AM_LDFLAGS = $(libxml2_LIBS)
+AM_CFLAGS = $(GLOBAL_CFLAGS)
+AM_LDFLAGS = $(GLOBAL_LDFLAGS)
 
 lib_LTLIBRARIES = libplist.la libplist++.la
 libplist_la_LIBADD = $(top_builddir)/libcnary/libcnary.la
 libplist_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(LIBPLIST_SO_VERSION) -no-undefined
 libplist_la_SOURCES = base64.c base64.h \
 		      bytearray.c bytearray.h \
+		      strbuf.h \
 		      hashtable.c hashtable.h \
 		      ptrarray.c ptrarray.h \
+		      time64.c time64.h time64_limits.h \
 		      xplist.c \
 		      bplist.c \
 		      plist.c plist.h
@@ -42,8 +44,8 @@ libplist___la_SOURCES = Node.cpp \
 		      $(top_srcdir)/include/plist/Uid.h
 
 if WIN32
-libplist_la_LDFLAGS += -avoid-version
-libplist___la_LDFLAGS += -avoid-version
+libplist_la_LDFLAGS += -avoid-version -static-libgcc
+libplist___la_LDFLAGS += -avoid-version -static-libgcc
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig

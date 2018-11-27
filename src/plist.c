@@ -2,8 +2,8 @@
  * plist.c
  * Builds plist XML structures
  *
+ * Copyright (c) 2009-2016 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2010-2015 Martin Szulecki All Rights Reserved.
- * Copyright (c) 2009-2014 Nikias Bassen All Rights Reserved.
  * Copyright (c) 2008 Zach C. All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -27,9 +27,113 @@
 #include "plist.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
 
 #include <node.h>
 #include <node_iterator.h>
+#include <hashtable.h>
+
+extern void plist_xml_init(void);
+extern void plist_xml_deinit(void);
+extern void plist_bin_init(void);
+extern void plist_bin_deinit(void);
+
+static void internal_plist_init(void)
+{
+    plist_bin_init();
+    plist_xml_init();
+}
+
+static void internal_plist_deinit(void)
+{
+    plist_bin_deinit();
+    plist_xml_deinit();
+}
+
+#ifdef WIN32
+
+typedef volatile struct {
+    LONG lock;
+    int state;
+} thread_once_t;
+
+static thread_once_t init_once = {0, 0};
+static thread_once_t deinit_once = {0, 0};
+
+void thread_once(thread_once_t *once_control, void (*init_routine)(void))
+{
+    while (InterlockedExchange(&(once_control->lock), 1) != 0) {
+        Sleep(1);
+    }
+    if (!once_control->state) {
+        once_control->state = 1;
+        init_routine();
+    }
+    InterlockedExchange(&(once_control->lock), 0);
+}
+
+BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, LPVOID lpReserved)
+{
+    switch (dwReason) {
+    case DLL_PROCESS_ATTACH:
+        thread_once(&init_once, internal_plist_init);
+        break;
+    case DLL_PROCESS_DETACH:
+        thread_once(&deinit_once, internal_plist_deinit);
+        break;
+    default:
+        break;
+    }
+    return 1;
+}
+
+#else
+
+static pthread_once_t init_once = PTHREAD_ONCE_INIT;
+static pthread_once_t deinit_once = PTHREAD_ONCE_INIT;
+
+static void __attribute__((constructor)) libplist_initialize(void)
+{
+    pthread_once(&init_once, internal_plist_init);
+}
+
+static void __attribute__((destructor)) libplist_deinitialize(void)
+{
+    pthread_once(&deinit_once, internal_plist_deinit);
+}
+
+#endif
+
+
+PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
+{
+    if (length < 8) {
+        return 0;
+    }
+
+    return (memcmp(plist_data, "bplist00", 8) == 0);
+}
+
+
+PLIST_API void plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist)
+{
+    if (length < 8) {
+        *plist = NULL;
+        return;
+    }
+
+    if (plist_is_binary(plist_data, length)) {
+        plist_from_bin(plist_data, length, plist);
+    } else {
+        plist_from_xml(plist_data, length, plist);
+    }
+}
 
 plist_t plist_new_node(plist_data_t data)
 {
@@ -49,7 +153,32 @@ plist_data_t plist_new_plist_data(void)
     return data;
 }
 
-static void plist_free_data(plist_data_t data)
+static unsigned int dict_key_hash(const void *data)
+{
+    plist_data_t keydata = (plist_data_t)data;
+    unsigned int hash = 5381;
+    size_t i;
+    char *str = keydata->strval;
+    for (i = 0; i < keydata->length; str++, i++) {
+        hash = ((hash << 5) + hash) + *str;
+    }
+    return hash;
+}
+
+static int dict_key_compare(const void* a, const void* b)
+{
+    plist_data_t data_a = (plist_data_t)a;
+    plist_data_t data_b = (plist_data_t)b;
+    if (data_a->strval == NULL || data_b->strval == NULL) {
+        return FALSE;
+    }
+    if (data_a->length != data_b->length) {
+        return FALSE;
+    }
+    return (strcmp(data_a->strval, data_b->strval) == 0) ? TRUE : FALSE;
+}
+
+void plist_free_data(plist_data_t data)
 {
     if (data)
     {
@@ -61,6 +190,9 @@ static void plist_free_data(plist_data_t data)
             break;
         case PLIST_DATA:
             free(data->buff);
+            break;
+        case PLIST_DICT:
+            hash_table_destroy(data->hashtable);
             break;
         default:
             break;
@@ -172,9 +304,8 @@ PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec)
 {
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_DATE;
-    data->timeval.tv_sec = sec;
-    data->timeval.tv_usec = usec;
-    data->length = sizeof(struct timeval);
+    data->realval = (double)sec + (double)usec / 1000000;
+    data->length = sizeof(double);
     return plist_new_node(data);
 }
 
@@ -198,10 +329,7 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
     memcpy(newdata, data, sizeof(struct plist_data_s));
 
     node_type = plist_get_node_type(node);
-    if (node_type == PLIST_DATA || node_type == PLIST_STRING || node_type == PLIST_KEY)
-    {
-        switch (node_type)
-        {
+    switch (node_type) {
         case PLIST_DATA:
             newdata->buff = (uint8_t *) malloc(data->length);
             memcpy(newdata->buff, data->buff, data->length);
@@ -210,9 +338,22 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
         case PLIST_STRING:
             newdata->strval = strdup((char *) data->strval);
             break;
+        case PLIST_DICT:
+            if (data->hashtable) {
+                hashtable_t* ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
+                assert(ht);
+                plist_t current = NULL;
+                for (current = (plist_t)node_first_child(node);
+                     ht && current;
+                     current = (plist_t)node_next_sibling(node_next_sibling(current)))
+                {
+                    hash_table_insert(ht, ((node_t*)current)->data, node_next_sibling(current));
+                }
+                newdata->hashtable = ht;
+            }
+            break;
         default:
             break;
-        }
     }
     newnode = plist_new_node(newdata);
 
@@ -385,20 +526,27 @@ PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key)
 
     if (node && PLIST_DICT == plist_get_node_type(node))
     {
-
-        plist_t current = NULL;
-        for (current = (plist_t)node_first_child(node);
+        plist_data_t data = plist_get_data(node);
+        hashtable_t *ht = (hashtable_t*)data->hashtable;
+        if (ht) {
+            struct plist_data_s sdata;
+            sdata.strval = (char*)key;
+            sdata.length = strlen(key);
+            ret = (plist_t)hash_table_lookup(ht, &sdata);
+        } else {
+            plist_t current = NULL;
+            for (current = (plist_t)node_first_child(node);
                 current;
                 current = (plist_t)node_next_sibling(node_next_sibling(current)))
-        {
-
-            plist_data_t data = plist_get_data(current);
-            assert( PLIST_KEY == plist_get_node_type(current) );
-
-            if (data && !strcmp(key, data->strval))
             {
-                ret = (plist_t)node_next_sibling(current);
-                break;
+                data = plist_get_data(current);
+                assert( PLIST_KEY == plist_get_node_type(current) );
+
+                if (data && !strcmp(key, data->strval))
+                {
+                    ret = (plist_t)node_next_sibling(current);
+                    break;
+                }
             }
         }
     }
@@ -409,6 +557,7 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
     if (node && PLIST_DICT == plist_get_node_type(node)) {
         node_t* old_item = plist_dict_get_item(node, key);
+        plist_t key_node = NULL;
         if (old_item) {
             int idx = plist_free_node(old_item);
             if (idx < 0) {
@@ -416,9 +565,31 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
             } else {
                 node_insert(node, idx, item);
             }
+            key_node = node_prev_sibling(item);
         } else {
-            node_attach(node, plist_new_key(key));
+            key_node = plist_new_key(key);
+            node_attach(node, key_node);
             node_attach(node, item);
+        }
+
+        hashtable_t *ht = ((plist_data_t)((node_t*)node)->data)->hashtable;
+        if (ht) {
+            /* store pointer to item in hash table */
+            hash_table_insert(ht, (plist_data_t)((node_t*)key_node)->data, item);
+        } else {
+            if (((node_t*)node)->count > 500) {
+                /* make new hash table */
+                ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
+                /* calculate the hashes for all entries we have so far */
+                plist_t current = NULL;
+                for (current = (plist_t)node_first_child(node);
+                     ht && current;
+                     current = (plist_t)node_next_sibling(node_next_sibling(current)))
+                {
+                    hash_table_insert(ht, ((node_t*)current)->data, node_next_sibling(current));
+                }
+                ((plist_data_t)((node_t*)node)->data)->hashtable = ht;
+            }
         }
     }
     return;
@@ -437,6 +608,10 @@ PLIST_API void plist_dict_remove_item(plist_t node, const char* key)
         if (old_item)
         {
             plist_t key_node = node_prev_sibling(old_item);
+            hashtable_t* ht = ((plist_data_t)((node_t*)node)->data)->hashtable;
+            if (ht) {
+                hash_table_remove(ht, ((node_t*)key_node)->data);
+            }
             plist_free(key_node);
             plist_free(old_item);
         }
@@ -525,6 +700,7 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
         *((uint64_t *) value) = data->intval;
         break;
     case PLIST_REAL:
+    case PLIST_DATE:
         *((double *) value) = data->realval;
         break;
     case PLIST_KEY:
@@ -534,11 +710,6 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
     case PLIST_DATA:
         *((uint8_t **) value) = (uint8_t *) malloc(*length * sizeof(uint8_t));
         memcpy(*((uint8_t **) value), data->buff, *length * sizeof(uint8_t));
-        break;
-    case PLIST_DATE:
-        //exception : here we use memory on the stack since it is just a temporary buffer
-        ((struct timeval*) value)->tv_sec = data->timeval.tv_sec;
-        ((struct timeval*) value)->tv_usec = data->timeval.tv_usec;
         break;
     case PLIST_ARRAY:
     case PLIST_DICT:
@@ -596,7 +767,7 @@ PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val)
     uint64_t length = 0;
     if (PLIST_UINT == type)
         plist_get_type_and_value(node, &type, (void *) val, &length);
-    assert(length == sizeof(uint64_t));
+    assert(length == sizeof(uint64_t) || length == 16);
 }
 
 PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val)
@@ -628,12 +799,12 @@ PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
 {
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    struct timeval val = { 0, 0 };
+    double val = 0;
     if (PLIST_DATE == type)
         plist_get_type_and_value(node, &type, (void *) &val, &length);
-    assert(length == sizeof(struct timeval));
-    *sec = val.tv_sec;
-    *usec = val.tv_usec;
+    assert(length == sizeof(double));
+    *sec = (int32_t)val;
+    *usec = (int32_t)fabs((val - (int64_t)val) * 1000000);
 }
 
 int plist_data_compare(const void *a, const void *b)
@@ -658,7 +829,10 @@ int plist_data_compare(const void *a, const void *b)
     case PLIST_BOOLEAN:
     case PLIST_UINT:
     case PLIST_REAL:
+    case PLIST_DATE:
     case PLIST_UID:
+        if (val_a->length != val_b->length)
+            return FALSE;
         if (val_a->intval == val_b->intval)	//it is an union so this is sufficient
             return TRUE;
         else
@@ -686,11 +860,6 @@ int plist_data_compare(const void *a, const void *b)
         else
             return FALSE;
         break;
-    case PLIST_DATE:
-        if (!memcmp(&(val_a->timeval), &(val_b->timeval), sizeof(struct timeval)))
-            return TRUE;
-        else
-            return FALSE;
     default:
         break;
     }
@@ -738,6 +907,7 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
         data->intval = *((uint64_t *) value);
         break;
     case PLIST_REAL:
+    case PLIST_DATE:
         data->realval = *((double *) value);
         break;
     case PLIST_KEY:
@@ -747,10 +917,6 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     case PLIST_DATA:
         data->buff = (uint8_t *) malloc(length);
         memcpy(data->buff, value, length);
-        break;
-    case PLIST_DATE:
-        data->timeval.tv_sec = ((struct timeval*) value)->tv_sec;
-        data->timeval.tv_usec = ((struct timeval*) value)->tv_usec;
         break;
     case PLIST_ARRAY:
     case PLIST_DICT:
@@ -796,7 +962,7 @@ PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length
 
 PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 {
-    struct timeval val = { sec, usec };
+    double val = (double)sec + (double)usec / 1000000;
     plist_set_element_val(node, PLIST_DATE, &val, sizeof(struct timeval));
 }
 

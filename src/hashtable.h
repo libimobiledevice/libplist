@@ -2,7 +2,7 @@
  * hashtable.h
  * header file for really simple hash table implementation
  *
- * Copyright (c) 2011 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2011-2016 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,18 +30,21 @@ typedef struct hashentry_t {
 
 typedef unsigned int(*hash_func_t)(const void* key);
 typedef int (*compare_func_t)(const void *a, const void *b);
+typedef void (*free_func_t)(void *ptr);
 
 typedef struct hashtable_t {
 	hashentry_t *entries[4096];
 	size_t count;
 	hash_func_t hash_func;
 	compare_func_t compare_func;
+	free_func_t free_func;
 } hashtable_t;
 
-hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func);
+hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func, free_func_t free_func);
 void hash_table_destroy(hashtable_t *ht);
 
 void hash_table_insert(hashtable_t* ht, void *key, void *value);
 void* hash_table_lookup(hashtable_t* ht, void *key);
+void hash_table_remove(hashtable_t* ht, void *key);
 
 #endif

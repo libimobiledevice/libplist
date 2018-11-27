@@ -22,7 +22,7 @@
 #define BASE64_H
 #include <stdlib.h>
 
-char *base64encode(const unsigned char *buf, size_t *size);
+size_t base64encode(char *outbuf, const unsigned char *buf, size_t size);
 unsigned char *base64decode(const char *buf, size_t *size);
 
 #endif

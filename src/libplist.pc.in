@@ -8,4 +8,3 @@ Description: A library to handle Apple Property Lists whereas they are binary or
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lplist
 Cflags: -I${includedir}
-Requires.private: libxml-2.0 >= @LIBXML2_VERSION@
