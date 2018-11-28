@@ -54,14 +54,11 @@ node_t* node_create(node_t* parent, void* data) {
 	memset(node, '\0', sizeof(node_t));
 
 	node->data = data;
-	node->depth = 0;
 	node->next = NULL;
 	node->prev = NULL;
 	node->count = 0;
-	node->isLeaf = TRUE;
-	node->isRoot = TRUE;
 	node->parent = NULL;
-	node->children = node_list_create();
+	node->children = NULL;
 
 	// Pass NULL to create a root node
 	if(parent != NULL) {
@@ -80,12 +77,9 @@ node_t* node_create(node_t* parent, void* data) {
 
 int node_attach(node_t* parent, node_t* child) {
 	if (!parent || !child) return -1;
-	child->isLeaf = TRUE;
-	child->isRoot = FALSE;
 	child->parent = parent;
-	child->depth = parent->depth + 1;
-	if(parent->isLeaf == TRUE) {
-		parent->isLeaf = FALSE;
+	if(!parent->children) {
+		parent->children = node_list_create();
 	}
 	int res = node_list_add(parent->children, child);
 	if (res == 0) {
@@ -106,12 +100,9 @@ int node_detach(node_t* parent, node_t* child) {
 int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 {
 	if (!parent || !child) return -1;
-	child->isLeaf = TRUE;
-	child->isRoot = FALSE;
 	child->parent = parent;
-	child->depth = parent->depth + 1;
-	if(parent->isLeaf == TRUE) {
-		parent->isLeaf = FALSE;
+	if(!parent->children) {
+		parent->children = node_list_create();
 	}
 	int res = node_list_insert(parent->children, node_index, child);
 	if (res == 0) {
@@ -120,31 +111,35 @@ int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 	return res;
 }
 
-void node_debug(node_t* node) {
+static void _node_debug(node_t* node, unsigned int depth) {
 	unsigned int i = 0;
 	node_t* current = NULL;
 	node_iterator_t* iter = NULL;
-	for(i = 0; i < node->depth; i++) {
+	for(i = 0; i < depth; i++) {
 		printf("\t");
 	}
-	if(node->isRoot) {
+	if(!node->parent) {
 		printf("ROOT\n");
 	}
 
-	if(node->isLeaf && !node->isRoot) {
+	if(!node->children && node->parent) {
 		printf("LEAF\n");
-
 	} else {
-		if(!node->isRoot) {
+		if(node->parent) {
 			printf("NODE\n");
 		}
 		iter = node_iterator_create(node->children);
-		for(current = iter->begin; current != NULL; current = iter->next(iter)) {
-			node_debug(current);
+		while ((current = iter->next(iter))) {
+			_node_debug(current, depth+1);
 		}
 		node_iterator_destroy(iter);
 	}
 
+}
+
+void node_debug(node_t* node)
+{
+	_node_debug(node, 0);
 }
 
 unsigned int node_n_children(struct node_t* node)
