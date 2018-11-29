@@ -1023,9 +1023,8 @@ static void write_data(bytearray_t * bplist, uint8_t * val, uint64_t size)
     write_raw_data(bplist, BPLIST_DATA, val, size);
 }
 
-static void write_string(bytearray_t * bplist, char *val)
+static void write_string(bytearray_t * bplist, char *val, uint64_t size)
 {
-    uint64_t size = strlen(val);
     write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
 }
 
@@ -1188,7 +1187,6 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     uint64_t *offsets = NULL;
     bplist_trailer_t trailer;
     //for string
-    long len = 0;
     long items_read = 0;
     long items_written = 0;
     uint16_t *unicodestr = NULL;
@@ -1256,14 +1254,13 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
         case PLIST_KEY:
         case PLIST_STRING:
-            len = strlen(data->strval);
-            if ( is_ascii_string(data->strval, len) )
+            if ( is_ascii_string(data->strval, data->length) )
             {
-                write_string(bplist_buff, data->strval);
+                write_string(bplist_buff, data->strval, data->length);
             }
             else
             {
-                unicodestr = plist_utf8_to_utf16(data->strval, len, &items_read, &items_written);
+                unicodestr = plist_utf8_to_utf16(data->strval, data->length, &items_read, &items_written);
                 write_unicode(bplist_buff, unicodestr, items_written);
                 free(unicodestr);
             }
