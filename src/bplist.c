@@ -315,7 +315,7 @@ static plist_t parse_string_node(const char **bnode, uint64_t size)
     return node_create(NULL, data);
 }
 
-static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, long *items_written)
+static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read, long *items_written)
 {
 	if (!unistr || (len <= 0)) return NULL;
 	char *outbuf;
@@ -333,7 +333,8 @@ static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, l
 	}
 
 	while (i < len) {
-		wc = unistr[i++];
+		wc = be16toh(get_unaligned(unistr + i));
+		i++;
 		if (wc >= 0xD800 && wc <= 0xDBFF) {
 			if (!read_lead_surrogate) {
 				read_lead_surrogate = 1;
@@ -380,24 +381,13 @@ static char *plist_utf16_to_utf8(uint16_t *unistr, long len, long *items_read, l
 static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
-    uint64_t i = 0;
-    uint16_t *unicodestr = NULL;
     char *tmpstr = NULL;
     long items_read = 0;
     long items_written = 0;
 
     data->type = PLIST_STRING;
-    unicodestr = (uint16_t*) malloc(sizeof(uint16_t) * size);
-    if (!unicodestr) {
-        plist_free_data(data);
-        PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, sizeof(uint16_t) * size);
-        return NULL;
-    }
-    for (i = 0; i < size; i++)
-        unicodestr[i] = be16toh(get_unaligned((uint16_t*)(*bnode+(i<<1))));
 
-    tmpstr = plist_utf16_to_utf8(unicodestr, size, &items_read, &items_written);
-    free(unicodestr);
+    tmpstr = plist_utf16be_to_utf8((uint16_t*)(*bnode), size, &items_read, &items_written);
     if (!tmpstr) {
         plist_free_data(data);
         return NULL;
@@ -1028,14 +1018,74 @@ static void write_string(bytearray_t * bplist, char *val, uint64_t size)
     write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
 }
 
-static void write_unicode(bytearray_t * bplist, uint16_t * val, uint64_t size)
+static uint16_t *plist_utf8_to_utf16be(char *unistr, long size, long *items_read, long *items_written)
 {
-    uint64_t i = 0;
-    uint16_t *buff = (uint16_t*)malloc(size << 1);
-    for (i = 0; i < size; i++)
-        buff[i] = be16toh(val[i]);
-    write_raw_data(bplist, BPLIST_UNICODE, (uint8_t*)buff, size);
-    free(buff);
+	uint16_t *outbuf;
+	int p = 0;
+	long i = 0;
+
+	unsigned char c0;
+	unsigned char c1;
+	unsigned char c2;
+	unsigned char c3;
+
+	uint32_t w;
+
+	outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
+	if (!outbuf) {
+		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)((size*2)+1)*sizeof(uint16_t));
+		return NULL;
+	}
+
+	while (i < size) {
+		c0 = unistr[i];
+		c1 = (i < size-1) ? unistr[i+1] : 0;
+		c2 = (i < size-2) ? unistr[i+2] : 0;
+		c3 = (i < size-3) ? unistr[i+3] : 0;
+		if ((c0 >= 0xF0) && (i < size-3) && (c1 >= 0x80) && (c2 >= 0x80) && (c3 >= 0x80)) {
+			// 4 byte sequence.  Need to generate UTF-16 surrogate pair
+			w = ((((c0 & 7) << 18) + ((c1 & 0x3F) << 12) + ((c2 & 0x3F) << 6) + (c3 & 0x3F)) & 0x1FFFFF) - 0x010000;
+			outbuf[p++] = be16toh(0xD800 + (w >> 10));
+			outbuf[p++] = be16toh(0xDC00 + (w & 0x3FF));
+			i+=4;
+		} else if ((c0 >= 0xE0) && (i < size-2) && (c1 >= 0x80) && (c2 >= 0x80)) {
+			// 3 byte sequence
+			outbuf[p++] = be16toh(((c2 & 0x3F) + ((c1 & 3) << 6)) + (((c1 >> 2) & 15) << 8) + ((c0 & 15) << 12));
+			i+=3;
+		} else if ((c0 >= 0xC0) && (i < size-1) && (c1 >= 0x80)) {
+			// 2 byte sequence
+			outbuf[p++] = be16toh(((c1 & 0x3F) + ((c0 & 3) << 6)) + (((c0 >> 2) & 7) << 8));
+			i+=2;
+		} else if (c0 < 0x80) {
+			// 1 byte sequence
+			outbuf[p++] = be16toh(c0);
+			i+=1;
+		} else {
+			// invalid character
+			PLIST_BIN_ERR("%s: invalid utf8 sequence in string at index %lu\n", __func__, i);
+			break;
+		}
+	}
+	if (items_read) {
+		*items_read = i;
+	}
+	if (items_written) {
+		*items_written = p;
+	}
+	outbuf[p] = 0;
+
+	return outbuf;
+}
+
+static void write_unicode(bytearray_t * bplist, char *val, uint64_t size)
+{
+    long items_read = 0;
+    long items_written = 0;
+    uint16_t *unicodestr = NULL;
+
+    unicodestr = plist_utf8_to_utf16be(val, size, &items_read, &items_written);
+    write_raw_data(bplist, BPLIST_UNICODE, (uint8_t*)unicodestr, items_written);
+    free(unicodestr);
 }
 
 static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
@@ -1111,66 +1161,6 @@ static int is_ascii_string(char* s, int len)
   return ret;
 }
 
-static uint16_t *plist_utf8_to_utf16(char *unistr, long size, long *items_read, long *items_written)
-{
-	uint16_t *outbuf;
-	int p = 0;
-	long i = 0;
-
-	unsigned char c0;
-	unsigned char c1;
-	unsigned char c2;
-	unsigned char c3;
-
-	uint32_t w;
-
-	outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
-	if (!outbuf) {
-		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)((size*2)+1)*sizeof(uint16_t));
-		return NULL;
-	}
-
-	while (i < size) {
-		c0 = unistr[i];
-		c1 = (i < size-1) ? unistr[i+1] : 0;
-		c2 = (i < size-2) ? unistr[i+2] : 0;
-		c3 = (i < size-3) ? unistr[i+3] : 0;
-		if ((c0 >= 0xF0) && (i < size-3) && (c1 >= 0x80) && (c2 >= 0x80) && (c3 >= 0x80)) {
-			// 4 byte sequence.  Need to generate UTF-16 surrogate pair
-			w = ((((c0 & 7) << 18) + ((c1 & 0x3F) << 12) + ((c2 & 0x3F) << 6) + (c3 & 0x3F)) & 0x1FFFFF) - 0x010000;
-			outbuf[p++] = 0xD800 + (w >> 10);
-			outbuf[p++] = 0xDC00 + (w & 0x3FF);
-			i+=4;
-		} else if ((c0 >= 0xE0) && (i < size-2) && (c1 >= 0x80) && (c2 >= 0x80)) {
-			// 3 byte sequence
-			outbuf[p++] = ((c2 & 0x3F) + ((c1 & 3) << 6)) + (((c1 >> 2) & 15) << 8) + ((c0 & 15) << 12);
-			i+=3;
-		} else if ((c0 >= 0xC0) && (i < size-1) && (c1 >= 0x80)) {
-			// 2 byte sequence
-			outbuf[p++] = ((c1 & 0x3F) + ((c0 & 3) << 6)) + (((c0 >> 2) & 7) << 8);
-			i+=2;
-		} else if (c0 < 0x80) {
-			// 1 byte sequence
-			outbuf[p++] = c0;
-			i+=1;
-		} else {
-			// invalid character
-			PLIST_BIN_ERR("%s: invalid utf8 sequence in string at index %lu\n", __func__, i);
-			break;
-		}
-	}
-	if (items_read) {
-		*items_read = i;
-	}
-	if (items_written) {
-		*items_written = p;
-	}
-	outbuf[p] = 0;
-
-	return outbuf;
-
-}
-
 PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 {
     ptrarray_t* objects = NULL;
@@ -1186,10 +1176,6 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     uint8_t *buff = NULL;
     uint64_t *offsets = NULL;
     bplist_trailer_t trailer;
-    //for string
-    long items_read = 0;
-    long items_written = 0;
-    uint16_t *unicodestr = NULL;
     uint64_t objects_len = 0;
     uint64_t buff_len = 0;
 
@@ -1260,9 +1246,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
             }
             else
             {
-                unicodestr = plist_utf8_to_utf16(data->strval, data->length, &items_read, &items_written);
-                write_unicode(bplist_buff, unicodestr, items_written);
-                free(unicodestr);
+                write_unicode(bplist_buff, data->strval, data->length);
             }
             break;
         case PLIST_DATA:
