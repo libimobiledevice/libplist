@@ -1184,7 +1184,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         return;
 
     //list of objects
-    objects = ptr_array_new(256);
+    objects = ptr_array_new(4096);
     //hashtable to write only once same nodes
     ref_table = hash_table_new(plist_data_hash, plist_data_compare, free);
 
@@ -1201,8 +1201,90 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     root_object = 0;			//root is first in list
     offset_table_index = 0;		//unknown yet
 
+    //figure out the storage size required
+    size_t req = 0;
+    for (i = 0; i < num_objects; i++)
+    {
+        node_t* node = ptr_array_index(objects, i);
+        plist_data_t data = plist_get_data(node);
+        uint64_t size;
+        uint8_t bsize;
+        switch (data->type)
+        {
+        case PLIST_BOOLEAN:
+            req += 1;
+            break;
+        case PLIST_KEY:
+        case PLIST_STRING:
+            req += 1;
+            if (data->length >= 15) {
+                bsize = get_needed_bytes(data->length);
+                if (bsize == 3) bsize = 4;
+                req += 1;
+                req += bsize;
+            }
+            if ( is_ascii_string(data->strval, data->length) )
+            {
+                req += data->length;
+            }
+            else
+            {
+                req += data->length * 2;
+            }
+            break;
+        case PLIST_REAL:
+            size = get_real_bytes(data->realval);
+            req += 1;
+            req += size;
+            break;
+        case PLIST_DATE:
+            req += 9;
+            break;
+        case PLIST_ARRAY:
+            size = node_n_children(node);
+            req += 1;
+            if (size >= 15) {
+                bsize = get_needed_bytes(size);
+                if (bsize == 3) bsize = 4;
+                req += 1;
+                req += bsize;
+            }
+            req += size * ref_size;
+            break;
+        case PLIST_DICT:
+            size = node_n_children(node) / 2;
+            req += 1;
+            if (size >= 15) {
+                bsize = get_needed_bytes(size);
+                if (bsize == 3) bsize = 4;
+                req += 1;
+                req += bsize;
+            }
+            req += size * 2 * ref_size;
+            break;
+        default:
+            size = data->length;
+            req += 1;
+            if (size >= 15) {
+                bsize = get_needed_bytes(size);
+                if (bsize == 3) bsize = 4;
+                req += 1;
+                req += bsize;
+            }
+            req += data->length;
+            break;
+        }
+    }
+    // add size of magic
+    req += BPLIST_MAGIC_SIZE;
+    req += BPLIST_VERSION_SIZE;
+    // add size of offset table
+    req += get_needed_bytes(req) * num_objects;
+    // add size of trailer
+    req += sizeof(bplist_trailer_t);
+
     //setup a dynamic bytes array to store bplist in
-    bplist_buff = byte_array_new();
+    bplist_buff = byte_array_new(req);
 
     //set magic number and version
     byte_array_append(bplist_buff, BPLIST_MAGIC, BPLIST_MAGIC_SIZE);

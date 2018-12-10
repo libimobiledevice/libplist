@@ -23,10 +23,10 @@
 
 #define PAGE_SIZE 4096
 
-bytearray_t *byte_array_new()
+bytearray_t *byte_array_new(size_t initial)
 {
 	bytearray_t *a = (bytearray_t*)malloc(sizeof(bytearray_t));
-	a->capacity = PAGE_SIZE * 8;
+	a->capacity = (initial > PAGE_SIZE) ? (initial+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
 	a->data = malloc(a->capacity);
 	a->len = 0;
 	return a;
