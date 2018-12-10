@@ -25,7 +25,7 @@ ptrarray_t *ptr_array_new(int capacity)
 	ptrarray_t *pa = (ptrarray_t*)malloc(sizeof(ptrarray_t));
 	pa->pdata = (void**)malloc(sizeof(void*) * capacity);
 	pa->capacity = capacity;
-	pa->capacity_step = (capacity > 64) ? 64 : capacity;
+	pa->capacity_step = (capacity > 4096) ? 4096 : capacity;
 	pa->len = 0;
 	return pa;
 }
