@@ -26,7 +26,6 @@
 
 #include "node.h"
 #include "node_list.h"
-#include "node_iterator.h"
 
 void node_destroy(node_t* node) {
 	if(!node) return;
@@ -114,7 +113,6 @@ int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 static void _node_debug(node_t* node, unsigned int depth) {
 	unsigned int i = 0;
 	node_t* current = NULL;
-	node_iterator_t* iter = NULL;
 	for(i = 0; i < depth; i++) {
 		printf("\t");
 	}
@@ -128,11 +126,9 @@ static void _node_debug(node_t* node, unsigned int depth) {
 		if(node->parent) {
 			printf("NODE\n");
 		}
-		iter = node_iterator_create(node->children);
-		while ((current = iter->next(iter))) {
+		for (current = node_first_child(node); current; current = node_next_sibling(current)) {
 			_node_debug(current, depth+1);
 		}
-		node_iterator_destroy(iter);
 	}
 
 }

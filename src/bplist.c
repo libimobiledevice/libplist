@@ -39,7 +39,6 @@
 #include "ptrarray.h"
 
 #include <node.h>
-#include <node_iterator.h>
 
 /* Magic marker and size. */
 #define BPLIST_MAGIC            ((uint8_t*)"bplist")
@@ -938,12 +937,10 @@ static void serialize_plist(node_t* node, void* data)
     ptr_array_add(ser->objects, node);
 
     //now recurse on children
-    node_iterator_t *ni = node_iterator_create(node->children);
     node_t *ch;
-    while ((ch = node_iterator_next(ni))) {
+    for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
         serialize_plist(ch, data);
     }
-    node_iterator_destroy(ni);
 
     return;
 }

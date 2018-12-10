@@ -8,11 +8,7 @@ libcnary_la_SOURCES = \
 		       node.c \
 		       list.c \
 		       node_list.c \
-		       iterator.c \
-		       node_iterator.c \
 		       include/node.h \
 		       include/list.h \
 		       include/node_list.h \
-		       include/iterator.h \
-		       include/node_iterator.h \
 		       include/object.h

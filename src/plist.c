@@ -36,7 +36,6 @@
 #endif
 
 #include <node.h>
-#include <node_iterator.h>
 #include <hashtable.h>
 
 extern void plist_xml_init(void);
@@ -209,12 +208,12 @@ static int plist_free_node(node_t* node)
     plist_free_data(data);
     node->data = NULL;
 
-    node_iterator_t *ni = node_iterator_create(node->children);
     node_t *ch;
-    while ((ch = node_iterator_next(ni))) {
+    for (ch = node_first_child(node); ch; ) {
+        node_t *next = node_next_sibling(ch);
         plist_free_node(ch);
+        ch = next;
     }
-    node_iterator_destroy(ni);
 
     node_destroy(node);
 
@@ -366,12 +365,10 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
         *(plist_t*)parent_node_ptr = newnode;
     }
 
-    node_iterator_t *ni = node_iterator_create(node->children);
     node_t *ch;
-    while ((ch = node_iterator_next(ni))) {
+    for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
         plist_copy_node(ch, &newnode);
     }
-    node_iterator_destroy(ni);
 }
 
 PLIST_API plist_t plist_copy(plist_t node)
