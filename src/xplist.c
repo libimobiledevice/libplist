@@ -199,12 +199,12 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     case PLIST_ARRAY:
         tag = XPLIST_ARRAY;
         tag_len = XPLIST_ARRAY_LEN;
-        isStruct = TRUE;
+        isStruct = (node->children) ? TRUE : FALSE;
         break;
     case PLIST_DICT:
         tag = XPLIST_DICT;
         tag_len = XPLIST_DICT_LEN;
-        isStruct = TRUE;
+        isStruct = (node->children) ? TRUE : FALSE;
         break;
     case PLIST_DATE:
         tag = XPLIST_DATE;
@@ -350,11 +350,11 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     }
     free(val);
 
-    /* add return for structured types */
-    if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT)
+    if (isStruct) {
+        /* add newline for structured types */
         str_buf_append(*outbuf, "\n", 1);
 
-    if (isStruct) {
+        /* add child nodes */
         if (node_data->type == PLIST_DICT && node->children) {
             assert((node->children->count % 2) == 0);
         }
@@ -362,10 +362,8 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             node_to_xml(ch, outbuf, depth+1);
         }
-    }
 
-    /* fix indent for structured types */
-    if (node_data->type == PLIST_ARRAY || node_data->type == PLIST_DICT) {
+        /* fix indent for structured types */
         for (i = 0; i < depth; i++) {
             str_buf_append(*outbuf, "\t", 1);
         }
