@@ -37,6 +37,7 @@
 
 #include <inttypes.h>
 #include <math.h>
+#include <limits.h>
 
 #include <node.h>
 #include <node_list.h>
@@ -68,6 +69,8 @@
 #define XPLIST_DICT_LEN 4
 
 #define MAC_EPOCH 978307200
+
+#define MAX_DATA_BYTES_PER_LINE(__i) (((76 - (__i << 3)) >> 2) * 3)
 
 static const char XML_PLIST_PROLOG[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n\
@@ -290,7 +293,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
             char *buf = malloc(80);
             uint32_t j = 0;
             uint32_t indent = (depth > 8) ? 8 : depth;
-            uint32_t maxread = ((76 - indent*8) / 4) * 3;
+            uint32_t maxread = MAX_DATA_BYTES_PER_LINE(indent);
             size_t count = 0;
             size_t b64count = 0;
             size_t amount = (node_data->length / 3 * 4) + 4 + (((node_data->length / maxread) + 1) * (indent+1));
@@ -400,9 +403,131 @@ static void parse_date(const char *strval, struct TM *btime)
     btime->tm_isdst=0;
 }
 
+#define PO10i_LIMIT (INT64_MAX/10)
+
+/* based on https://stackoverflow.com/a/4143288 */
+static int num_digits_i(int64_t i)
+{
+    int n;
+    int64_t po10;
+    n=1;
+    if (i < 0) {
+        i = -i;
+        n++;
+    }
+    po10=10;
+    while (i>=po10) {
+        n++;
+        if (po10 > PO10i_LIMIT) break;
+        po10*=10;
+    }
+    return n;
+}
+
+#define PO10u_LIMIT (UINT64_MAX/10)
+
+/* based on https://stackoverflow.com/a/4143288 */
+static int num_digits_u(uint64_t i)
+{
+    int n;
+    uint64_t po10;
+    n=1;
+    po10=10;
+    while (i>=po10) {
+        n++;
+        if (po10 > PO10u_LIMIT) break;
+        po10*=10;
+    }
+    return n;
+}
+
+static void node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
+{
+    plist_data_t data;
+    if (!node) {
+        return;
+    }
+    data = plist_get_data(node);
+    if (node->children) {
+        node_t *ch;
+        for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
+            node_estimate_size(ch, size, depth + 1);
+        }
+        switch (data->type) {
+        case PLIST_DICT:
+            *size += (XPLIST_DICT_LEN << 1) + 7;
+            break;
+        case PLIST_ARRAY:
+            *size += (XPLIST_ARRAY_LEN << 1) + 7;
+            break;
+        default:
+            break;
+	}
+        *size += (depth << 1);
+    } else {
+        uint32_t indent = (depth > 8) ? 8 : depth;
+        switch (data->type) {
+        case PLIST_DATA: {
+            uint32_t req_lines = (data->length / MAX_DATA_BYTES_PER_LINE(indent)) + 1;
+            uint32_t b64len = data->length + (data->length / 3);
+            b64len += b64len % 4;
+            *size += b64len;
+            *size += (XPLIST_DATA_LEN << 1) + 5 + (indent+1) * (req_lines+1) + 1;
+        }   break;
+        case PLIST_STRING:
+            *size += data->length;
+            *size += (XPLIST_STRING_LEN << 1) + 6;
+            break;
+        case PLIST_KEY:
+            *size += data->length;
+            *size += (XPLIST_KEY_LEN << 1) + 6;
+            break;
+        case PLIST_UINT:
+            if (data->length == 16) {
+                *size += num_digits_u(data->intval);
+            } else {
+                *size += num_digits_i((int64_t)data->intval);
+            }
+            *size += (XPLIST_INT_LEN << 1) + 6;
+            break;
+        case PLIST_REAL:
+            *size += num_digits_i((int64_t)data->realval) + 7;
+            *size += (XPLIST_REAL_LEN << 1) + 6;
+            break;
+        case PLIST_DATE:
+            *size += 20; /* YYYY-MM-DDThh:mm:ssZ */
+            *size += (XPLIST_DATE_LEN << 1) + 6;
+            break;
+        case PLIST_BOOLEAN:
+            *size += ((data->boolval) ? XPLIST_TRUE_LEN : XPLIST_FALSE_LEN) + 4;
+            break;
+        case PLIST_DICT:
+            *size += XPLIST_DICT_LEN + 4; /* <dict/> */
+            break;
+        case PLIST_ARRAY:
+            *size += XPLIST_ARRAY_LEN + 4; /* <array/> */
+            break;
+        case PLIST_UID:
+            *size += num_digits_i((int64_t)data->intval);
+            *size += (XPLIST_DICT_LEN << 1) + 7;
+            *size += indent + ((indent+1) << 1);
+            *size += 18; /* <key>CF$UID</key> */
+            *size += (XPLIST_INT_LEN << 1) + 6;
+            break;
+        default:
+            break;
+        }
+        *size += indent;
+    }
+}
+
 PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 {
-    strbuf_t *outbuf = str_buf_new();
+    uint64_t size = 0;
+    node_estimate_size(plist, &size, 0);
+    size += sizeof(XML_PLIST_PROLOG) + sizeof(XML_PLIST_EPILOG) - 1;
+
+    strbuf_t *outbuf = str_buf_new(size);
 
     str_buf_append(outbuf, XML_PLIST_PROLOG, sizeof(XML_PLIST_PROLOG)-1);
 
