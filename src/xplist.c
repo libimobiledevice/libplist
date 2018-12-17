@@ -290,12 +290,10 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         tagOpen = TRUE;
         str_buf_append(*outbuf, "\n", 1);
         if (node_data->length > 0) {
-            char *buf = malloc(80);
             uint32_t j = 0;
             uint32_t indent = (depth > 8) ? 8 : depth;
             uint32_t maxread = MAX_DATA_BYTES_PER_LINE(indent);
             size_t count = 0;
-            size_t b64count = 0;
             size_t amount = (node_data->length / 3 * 4) + 4 + (((node_data->length / maxread) + 1) * (indent+1));
             if ((*outbuf)->len + amount > (*outbuf)->capacity) {
                 str_buf_grow(*outbuf, amount);
@@ -305,12 +303,11 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
                     str_buf_append(*outbuf, "\t", 1);
                 }
                 count = (node_data->length-j < maxread) ? node_data->length-j : maxread;
-                b64count = base64encode(buf, node_data->buff + j, count);
-                str_buf_append(*outbuf, buf, b64count);
+                assert((*outbuf)->len + count < (*outbuf)->capacity);
+                (*outbuf)->len += base64encode((char*)(*outbuf)->data + (*outbuf)->len, node_data->buff + j, count);
                 str_buf_append(*outbuf, "\n", 1);
                 j+=count;
             }
-            free(buf);
         }
         for (i = 0; i < depth; i++) {
             str_buf_append(*outbuf, "\t", 1);
