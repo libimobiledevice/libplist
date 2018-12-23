@@ -471,15 +471,15 @@ PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 {
     if (iter && *iter == NULL)
     {
-        *iter = malloc(sizeof(uint32_t));
-        *((uint32_t*)(*iter)) = 0;
+        *iter = malloc(sizeof(node_t*));
+        *((node_t**)(*iter)) = node_first_child(node);
     }
     return;
 }
 
 PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val)
 {
-    uint32_t* iter_int = (uint32_t*) iter;
+    node_t** iter_node = (node_t**)iter;
 
     if (key)
     {
@@ -490,20 +490,18 @@ PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **k
         *val = NULL;
     }
 
-    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_int < node_n_children(node))
+    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_node)
     {
-
         if (key)
         {
-            plist_get_key_val((plist_t)node_nth_child(node, *iter_int), key);
+            plist_get_key_val((plist_t)(*iter_node), key);
         }
-
+        *iter_node = node_next_sibling(*iter_node);
         if (val)
         {
-            *val = (plist_t) node_nth_child(node, *iter_int + 1);
+            *val = (plist_t)(*iter_node);
         }
-
-        *iter_int += 2;
+        *iter_node = node_next_sibling(*iter_node);
     }
     return;
 }
