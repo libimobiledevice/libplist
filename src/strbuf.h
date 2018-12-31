@@ -1,8 +1,9 @@
 /*
- * plistutil.h
- * header for plist convertion tool
+ * strbuf.h
+ * header file for simple string buffer, using the bytearray as underlying
+ * structure.
  *
- * Copyright (c) 2008 Zach C. All Rights Reserved.
+ * Copyright (c) 2016 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,12 +19,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
+#ifndef STRBUF_H
+#define STRBUF_H
+#include <stdlib.h>
+#include "bytearray.h"
 
-typedef struct _options
-{
-    char *in_file, *out_file;
-    uint8_t debug, in_fmt, out_fmt;
-} Options;
+typedef struct bytearray_t strbuf_t;
 
-Options *parse_arguments(int argc, char *argv[]);
-void print_usage();
+#define str_buf_new(__sz) byte_array_new(__sz)
+#define str_buf_free(__ba) byte_array_free(__ba)
+#define str_buf_grow(__ba, __am) byte_array_grow(__ba, __am)
+#define str_buf_append(__ba, __str, __len) byte_array_append(__ba, (void*)(__str), __len)
+
+#endif

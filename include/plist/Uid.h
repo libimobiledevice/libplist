@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__UID_H
-#define PLIST__UID_H
+#ifndef PLIST_UID_H
+#define PLIST_UID_H
 
 #include <plist/Node.h>
 
@@ -32,17 +32,17 @@ class Uid : public Node
 public :
     Uid(Node* parent = NULL);
     Uid(plist_t node, Node* parent = NULL);
-    Uid(Uid& i);
+    Uid(const Uid& i);
     Uid& operator=(Uid& i);
     Uid(uint64_t i);
     virtual ~Uid();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(uint64_t i);
-    uint64_t GetValue();
+    uint64_t GetValue() const;
 };
 
 };
 
-#endif // PLIST__UID_H
+#endif // PLIST_UID_H

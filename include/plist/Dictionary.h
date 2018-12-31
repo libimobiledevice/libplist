@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__DICTIONARY_H
-#define PLIST__DICTIONARY_H
+#ifndef PLIST_DICTIONARY_H
+#define PLIST_DICTIONARY_H
 
 #include <plist/Structure.h>
 #include <map>
@@ -34,11 +34,11 @@ class Dictionary : public Structure
 public :
     Dictionary(Node* parent = NULL);
     Dictionary(plist_t node, Node* parent = NULL);
-    Dictionary(Dictionary& d);
+    Dictionary(const Dictionary& d);
     Dictionary& operator=(Dictionary& d);
     virtual ~Dictionary();
 
-    Node* Clone();
+    Node* Clone() const;
 
     typedef std::map<std::string,Node*>::iterator iterator;
 
@@ -46,8 +46,9 @@ public :
     iterator Begin();
     iterator End();
     iterator Find(const std::string& key);
-    iterator Set(const std::string& key, Node* node);
-    DEPRECATED("use Set() instead") iterator Insert(const std::string& key, Node* node);
+    iterator Set(const std::string& key, const Node* node);
+    iterator Set(const std::string& key, const Node& node);
+    iterator Insert(const std::string& key, Node* node) PLIST_WARN_DEPRECATED("use Set() instead");
     void Remove(Node* node);
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* key);
@@ -60,4 +61,4 @@ private :
 
 };
 
-#endif // PLIST__DICTIONARY_H
+#endif // PLIST_DICTIONARY_H

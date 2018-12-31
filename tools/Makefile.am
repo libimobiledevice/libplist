@@ -3,5 +3,5 @@ AM_LDFLAGS =
 
 bin_PROGRAMS = plistutil
 
-plistutil_SOURCES = plistutil.c plistutil.h
+plistutil_SOURCES = plistutil.c
 plistutil_LDADD = $(top_builddir)/src/libplist.la

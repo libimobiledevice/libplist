@@ -16,6 +16,8 @@
 		<string></string>
 		<string></string>
 	</array>
+	<key>Keys &amp; &quot;entities&quot;</key>
+	<string/>
 	<key>Boolean</key>
 	<false/>
 	<key>Another Boolean</key>
@@ -29,7 +31,5 @@
 	<key>Some Data</key>
 	<data>
 	</data>
-	<key>Some Entities</key>
-	<string>hellow world &amp; others &lt;nodes&gt; are &quot;fun!?&apos;</string>
 </dict>
 </plist>

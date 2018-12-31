@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__DATE_H
-#define PLIST__DATE_H
+#ifndef PLIST_DATE_H
+#define PLIST_DATE_H
 
 #include <plist/Node.h>
 #include <ctime>
@@ -34,17 +34,17 @@ class Date : public Node
 public :
     Date(Node* parent = NULL);
     Date(plist_t node, Node* parent = NULL);
-    Date(Date& d);
+    Date(const Date& d);
     Date& operator=(Date& d);
     Date(timeval t);
     virtual ~Date();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(timeval t);
-    timeval GetValue();
+    timeval GetValue() const;
 };
 
 };
 
-#endif // PLIST__DATE_H
+#endif // PLIST_DATE_H

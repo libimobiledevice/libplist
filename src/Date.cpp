@@ -32,7 +32,7 @@ Date::Date(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Date::Date(PList::Date& d) : Node(PLIST_DATE)
+Date::Date(const PList::Date& d) : Node(PLIST_DATE)
 {
     timeval t = d.GetValue();
     plist_set_date_val(_node, t.tv_sec, t.tv_usec);
@@ -54,7 +54,7 @@ Date::~Date()
 {
 }
 
-Node* Date::Clone()
+Node* Date::Clone() const
 {
     return new Date(*this);
 }
@@ -64,7 +64,7 @@ void Date::SetValue(timeval t)
     plist_set_date_val(_node, t.tv_sec, t.tv_usec);
 }
 
-timeval Date::GetValue()
+timeval Date::GetValue() const
 {
     int32_t tv_sec = 0;
     int32_t tv_usec = 0;

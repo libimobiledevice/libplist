@@ -25,7 +25,7 @@ ptrarray_t *ptr_array_new(int capacity)
 	ptrarray_t *pa = (ptrarray_t*)malloc(sizeof(ptrarray_t));
 	pa->pdata = (void**)malloc(sizeof(void*) * capacity);
 	pa->capacity = capacity;
-	pa->capacity_step = (capacity > 64) ? 64 : capacity;
+	pa->capacity_step = (capacity > 4096) ? 4096 : capacity;
 	pa->len = 0;
 	return pa;
 }
@@ -51,11 +51,11 @@ void ptr_array_add(ptrarray_t *pa, void *data)
 	pa->len++;
 }
 
-void* ptr_array_index(ptrarray_t *pa, size_t index)
+void* ptr_array_index(ptrarray_t *pa, size_t array_index)
 {
 	if (!pa) return NULL;
-	if (index >= pa->len) {
+	if (array_index >= pa->len) {
 		return NULL;
 	}
-	return pa->pdata[index];
+	return pa->pdata[array_index];
 }

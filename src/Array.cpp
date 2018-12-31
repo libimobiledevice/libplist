@@ -43,7 +43,7 @@ Array::Array(plist_t node, Node* parent) : Structure(parent)
     }
 }
 
-Array::Array(PList::Array& a) : Structure()
+Array::Array(const PList::Array& a) : Structure()
 {
     _array.clear();
     _node = plist_copy(a.GetPlist());
@@ -85,14 +85,14 @@ Array::~Array()
     _array.clear();
 }
 
-Node* Array::Clone()
+Node* Array::Clone() const
 {
     return new Array(*this);
 }
 
-Node* Array::operator[](unsigned int index)
+Node* Array::operator[](unsigned int array_index)
 {
-    return _array.at(index);
+    return _array.at(array_index);
 }
 
 void Array::Append(Node* node)
@@ -141,9 +141,9 @@ void Array::Remove(unsigned int pos)
     _array.erase(it);
 }
 
-unsigned int Array::GetNodeIndex(Node* node)
+unsigned int Array::GetNodeIndex(Node* node) const
 {
-    std::vector<Node*>::iterator it = std::find(_array.begin(), _array.end(), node);
+    std::vector<Node*>::const_iterator it = std::find(_array.begin(), _array.end(), node);
     return std::distance (_array.begin(), it);
 }
 

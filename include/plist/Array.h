@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__ARRAY_H
-#define PLIST__ARRAY_H
+#ifndef PLIST_ARRAY_H
+#define PLIST_ARRAY_H
 
 #include <plist/Structure.h>
 #include <vector>
@@ -33,18 +33,18 @@ class Array : public Structure
 public :
     Array(Node* parent = NULL);
     Array(plist_t node, Node* parent = NULL);
-    Array(Array& a);
+    Array(const Array& a);
     Array& operator=(Array& a);
     virtual ~Array();
 
-    Node* Clone();
+    Node* Clone() const;
 
     Node* operator[](unsigned int index);
     void Append(Node* node);
     void Insert(Node* node, unsigned int pos);
     void Remove(Node* node);
     void Remove(unsigned int pos);
-    unsigned int GetNodeIndex(Node* node);
+    unsigned int GetNodeIndex(Node* node) const;
 
 private :
     std::vector<Node*> _array;
@@ -52,4 +52,4 @@ private :
 
 };
 
-#endif // PLIST__ARRAY_H
+#endif // PLIST_ARRAY_H

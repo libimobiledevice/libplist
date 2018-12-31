@@ -19,10 +19,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__NODE_H
-#define PLIST__NODE_H
+#ifndef PLIST_NODE_H
+#define PLIST_NODE_H
 
 #include <plist/plist.h>
+#include <cstddef>
 
 namespace PList
 {
@@ -32,11 +33,11 @@ class Node
 public :
     virtual ~Node();
 
-    virtual Node* Clone() = 0;
+    virtual Node* Clone() const = 0;
 
-    Node * GetParent();
-    plist_type GetType();
-    plist_t GetPlist();
+    Node * GetParent() const;
+    plist_type GetType() const;
+    plist_t GetPlist() const;
 
     static Node* FromPlist(plist_t node, Node* parent = NULL);
 
@@ -53,4 +54,4 @@ private:
 
 };
 
-#endif // PLIST__NODE_H
+#endif // PLIST_NODE_H

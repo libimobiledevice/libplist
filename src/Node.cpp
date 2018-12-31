@@ -88,12 +88,17 @@ Node::Node(plist_type type, Node* parent) : _parent(parent)
 
 Node::~Node()
 {
-    plist_free(_node);
+	/* If the Node is in a container, let _node be cleaned up by
+	 * operations on the parent plist_t. Otherwise, duplicate frees
+	 * occur when a Node is removed from or replaced in a Dictionary.
+	 */
+	if (_parent == NULL)
+		plist_free(_node);
     _node = NULL;
     _parent = NULL;
 }
 
-plist_type Node::GetType()
+plist_type Node::GetType() const
 {
     if (_node)
     {
@@ -102,12 +107,12 @@ plist_type Node::GetType()
     return PLIST_NONE;
 }
 
-plist_t Node::GetPlist()
+plist_t Node::GetPlist() const
 {
     return _node;
 }
 
-Node* Node::GetParent()
+Node* Node::GetParent() const
 {
     return _parent;
 }

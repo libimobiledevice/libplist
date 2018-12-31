@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__INTEGER_H
-#define PLIST__INTEGER_H
+#ifndef PLIST_INTEGER_H
+#define PLIST_INTEGER_H
 
 #include <plist/Node.h>
 
@@ -32,17 +32,17 @@ class Integer : public Node
 public :
     Integer(Node* parent = NULL);
     Integer(plist_t node, Node* parent = NULL);
-    Integer(Integer& i);
+    Integer(const Integer& i);
     Integer& operator=(Integer& i);
     Integer(uint64_t i);
     virtual ~Integer();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(uint64_t i);
-    uint64_t GetValue();
+    uint64_t GetValue() const;
 };
 
 };
 
-#endif // PLIST__INTEGER_H
+#endif // PLIST_INTEGER_H

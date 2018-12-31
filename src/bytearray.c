@@ -21,12 +21,14 @@
 #include <string.h>
 #include "bytearray.h"
 
-bytearray_t *byte_array_new()
+#define PAGE_SIZE 4096
+
+bytearray_t *byte_array_new(size_t initial)
 {
 	bytearray_t *a = (bytearray_t*)malloc(sizeof(bytearray_t));
-	a->data = malloc(256);
+	a->capacity = (initial > PAGE_SIZE) ? (initial+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
+	a->data = malloc(a->capacity);
 	a->len = 0;
-	a->capacity = 256;
 	return a;
 }
 
@@ -39,13 +41,20 @@ void byte_array_free(bytearray_t *ba)
 	free(ba);
 }
 
+void byte_array_grow(bytearray_t *ba, size_t amount)
+{
+	size_t increase = (amount > PAGE_SIZE) ? (amount+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
+	ba->data = realloc(ba->data, ba->capacity + increase);
+	ba->capacity += increase;
+}
+
 void byte_array_append(bytearray_t *ba, void *buf, size_t len)
 {
 	if (!ba || !ba->data || (len <= 0)) return;
 	size_t remaining = ba->capacity-ba->len;
 	if (len > remaining) {
-		ba->data = realloc(ba->data, ba->capacity + (len - remaining));
-		ba->capacity += (len - remaining);
+		size_t needed = len - remaining;
+		byte_array_grow(ba, needed);
 	}
 	memcpy(((char*)ba->data) + ba->len, buf, len);
 	ba->len += len;

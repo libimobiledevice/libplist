@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__BOOLEAN_H
-#define PLIST__BOOLEAN_H
+#ifndef PLIST_BOOLEAN_H
+#define PLIST_BOOLEAN_H
 
 #include <plist/Node.h>
 
@@ -32,17 +32,17 @@ class Boolean : public Node
 public :
     Boolean(Node* parent = NULL);
     Boolean(plist_t node, Node* parent = NULL);
-    Boolean(Boolean& b);
+    Boolean(const Boolean& b);
     Boolean& operator=(Boolean& b);
     Boolean(bool b);
     virtual ~Boolean();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(bool b);
-    bool GetValue();
+    bool GetValue() const;
 };
 
 };
 
-#endif // PLIST__BOOLEAN_H
+#endif // PLIST_BOOLEAN_H

@@ -26,7 +26,6 @@
 
 #include "node.h"
 #include "node_list.h"
-#include "node_iterator.h"
 
 void node_destroy(node_t* node) {
 	if(!node) return;
@@ -54,14 +53,11 @@ node_t* node_create(node_t* parent, void* data) {
 	memset(node, '\0', sizeof(node_t));
 
 	node->data = data;
-	node->depth = 0;
 	node->next = NULL;
 	node->prev = NULL;
 	node->count = 0;
-	node->isLeaf = TRUE;
-	node->isRoot = TRUE;
 	node->parent = NULL;
-	node->children = node_list_create(node);
+	node->children = NULL;
 
 	// Pass NULL to create a root node
 	if(parent != NULL) {
@@ -80,12 +76,9 @@ node_t* node_create(node_t* parent, void* data) {
 
 int node_attach(node_t* parent, node_t* child) {
 	if (!parent || !child) return -1;
-	child->isLeaf = TRUE;
-	child->isRoot = FALSE;
 	child->parent = parent;
-	child->depth = parent->depth + 1;
-	if(parent->isLeaf == TRUE) {
-		parent->isLeaf = FALSE;
+	if(!parent->children) {
+		parent->children = node_list_create();
 	}
 	int res = node_list_add(parent->children, child);
 	if (res == 0) {
@@ -96,54 +89,53 @@ int node_attach(node_t* parent, node_t* child) {
 
 int node_detach(node_t* parent, node_t* child) {
 	if (!parent || !child) return -1;
-	int index = node_list_remove(parent->children, child);
-	if (index >= 0) {
+	int node_index = node_list_remove(parent->children, child);
+	if (node_index >= 0) {
 		parent->count--;
 	}
-	return index;
+	return node_index;
 }
 
-int node_insert(node_t* parent, unsigned int index, node_t* child)
+int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 {
 	if (!parent || !child) return -1;
-	child->isLeaf = TRUE;
-	child->isRoot = FALSE;
 	child->parent = parent;
-	child->depth = parent->depth + 1;
-	if(parent->isLeaf == TRUE) {
-		parent->isLeaf = FALSE;
+	if(!parent->children) {
+		parent->children = node_list_create();
 	}
-	int res = node_list_insert(parent->children, index, child);
+	int res = node_list_insert(parent->children, node_index, child);
 	if (res == 0) {
 		parent->count++;
 	}
 	return res;
 }
 
-void node_debug(node_t* node) {
+static void _node_debug(node_t* node, unsigned int depth) {
 	unsigned int i = 0;
 	node_t* current = NULL;
-	node_iterator_t* iter = NULL;
-	for(i = 0; i < node->depth; i++) {
+	for(i = 0; i < depth; i++) {
 		printf("\t");
 	}
-	if(node->isRoot) {
+	if(!node->parent) {
 		printf("ROOT\n");
 	}
 
-	if(node->isLeaf && !node->isRoot) {
+	if(!node->children && node->parent) {
 		printf("LEAF\n");
-
 	} else {
-		if(!node->isRoot) {
+		if(node->parent) {
 			printf("NODE\n");
 		}
-		iter = node_iterator_create(node->children);
-		for(current = iter->begin; current != NULL; current = iter->next(iter)) {
-			node_debug(current);
+		for (current = node_first_child(node); current; current = node_next_sibling(current)) {
+			_node_debug(current, depth+1);
 		}
 	}
 
+}
+
+void node_debug(node_t* node)
+{
+	_node_debug(node, 0);
 }
 
 unsigned int node_n_children(struct node_t* node)
@@ -155,11 +147,11 @@ unsigned int node_n_children(struct node_t* node)
 node_t* node_nth_child(struct node_t* node, unsigned int n)
 {
 	if (!node || !node->children || !node->children->begin) return NULL;
-	unsigned int index = 0;
+	unsigned int node_index = 0;
 	int found = 0;
 	node_t *ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-		if (index++ == n) {
+		if (node_index++ == n) {
 			found = 1;
 			break;
 		}
@@ -191,7 +183,7 @@ node_t* node_next_sibling(struct node_t* node)
 int node_child_position(struct node_t* parent, node_t* child)
 {
 	if (!parent || !parent->children || !parent->children->begin || !child) return -1;
-	int index = 0;
+	int node_index = 0;
 	int found = 0;
 	node_t *ch;
 	for (ch = node_first_child(parent); ch; ch = node_next_sibling(ch)) {
@@ -199,12 +191,12 @@ int node_child_position(struct node_t* parent, node_t* child)
 			found = 1;
 			break;
 		}
-		index++;
+		node_index++;
 	}
 	if (!found) {
 		return -1;
 	}
-	return index;
+	return node_index;
 }
 
 node_t* node_copy_deep(node_t* node, copy_func_t copy_func)

@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__DATA_H
-#define PLIST__DATA_H
+#ifndef PLIST_DATA_H
+#define PLIST_DATA_H
 
 #include <plist/Node.h>
 #include <vector>
@@ -33,17 +33,17 @@ class Data : public Node
 public :
     Data(Node* parent = NULL);
     Data(plist_t node, Node* parent = NULL);
-    Data(Data& d);
+    Data(const Data& d);
     Data& operator=(Data& d);
     Data(const std::vector<char>& buff);
     virtual ~Data();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(const std::vector<char>& buff);
-    std::vector<char> GetValue();
+    std::vector<char> GetValue() const;
 };
 
 };
 
-#endif // PLIST__DATA_H
+#endif // PLIST_DATA_H

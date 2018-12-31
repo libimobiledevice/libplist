@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__REAL_H
-#define PLIST__REAL_H
+#ifndef PLIST_REAL_H
+#define PLIST_REAL_H
 
 #include <plist/Node.h>
 
@@ -32,17 +32,17 @@ class Real : public Node
 public :
     Real(Node* parent = NULL);
     Real(plist_t node, Node* parent = NULL);
-    Real(Real& d);
+    Real(const Real& d);
     Real& operator=(Real& d);
     Real(double d);
     virtual ~Real();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(double d);
-    double GetValue();
+    double GetValue() const;
 };
 
 };
 
-#endif // PLIST__REAL_H
+#endif // PLIST_REAL_H

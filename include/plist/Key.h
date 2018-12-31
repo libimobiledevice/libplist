@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef PLIST__KEY_H
-#define PLIST__KEY_H
+#ifndef PLIST_KEY_H
+#define PLIST_KEY_H
 
 #include <plist/Node.h>
 #include <string>
@@ -33,17 +33,17 @@ class Key : public Node
 public :
     Key(Node* parent = NULL);
     Key(plist_t node, Node* parent = NULL);
-    Key(Key& s);
+    Key(const Key& s);
     Key& operator=(Key& s);
     Key(const std::string& s);
     virtual ~Key();
 
-    Node* Clone();
+    Node* Clone() const;
 
     void SetValue(const std::string& s);
-    std::string GetValue();
+    std::string GetValue() const;
 };
 
 };
 
-#endif // PLIST__KEY_H
+#endif // PLIST_KEY_H

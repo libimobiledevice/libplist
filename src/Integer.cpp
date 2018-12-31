@@ -32,7 +32,7 @@ Integer::Integer(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Integer::Integer(PList::Integer& i) : Node(PLIST_UINT)
+Integer::Integer(const PList::Integer& i) : Node(PLIST_UINT)
 {
     plist_set_uint_val(_node, i.GetValue());
 }
@@ -53,7 +53,7 @@ Integer::~Integer()
 {
 }
 
-Node* Integer::Clone()
+Node* Integer::Clone() const
 {
     return new Integer(*this);
 }
@@ -63,7 +63,7 @@ void Integer::SetValue(uint64_t i)
     plist_set_uint_val(_node, i);
 }
 
-uint64_t Integer::GetValue()
+uint64_t Integer::GetValue() const
 {
     uint64_t i = 0;
     plist_get_uint_val(_node, &i);

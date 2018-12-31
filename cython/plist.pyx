@@ -36,7 +36,6 @@ cdef extern from *:
     void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 
-    plist_t plist_new_key(char *val)
     void plist_get_key_val(plist_t node, char **val)
     void plist_set_key_val(plist_t node, char *val)
 
@@ -79,8 +78,6 @@ cdef extern from *:
     plist_t plist_get_parent(plist_t node)
     plist_type plist_get_node_type(plist_t node)
 
-    void plist_set_type(plist_t node, plist_type type)
-
     void plist_from_xml(char *plist_xml, uint32_t length, plist_t * plist)
     void plist_from_bin(char *plist_bin, uint32_t length, plist_t * plist)
 
@@ -119,7 +116,7 @@ cdef class Node:
         plist_to_bin(self._c_node, &out, &length)
 
         try:
-            return out[:length]
+            return bytes(out[:length])
         finally:
             if out != NULL:
                 libc.stdlib.free(out)
@@ -338,8 +335,7 @@ cdef class Key(Node):
                 raise ValueError("Requires unicode input, got %s" % type(value))
             c_utf8_data = utf8_data
             self._c_node = plist_new_string("")
-            plist_set_type(self._c_node, PLIST_KEY)
-            #plist_set_key_val(self._c_node, c_utf8_data)
+            plist_set_key_val(self._c_node, c_utf8_data)
 
     def __repr__(self):
         s = self.get_value()
@@ -720,7 +716,7 @@ cdef class Array(Node):
         cdef uint32_t size = plist_array_get_size(self._c_node)
         cdef plist_t subnode = NULL
 
-        for i from 0 <= i < size:
+        for i in range(size):
             subnode = plist_array_get_item(self._c_node, i)
             self._array.append(plist_t_to_node(subnode, False))
 
@@ -852,6 +848,8 @@ cdef object plist_t_to_node(plist_t c_plist, bint managed=True):
         return Date_factory(c_plist, managed)
     if t == PLIST_DATA:
         return Data_factory(c_plist, managed)
+    if t == PLIST_UID:
+        return Uid_factory(c_plist, managed)
     if t == PLIST_NONE:
         return None
 

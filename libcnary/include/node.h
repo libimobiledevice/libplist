@@ -37,20 +37,10 @@ typedef struct node_t {
 	struct node_t* prev;
 	unsigned int count;
 
-	// Local Properties
-	int isRoot;
-	int isLeaf;
-
 	// Local Members
 	void *data;
-	unsigned int depth;
 	struct node_t* parent;
 	struct node_list_t* children;
-
-	// Virtual Functions
-	int(*attach)(struct node_t* parent, struct node_t* child);
-	int(*detach)(struct node_t* parent, struct node_t* child);
-
 } node_t;
 
 void node_destroy(struct node_t* node);

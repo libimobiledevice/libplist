@@ -32,7 +32,7 @@ Real::Real(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Real::Real(PList::Real& d) : Node(PLIST_UINT)
+Real::Real(const PList::Real& d) : Node(PLIST_UINT)
 {
     plist_set_real_val(_node, d.GetValue());
 }
@@ -53,7 +53,7 @@ Real::~Real()
 {
 }
 
-Node* Real::Clone()
+Node* Real::Clone() const
 {
     return new Real(*this);
 }
@@ -63,7 +63,7 @@ void Real::SetValue(double d)
     plist_set_real_val(_node, d);
 }
 
-double Real::GetValue()
+double Real::GetValue() const
 {
     double d = 0.;
     plist_get_real_val(_node, &d);
