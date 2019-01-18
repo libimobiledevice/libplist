@@ -1199,7 +1199,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     offset_table_index = 0;		//unknown yet
 
     //figure out the storage size required
-    size_t req = 0;
+    uint64_t req = 0;
     for (i = 0; i < num_objects; i++)
     {
         node_t* node = ptr_array_index(objects, i);
