@@ -6,9 +6,7 @@ libcnary_la_LIBADD =
 libcnary_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined
 libcnary_la_SOURCES = \
 		       node.c \
-		       list.c \
 		       node_list.c \
 		       include/node.h \
-		       include/list.h \
 		       include/node_list.h \
 		       include/object.h

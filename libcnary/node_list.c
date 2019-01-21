@@ -25,14 +25,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "list.h"
 #include "node.h"
 #include "node_list.h"
 
 void node_list_destroy(node_list_t* list) {
-	if(list != NULL) {
-		list_destroy((list_t*) list);
-	}
+	free(list);
 }
 
 node_list_t* node_list_create() {
@@ -43,7 +40,8 @@ node_list_t* node_list_create() {
 	memset(list, '\0', sizeof(node_list_t));
 
 	// Initialize structure
-	list_init((list_t*) list);
+	list->begin = NULL;
+	list->end = NULL;
 	list->count = 0;
 	return list;
 }
@@ -62,6 +60,9 @@ int node_list_add(node_list_t* list, node_t* node) {
 	if (last) {
 		// but only if the node list is not empty
 		last->next = node;
+	} else {
+		// otherwise this is the start of the list
+		list->begin = node;
 	}
 
 	// Set the lists prev to the new last element
