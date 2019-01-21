@@ -107,9 +107,22 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     int64_t v;
     size_t len;
     size_t p;
+    double CORR = 0.0000005;
 
     f = modf(f, &ip);
-    len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", (int64_t)ip);
+    v = (int64_t)ip;
+    if (f < 0) {
+        if (((int)((f - CORR) * -10.0f)) >= 10) {
+            v--;
+            f = 0;
+        }
+    } else {
+        if (((int)((f + CORR) * 10.0f)) >= 10) {
+            v++;
+            f = 0;
+        }
+    }
+    len = snprintf(buf, bufsize, "%s%"PRIi64, ((f < 0) && (ip >= 0)) ? "-" : "", v);
     if (len >= bufsize) {
         return 0;
     }
@@ -117,7 +130,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     if (f < 0) {
         f *= -1;
     }
-    f += 0.0000004;
+    f += CORR;
 
     p = len;
     buf[p++] = '.';
