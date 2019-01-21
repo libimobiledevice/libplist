@@ -2,9 +2,9 @@
  * plist.c
  * Builds plist XML structures
  *
- * Copyright (c) 2009-2016 Nikias Bassen All Rights Reserved.
- * Copyright (c) 2010-2015 Martin Szulecki All Rights Reserved.
- * Copyright (c) 2008 Zach C. All Rights Reserved.
+ * Copyright (c) 2009-2019 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2010-2015 Martin Szulecki, All Rights Reserved.
+ * Copyright (c) 2008 Zach C., All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -457,6 +457,36 @@ PLIST_API void plist_array_remove_item(plist_t node, uint32_t n)
     return;
 }
 
+PLIST_API void plist_array_new_iter(plist_t node, plist_array_iter *iter)
+{
+    if (iter)
+    {
+        *iter = malloc(sizeof(node_t*));
+        *((node_t**)(*iter)) = node_first_child(node);
+    }
+    return;
+}
+
+PLIST_API void plist_array_next_item(plist_t node, plist_array_iter iter, plist_t *item)
+{
+    node_t** iter_node = (node_t**)iter;
+
+    if (item)
+    {
+        *item = NULL;
+    }
+
+    if (node && PLIST_ARRAY == plist_get_node_type(node) && *iter_node)
+    {
+        if (item)
+        {
+            *item = (plist_t)(*iter_node);
+        }
+        *iter_node = node_next_sibling(*iter_node);
+    }
+    return;
+}
+
 PLIST_API uint32_t plist_dict_get_size(plist_t node)
 {
     uint32_t ret = 0;
@@ -469,7 +499,7 @@ PLIST_API uint32_t plist_dict_get_size(plist_t node)
 
 PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 {
-    if (iter && *iter == NULL)
+    if (iter)
     {
         *iter = malloc(sizeof(node_t*));
         *((node_t**)(*iter)) = node_first_child(node);

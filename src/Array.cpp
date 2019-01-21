@@ -31,29 +31,30 @@ Array::Array(Node* parent) : Structure(PLIST_ARRAY, parent)
     _array.clear();
 }
 
+static void array_fill(Array *_this, std::vector<Node*> array, plist_t node)
+{
+    plist_array_iter iter = NULL;
+    plist_array_new_iter(node, &iter);
+    plist_t subnode;
+    do {
+        subnode = NULL;
+        plist_array_next_item(node, iter, &subnode);
+        array.push_back( Node::FromPlist(subnode, _this) );
+    } while (subnode);
+    free(iter);
+}
+
 Array::Array(plist_t node, Node* parent) : Structure(parent)
 {
     _node = node;
-    uint32_t size = plist_array_get_size(_node);
-
-    for (uint32_t i = 0; i < size; i++)
-    {
-        plist_t subnode = plist_array_get_item(_node, i);
-        _array.push_back(  Node::FromPlist(subnode, this) );
-    }
+    array_fill(this, _array, _node);
 }
 
 Array::Array(const PList::Array& a) : Structure()
 {
     _array.clear();
     _node = plist_copy(a.GetPlist());
-    uint32_t size = plist_array_get_size(_node);
-
-    for (uint32_t i = 0; i < size; i++)
-    {
-        plist_t subnode = plist_array_get_item(_node, i);
-        _array.push_back(  Node::FromPlist(subnode, this) );
-    }
+    array_fill(this, _array, _node);
 }
 
 Array& Array::operator=(PList::Array& a)
@@ -64,15 +65,8 @@ Array& Array::operator=(PList::Array& a)
         delete _array.at(it);
     }
     _array.clear();
-
     _node = plist_copy(a.GetPlist());
-    uint32_t size = plist_array_get_size(_node);
-
-    for (uint32_t i = 0; i < size; i++)
-    {
-        plist_t subnode = plist_array_get_item(_node, i);
-        _array.push_back(  Node::FromPlist(subnode, this) );
-    }
+    array_fill(this, _array, _node);
     return *this;
 }
 
