@@ -28,25 +28,26 @@ Dictionary::Dictionary(Node* parent) : Structure(PLIST_DICT, parent)
 {
 }
 
+static void dictionary_fill(Dictionary *_this, std::map<std::string,Node*> map, plist_t node)
+{
+    plist_dict_iter it = NULL;
+    plist_dict_new_iter(node, &it);
+    plist_t subnode = NULL;
+    do {
+        char *key = NULL;
+        subnode = NULL;
+        plist_dict_next_item(node, it, &key, &subnode);
+        if (key && subnode)
+            map[std::string(key)] = Node::FromPlist(subnode, _this);
+        free(key);
+    } while (subnode);
+    free(it);
+}
+
 Dictionary::Dictionary(plist_t node, Node* parent) : Structure(parent)
 {
     _node = node;
-    plist_dict_iter it = NULL;
-
-    char* key = NULL;
-    plist_t subnode = NULL;
-    plist_dict_new_iter(_node, &it);
-    plist_dict_next_item(_node, it, &key, &subnode);
-    while (subnode)
-    {
-        _map[std::string(key)] = Node::FromPlist(subnode, this);
-
-        subnode = NULL;
-        free(key);
-        key = NULL;
-        plist_dict_next_item(_node, it, &key, &subnode);
-    }
-    free(it);
+    dictionary_fill(this, _map, _node);
 }
 
 Dictionary::Dictionary(const PList::Dictionary& d) : Structure()
@@ -57,24 +58,8 @@ Dictionary::Dictionary(const PList::Dictionary& d) : Structure()
         delete it->second;
     }
     _map.clear();
-
     _node = plist_copy(d.GetPlist());
-    plist_dict_iter it = NULL;
-
-    char* key = NULL;
-    plist_t subnode = NULL;
-    plist_dict_new_iter(_node, &it);
-    plist_dict_next_item(_node, it, &key, &subnode);
-    while (subnode)
-    {
-        _map[std::string(key)] = Node::FromPlist(subnode, this);
-
-        subnode = NULL;
-        free(key);
-        key = NULL;
-        plist_dict_next_item(_node, it, &key, &subnode);
-    }
-    free(it);
+    dictionary_fill(this, _map, _node);
 }
 
 Dictionary& Dictionary::operator=(PList::Dictionary& d)
@@ -85,24 +70,8 @@ Dictionary& Dictionary::operator=(PList::Dictionary& d)
         delete it->second;
     }
     _map.clear();
-
     _node = plist_copy(d.GetPlist());
-    plist_dict_iter it = NULL;
-
-    char* key = NULL;
-    plist_t subnode = NULL;
-    plist_dict_new_iter(_node, &it);
-    plist_dict_next_item(_node, it, &key, &subnode);
-    while (subnode)
-    {
-        _map[std::string(key)] = Node::FromPlist(subnode, this);
-
-        subnode = NULL;
-        free(key);
-        key = NULL;
-        plist_dict_next_item(_node, it, NULL, &subnode);
-    }
-    free(it);
+    dictionary_fill(this, _map, _node);
     return *this;
 }
 
