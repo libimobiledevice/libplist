@@ -765,7 +765,9 @@ PLIST_API void plist_get_key_val(plist_t node, char **val)
     uint64_t length = 0;
     if (PLIST_KEY == type)
         plist_get_type_and_value(node, &type, (void *) val, &length);
-    assert(length == strlen(*val));
+    assert(val);
+    if (*val)
+        assert(length == strlen(*val));
 }
 
 PLIST_API void plist_get_string_val(plist_t node, char **val)
@@ -774,7 +776,9 @@ PLIST_API void plist_get_string_val(plist_t node, char **val)
     uint64_t length = 0;
     if (PLIST_STRING == type)
         plist_get_type_and_value(node, &type, (void *) val, &length);
-    assert(length == strlen(*val));
+    assert(val);
+    if (*val)
+        assert(length == strlen(*val));
 }
 
 PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val)
