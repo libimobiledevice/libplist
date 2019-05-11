@@ -8,4 +8,4 @@ Description: C++ binding for @PACKAGE_NAME@
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lplist++
 Cflags: -I${includedir}
-Requires: libplist >= @PACKAGE_VERSION@
+Requires.private: libplist >= @PACKAGE_VERSION@
