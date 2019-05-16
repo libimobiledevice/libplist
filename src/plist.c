@@ -23,11 +23,11 @@
 
 
 #include <string.h>
-#include <assert.h>
 #include "plist.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -324,6 +324,7 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
     plist_data_t newdata = plist_new_plist_data();
 
     assert(data);				// plist should always have data
+    assert(newdata);
 
     memcpy(newdata, data, sizeof(struct plist_data_s));
 
@@ -761,75 +762,105 @@ PLIST_API plist_type plist_get_node_type(plist_t node)
 
 PLIST_API void plist_get_key_val(plist_t node, char **val)
 {
+    if (!node || !val)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_KEY == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (PLIST_KEY != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (!*val)
+        return;
     assert(length == strlen(*val));
 }
 
 PLIST_API void plist_get_string_val(plist_t node, char **val)
 {
+    if (!node || !val)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_STRING == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (PLIST_STRING != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (!*val)
+        return;
     assert(length == strlen(*val));
 }
 
 PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val)
 {
+    if (!node || !val)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_BOOLEAN == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (PLIST_BOOLEAN != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, &length);
     assert(length == sizeof(uint8_t));
 }
 
 PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val)
 {
+    if (!node || !val)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_UINT == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (PLIST_UINT != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, &length);
     assert(length == sizeof(uint64_t) || length == 16);
 }
 
 PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val)
 {
+    if (!node || !val)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_UID == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (PLIST_UID != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, &length);
     assert(length == sizeof(uint64_t));
 }
 
 PLIST_API void plist_get_real_val(plist_t node, double *val)
 {
+    if (!node || !val)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_REAL == type)
-        plist_get_type_and_value(node, &type, (void *) val, &length);
+    if (PLIST_REAL != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, &length);
     assert(length == sizeof(double));
 }
 
 PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length)
 {
+    if (!node || !val || !length)
+        return;
     plist_type type = plist_get_node_type(node);
-    if (PLIST_DATA == type)
-        plist_get_type_and_value(node, &type, (void *) val, length);
+    if (PLIST_DATA != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) val, length);
 }
 
 PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
 {
+    if (!node)
+        return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
     double val = 0;
-    if (PLIST_DATE == type)
-        plist_get_type_and_value(node, &type, (void *) &val, &length);
+    if (PLIST_DATE != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) &val, &length);
     assert(length == sizeof(double));
-    *sec = (int32_t)val;
-    *usec = (int32_t)fabs((val - (int64_t)val) * 1000000);
+    if (sec)
+        *sec = (int32_t)val;
+    if (usec)
+        *usec = (int32_t)fabs((val - (int64_t)val) * 1000000);
 }
 
 int plist_data_compare(const void *a, const void *b)
