@@ -16,12 +16,6 @@ TESTS = \
 	large.test \
 	huge.test \
 	bigarray.test \
-	emptycmp.test \
-	smallcmp.test \
-	mediumcmp.test \
-	largecmp.test \
-	hugecmp.test \
-	bigarraycmp.test \
 	dates.test \
 	timezone1.test \
 	timezone2.test \
