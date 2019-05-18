@@ -247,7 +247,7 @@ extern "C"
      * Get the index of an item. item must be a member of a #PLIST_ARRAY node.
      *
      * @param node the node
-     * @return the node index
+     * @return the node index or UINT_MAX if node index can't be determined
      */
     uint32_t plist_array_get_item_index(plist_t node);
 

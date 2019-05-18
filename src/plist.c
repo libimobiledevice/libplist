@@ -430,7 +430,7 @@ PLIST_API uint32_t plist_array_get_item_index(plist_t node)
     {
         return node_child_position(father, node);
     }
-    return 0;
+    return UINT_MAX;
 }
 
 static void _plist_array_post_insert(plist_t node, plist_t item, long n)

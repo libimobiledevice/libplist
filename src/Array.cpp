@@ -22,6 +22,7 @@
 #include <plist/Array.h>
 
 #include <algorithm>
+#include <limits.h>
 
 namespace PList
 {
@@ -118,6 +119,9 @@ void Array::Remove(Node* node)
     if (node)
     {
         uint32_t pos = plist_array_get_item_index(node->GetPlist());
+        if (pos == UINT_MAX) {
+            return;
+        }
         plist_array_remove_item(_node, pos);
         std::vector<Node*>::iterator it = _array.begin();
         it += pos;
