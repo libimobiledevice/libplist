@@ -515,6 +515,21 @@ PLIST_API void plist_array_remove_item(plist_t node, uint32_t n)
     return;
 }
 
+PLIST_API void plist_array_item_remove(plist_t node)
+{
+    plist_t father = plist_get_parent(node);
+    if (PLIST_ARRAY == plist_get_node_type(father))
+    {
+        int n = node_child_position(father, node);
+        if (n < 0) return;
+        ptrarray_t* pa = ((plist_data_t)((node_t*)father)->data)->hashtable;
+        if (pa) {
+            ptr_array_remove(pa, n);
+        }
+        plist_free(node);
+    }
+}
+
 PLIST_API void plist_array_new_iter(plist_t node, plist_array_iter *iter)
 {
     if (iter)

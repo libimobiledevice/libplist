@@ -288,6 +288,14 @@ extern "C"
     void plist_array_remove_item(plist_t node, uint32_t n);
 
     /**
+     * Remove a node that is a child node of a #PLIST_ARRAY node.
+     * node will be freed using #plist_free.
+     *
+     * @param node The node to be removed from its #PLIST_ARRAY parent.
+     */
+    void plist_array_item_remove(plist_t node);
+
+    /**
      * Create an iterator of a #PLIST_ARRAY node.
      * The allocated iterator should be freed with the standard free function.
      *
