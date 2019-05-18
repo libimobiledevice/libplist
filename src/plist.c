@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <limits.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -37,6 +38,7 @@
 
 #include <node.h>
 #include <hashtable.h>
+#include <ptrarray.h>
 
 extern void plist_xml_init(void);
 extern void plist_xml_deinit(void);
@@ -190,6 +192,9 @@ void plist_free_data(plist_data_t data)
         case PLIST_DATA:
             free(data->buff);
             break;
+        case PLIST_ARRAY:
+            ptr_array_free(data->hashtable);
+            break;
         case PLIST_DICT:
             hash_table_destroy(data->hashtable);
             break;
@@ -338,6 +343,20 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
         case PLIST_STRING:
             newdata->strval = strdup((char *) data->strval);
             break;
+        case PLIST_ARRAY:
+            if (data->hashtable) {
+                ptrarray_t* pa = ptr_array_new(((ptrarray_t*)data->hashtable)->capacity);
+                assert(pa);
+                plist_t current = NULL;
+                for (current = (plist_t)node_first_child(node);
+                     pa && current;
+                     current = (plist_t)node_next_sibling(current))
+                {
+                    ptr_array_add(pa, current);
+                }
+                newdata->hashtable = pa;
+            }
+            break;
         case PLIST_DICT:
             if (data->hashtable) {
                 hashtable_t* ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
@@ -392,9 +411,14 @@ PLIST_API uint32_t plist_array_get_size(plist_t node)
 PLIST_API plist_t plist_array_get_item(plist_t node, uint32_t n)
 {
     plist_t ret = NULL;
-    if (node && PLIST_ARRAY == plist_get_node_type(node))
+    if (node && PLIST_ARRAY == plist_get_node_type(node) && n < INT_MAX)
     {
-        ret = (plist_t)node_nth_child(node, n);
+        ptrarray_t *pa = ((plist_data_t)((node_t*)node)->data)->hashtable;
+        if (pa) {
+            ret = (plist_t)ptr_array_index(pa, n);
+        } else {
+            ret = (plist_t)node_nth_child(node, n);
+        }
     }
     return ret;
 }
@@ -409,19 +433,46 @@ PLIST_API uint32_t plist_array_get_item_index(plist_t node)
     return 0;
 }
 
+static void _plist_array_post_insert(plist_t node, plist_t item, long n)
+{
+    ptrarray_t *pa = ((plist_data_t)((node_t*)node)->data)->hashtable;
+    if (pa) {
+        /* store pointer to item in array */
+        ptr_array_insert(pa, item, n);
+    } else {
+        if (((node_t*)node)->count > 100) {
+            /* make new lookup array */
+            pa = ptr_array_new(128);
+            plist_t current = NULL;
+            for (current = (plist_t)node_first_child(node);
+                 pa && current;
+                 current = (plist_t)node_next_sibling(current))
+            {
+                ptr_array_add(pa, current);
+            }
+            ((plist_data_t)((node_t*)node)->data)->hashtable = pa;
+        }
+    }
+}
+
 PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
 {
-    if (node && PLIST_ARRAY == plist_get_node_type(node))
+    if (node && PLIST_ARRAY == plist_get_node_type(node) && n < INT_MAX)
     {
         plist_t old_item = plist_array_get_item(node, n);
         if (old_item)
         {
             int idx = plist_free_node(old_item);
-	    if (idx < 0) {
-		node_attach(node, item);
-	    } else {
-		node_insert(node, idx, item);
-	    }
+            assert(idx >= 0);
+            if (idx < 0) {
+                return;
+            } else {
+                node_insert(node, idx, item);
+                ptrarray_t* pa = ((plist_data_t)((node_t*)node)->data)->hashtable;
+                if (pa) {
+                    ptr_array_set(pa, item, idx);
+                }
+            }
         }
     }
     return;
@@ -432,26 +483,32 @@ PLIST_API void plist_array_append_item(plist_t node, plist_t item)
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
         node_attach(node, item);
+        _plist_array_post_insert(node, item, -1);
     }
     return;
 }
 
 PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n)
 {
-    if (node && PLIST_ARRAY == plist_get_node_type(node))
+    if (node && PLIST_ARRAY == plist_get_node_type(node) && n < INT_MAX)
     {
         node_insert(node, n, item);
+        _plist_array_post_insert(node, item, (long)n);
     }
     return;
 }
 
 PLIST_API void plist_array_remove_item(plist_t node, uint32_t n)
 {
-    if (node && PLIST_ARRAY == plist_get_node_type(node))
+    if (node && PLIST_ARRAY == plist_get_node_type(node) && n < INT_MAX)
     {
         plist_t old_item = plist_array_get_item(node, n);
         if (old_item)
         {
+            ptrarray_t* pa = ((plist_data_t)((node_t*)node)->data)->hashtable;
+            if (pa) {
+                ptr_array_remove(pa, n);
+            }
             plist_free(old_item);
         }
     }
@@ -586,8 +643,9 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
         plist_t key_node = NULL;
         if (old_item) {
             int idx = plist_free_node(old_item);
+            assert(idx >= 0);
             if (idx < 0) {
-                node_attach(node, item);
+                return;
             } else {
                 node_insert(node, idx, item);
             }

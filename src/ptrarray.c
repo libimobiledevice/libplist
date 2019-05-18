@@ -2,7 +2,7 @@
  * ptrarray.c
  * simple pointer array implementation
  *
- * Copyright (c) 2011 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2011-2019 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #include "ptrarray.h"
+#include <string.h>
 
 ptrarray_t *ptr_array_new(int capacity)
 {
@@ -39,22 +40,51 @@ void ptr_array_free(ptrarray_t *pa)
 	free(pa);
 }
 
-void ptr_array_add(ptrarray_t *pa, void *data)
+void ptr_array_insert(ptrarray_t *pa, void *data, long array_index)
 {
 	if (!pa || !pa->pdata || !data) return;
-	size_t remaining = pa->capacity-pa->len;
+	long remaining = pa->capacity-pa->len;
 	if (remaining == 0) {
 		pa->pdata = realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
 		pa->capacity += pa->capacity_step;
 	}
-	pa->pdata[pa->len] = data;
+	if (array_index < 0 || array_index >= pa->len) {
+		pa->pdata[pa->len] = data;
+	} else {
+		memmove(&pa->pdata[array_index+1], &pa->pdata[array_index], (pa->len-array_index) * sizeof(void*));
+		pa->pdata[array_index] = data;
+	}
 	pa->len++;
 }
 
-void* ptr_array_index(ptrarray_t *pa, size_t array_index)
+void ptr_array_add(ptrarray_t *pa, void *data)
+{
+	ptr_array_insert(pa, data, -1);
+}
+
+void ptr_array_remove(ptrarray_t *pa, long array_index)
+{
+	if (!pa || !pa->pdata || array_index < 0) return;
+	if (pa->len == 0 || array_index >= pa->len) return;
+	if (pa->len == 1) {
+		pa->pdata[0] = NULL;
+	} else {
+		memmove(&pa->pdata[array_index], &pa->pdata[array_index+1], (pa->len-array_index-1) * sizeof(void*));
+	}
+	pa->len--;
+}
+
+void ptr_array_set(ptrarray_t *pa, void *data, long array_index)
+{
+	if (!pa || !pa->pdata || array_index < 0) return;
+	if (pa->len == 0 || array_index >= pa->len) return;
+	pa->pdata[array_index] = data;
+}
+
+void* ptr_array_index(ptrarray_t *pa, long array_index)
 {
 	if (!pa) return NULL;
-	if (array_index >= pa->len) {
+	if (array_index < 0 || array_index >= pa->len) {
 		return NULL;
 	}
 	return pa->pdata[array_index];

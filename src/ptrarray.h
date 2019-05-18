@@ -2,7 +2,7 @@
  * ptrarray.h
  * header file for simple pointer array implementation
  *
- * Copyright (c) 2011 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2011-2019 Nikias Bassen, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,13 +24,16 @@
 
 typedef struct ptrarray_t {
 	void **pdata;
-	size_t len;
-	size_t capacity;
-	size_t capacity_step;
+	long len;
+	long capacity;
+	long capacity_step;
 } ptrarray_t;
 
 ptrarray_t *ptr_array_new(int capacity);
 void ptr_array_free(ptrarray_t *pa);
 void ptr_array_add(ptrarray_t *pa, void *data);
-void* ptr_array_index(ptrarray_t *pa, size_t index);
+void ptr_array_insert(ptrarray_t *pa, void *data, long index);
+void ptr_array_remove(ptrarray_t *pa, long index);
+void ptr_array_set(ptrarray_t *pa, void *data, long index);
+void* ptr_array_index(ptrarray_t *pa, long index);
 #endif
