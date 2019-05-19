@@ -1067,6 +1067,11 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
 
 PLIST_API void plist_set_key_val(plist_t node, const char *val)
 {
+    plist_t father = plist_get_parent(node);
+    plist_t item = plist_dict_get_item(father, val);
+    if (item) {
+        return;
+    }
     plist_set_element_val(node, PLIST_KEY, val, strlen(val));
 }
 
