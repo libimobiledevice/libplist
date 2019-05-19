@@ -353,9 +353,9 @@ extern "C"
     void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
 
     /**
-     * Get key associated to an item. Item must be member of a dictionary
+     * Get key associated key to an item. Item must be member of a dictionary.
      *
-     * @param node the node
+     * @param node the item
      * @param key a location to store the key. The caller is responsible for freeing the returned string.
      */
     void plist_dict_get_item_key(plist_t node, char **key);
@@ -369,6 +369,14 @@ extern "C"
      *		the returned node.
      */
     plist_t plist_dict_get_item(plist_t node, const char* key);
+
+    /**
+     * Get key node associated to an item. Item must be member of a dictionary.
+     *
+     * @param node the item
+     * @return the key node of the given item, or NULL.
+     */
+    plist_t plist_dict_item_get_key(plist_t node);
 
     /**
      * Set item identified by key in a #PLIST_DICT node.

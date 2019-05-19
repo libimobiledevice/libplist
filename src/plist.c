@@ -618,6 +618,17 @@ PLIST_API void plist_dict_get_item_key(plist_t node, char **key)
     }
 }
 
+PLIST_API plist_t plist_dict_item_get_key(plist_t node)
+{
+    plist_t ret = NULL;
+    plist_t father = plist_get_parent(node);
+    if (PLIST_DICT == plist_get_node_type(father))
+    {
+        ret = (plist_t)node_prev_sibling(node);
+    }
+    return ret;
+}
+
 PLIST_API plist_t plist_dict_get_item(plist_t node, const char* key)
 {
     plist_t ret = NULL;
