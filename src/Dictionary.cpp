@@ -28,7 +28,7 @@ Dictionary::Dictionary(Node* parent) : Structure(PLIST_DICT, parent)
 {
 }
 
-static void dictionary_fill(Dictionary *_this, std::map<std::string,Node*> map, plist_t node)
+static void dictionary_fill(Dictionary *_this, std::map<std::string,Node*> &map, plist_t node)
 {
     plist_dict_iter it = NULL;
     plist_dict_new_iter(node, &it);
