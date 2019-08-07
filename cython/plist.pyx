@@ -863,6 +863,8 @@ cpdef object load(fp, fmt=None, use_builtin_types=True, dict_type=dict):
     is_binary = fp.read(6) == 'bplist'
     fp.seek(0)
 
+    cdef object cb = None
+
     if not fmt:
         if is_binary:
             if 'b' not in fp.mode:
@@ -887,6 +889,8 @@ cpdef object load(fp, fmt=None, use_builtin_types=True, dict_type=dict):
 
 cpdef object loads(data, fmt=None, use_builtin_types=True, dict_type=dict):
     is_binary = data[0:6] == 'bplist'
+
+    cdef object cb = None
 
     if fmt is not None:
         if fmt not in (FMT_XML, FMT_BINARY):
