@@ -27,4 +27,7 @@ plist.c: plist.pyx $(PXDINCLUDES) $(PXIINCLUDES)
 .pyx.c:
 	$(CYTHON) -I$(CYTHON_PLIST_INCLUDE_DIR) -I$(top_srcdir)/src -o $@ $<
 
+pxddir = $(includedir)/plist/cython
+pxd_DATA = plist.pxd
+
 endif
