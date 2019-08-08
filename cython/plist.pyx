@@ -499,7 +499,6 @@ cdef class Date(Node):
     cpdef object get_value(self):
         cdef int32_t secs = 0
         cdef int32_t usecs = 0
-        cdef object result
         plist_get_date_val(self._c_node, &secs, &usecs)
         return ints_to_datetime(secs, usecs)
 
