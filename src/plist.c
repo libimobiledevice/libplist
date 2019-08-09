@@ -321,7 +321,7 @@ PLIST_API void plist_free(plist_t plist)
     }
 }
 
-static void plist_copy_node(node_t *node, void *parent_node_ptr)
+static plist_t plist_copy_node(node_t *node, void *parent_node_ptr)
 {
     plist_type node_type = PLIST_NONE;
     plist_t newnode = NULL;
@@ -347,13 +347,6 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
             if (data->hashtable) {
                 ptrarray_t* pa = ptr_array_new(((ptrarray_t*)data->hashtable)->capacity);
                 assert(pa);
-                plist_t current = NULL;
-                for (current = (plist_t)node_first_child(node);
-                     pa && current;
-                     current = (plist_t)node_next_sibling(current))
-                {
-                    ptr_array_add(pa, current);
-                }
                 newdata->hashtable = pa;
             }
             break;
@@ -361,13 +354,6 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
             if (data->hashtable) {
                 hashtable_t* ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
                 assert(ht);
-                plist_t current = NULL;
-                for (current = (plist_t)node_first_child(node);
-                     ht && current;
-                     current = (plist_t)node_next_sibling(node_next_sibling(current)))
-                {
-                    hash_table_insert(ht, ((node_t*)current)->data, node_next_sibling(current));
-                }
                 newdata->hashtable = ht;
             }
             break;
@@ -386,16 +372,34 @@ static void plist_copy_node(node_t *node, void *parent_node_ptr)
     }
 
     node_t *ch;
+    unsigned int node_index = 0;
     for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-        plist_copy_node(ch, &newnode);
+	/* copy child node and attach to new parent node */
+        plist_t newch = plist_copy_node(ch, &newnode);
+        /* if needed, add child node to lookup table of parent node */
+        switch (node_type) {
+            case PLIST_ARRAY:
+                if (newdata->hashtable) {
+                    ptr_array_add((ptrarray_t*)newdata->hashtable, newch);
+                }
+                break;
+            case PLIST_DICT:
+                if (newdata->hashtable && (node_index % 2 != 0)) {
+                    hash_table_insert((hashtable_t*)newdata->hashtable, (node_prev_sibling((node_t*)newch))->data, newch);
+                }
+                break;
+            default:
+                break;
+        }
+        node_index++;
     }
+    return newnode;
 }
 
 PLIST_API plist_t plist_copy(plist_t node)
 {
     plist_t copied = NULL;
-    plist_copy_node(node, &copied);
-    return copied;
+    return plist_copy_node(node, &copied);
 }
 
 PLIST_API uint32_t plist_array_get_size(plist_t node)
