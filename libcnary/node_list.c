@@ -142,6 +142,8 @@ int node_list_remove(node_list_t* list, node_t* node) {
 				// we just removed the first element
 				if (newnode) {
 					newnode->prev = NULL;
+				} else {
+					list->end = NULL;
 				}
 				list->begin = newnode;
 			}
