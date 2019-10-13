@@ -70,4 +70,4 @@ uint64_t Uid::GetValue() const
     return i;
 }
 
-};
+}  // namespace PList

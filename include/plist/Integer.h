@@ -43,6 +43,6 @@ public :
     uint64_t GetValue() const;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_INTEGER_H

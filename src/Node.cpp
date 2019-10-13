@@ -163,4 +163,4 @@ Node* Node::FromPlist(plist_t node, Node* parent)
     return ret;
 }
 
-};
+}  // namespace PList

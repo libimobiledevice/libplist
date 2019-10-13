@@ -73,4 +73,4 @@ timeval Date::GetValue() const
     return t;
 }
 
-};
+}  // namespace PList

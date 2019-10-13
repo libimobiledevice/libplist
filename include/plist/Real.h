@@ -43,6 +43,6 @@ public :
     double GetValue() const;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_REAL_H

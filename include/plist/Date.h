@@ -45,6 +45,6 @@ public :
     timeval GetValue() const;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_DATE_H

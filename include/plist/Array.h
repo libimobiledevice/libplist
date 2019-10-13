@@ -50,6 +50,6 @@ private :
     std::vector<Node*> _array;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_ARRAY_H

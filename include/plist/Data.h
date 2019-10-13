@@ -44,6 +44,6 @@ public :
     std::vector<char> GetValue() const;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_DATA_H

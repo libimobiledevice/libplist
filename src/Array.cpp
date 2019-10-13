@@ -145,4 +145,4 @@ unsigned int Array::GetNodeIndex(Node* node) const
     return std::distance (_array.begin(), it);
 }
 
-};
+}  // namespace PList

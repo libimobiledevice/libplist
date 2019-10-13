@@ -54,6 +54,6 @@ private:
     Structure& operator=(const Structure& s);
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_STRUCTURE_H

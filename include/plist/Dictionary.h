@@ -63,6 +63,6 @@ private :
 
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_DICTIONARY_H

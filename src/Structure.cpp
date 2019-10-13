@@ -119,5 +119,5 @@ Structure* Structure::FromBin(const std::vector<char>& bin)
 
 }
 
-};
+}  // namespace PList
 

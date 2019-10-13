@@ -52,6 +52,6 @@ private:
     friend class Structure;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_NODE_H

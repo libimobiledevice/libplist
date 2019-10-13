@@ -77,4 +77,4 @@ std::string String::GetValue() const
     return ret;
 }
 
-};
+}  // namespace PList

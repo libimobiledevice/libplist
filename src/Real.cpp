@@ -70,4 +70,4 @@ double Real::GetValue() const
     return d;
 }
 
-};
+}  // namespace PList

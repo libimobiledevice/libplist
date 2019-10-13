@@ -44,6 +44,6 @@ public :
     std::string GetValue() const;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_STRING_H

@@ -43,6 +43,6 @@ public :
     bool GetValue() const;
 };
 
-};
+}  // namespace PList
 
 #endif // PLIST_BOOLEAN_H
