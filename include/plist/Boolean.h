@@ -35,9 +35,9 @@ public :
     Boolean(const Boolean& b);
     Boolean& operator=(const Boolean& b);
     Boolean(bool b);
-    virtual ~Boolean();
+    ~Boolean() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(bool b);
     bool GetValue() const;

@@ -37,9 +37,9 @@ public :
     Date(const Date& d);
     Date& operator=(const Date& d);
     Date(timeval t);
-    virtual ~Date();
+    ~Date() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(timeval t);
     timeval GetValue() const;

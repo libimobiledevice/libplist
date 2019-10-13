@@ -36,9 +36,9 @@ public :
     String(const String& s);
     String& operator=(const String& s);
     String(const std::string& s);
-    virtual ~String();
+    ~String() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(const std::string& s);
     std::string GetValue() const;

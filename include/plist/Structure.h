@@ -32,7 +32,7 @@ namespace PList
 class Structure : public Node
 {
 public :
-    virtual ~Structure();
+    ~Structure() override;
 
     uint32_t GetSize() const;
 

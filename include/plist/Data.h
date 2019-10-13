@@ -36,9 +36,9 @@ public :
     Data(const Data& d);
     Data& operator=(const Data& b);
     Data(const std::vector<char>& buff);
-    virtual ~Data();
+    ~Data() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(const std::vector<char>& buff);
     std::vector<char> GetValue() const;

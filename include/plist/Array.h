@@ -35,14 +35,14 @@ public :
     Array(plist_t node, Node* parent = NULL);
     Array(const Array& a);
     Array& operator=(const Array& a);
-    virtual ~Array();
+    ~Array() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     Node* operator[](unsigned int index);
     void Append(Node* node);
     void Insert(Node* node, unsigned int pos);
-    void Remove(Node* node);
+    void Remove(Node* node) override;
     void Remove(unsigned int pos);
     unsigned int GetNodeIndex(Node* node) const;
 

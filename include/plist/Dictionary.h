@@ -36,9 +36,9 @@ public :
     Dictionary(plist_t node, Node* parent = NULL);
     Dictionary(const Dictionary& d);
     Dictionary& operator=(const Dictionary& d);
-    virtual ~Dictionary();
+    ~Dictionary() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     typedef std::map<std::string,Node*>::iterator iterator;
     typedef std::map<std::string,Node*>::const_iterator const_iterator;
@@ -53,7 +53,7 @@ public :
     iterator Set(const std::string& key, const Node* node);
     iterator Set(const std::string& key, const Node& node);
     iterator Insert(const std::string& key, Node* node) PLIST_WARN_DEPRECATED("use Set() instead");
-    void Remove(Node* node);
+    void Remove(Node* node) override;
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* node);
 

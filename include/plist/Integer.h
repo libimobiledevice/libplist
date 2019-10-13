@@ -35,9 +35,9 @@ public :
     Integer(const Integer& i);
     Integer& operator=(const Integer& i);
     Integer(uint64_t i);
-    virtual ~Integer();
+    ~Integer() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(uint64_t i);
     uint64_t GetValue() const;

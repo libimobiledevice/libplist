@@ -35,9 +35,9 @@ public :
     Real(const Real& d);
     Real& operator=(const Real& d);
     Real(double d);
-    virtual ~Real();
+    ~Real() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(double d);
     double GetValue() const;

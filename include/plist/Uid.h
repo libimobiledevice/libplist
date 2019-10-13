@@ -35,9 +35,9 @@ public :
     Uid(const Uid& i);
     Uid& operator=(const Uid& i);
     Uid(uint64_t i);
-    virtual ~Uid();
+    ~Uid() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(uint64_t i);
     uint64_t GetValue() const;

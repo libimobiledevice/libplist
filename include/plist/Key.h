@@ -36,9 +36,9 @@ public :
     Key(const Key& k);
     Key& operator=(const Key& k);
     Key(const std::string& s);
-    virtual ~Key();
+    ~Key() override;
 
-    Node* Clone() const;
+    Node* Clone() const override;
 
     void SetValue(const std::string& s);
     std::string GetValue() const;
