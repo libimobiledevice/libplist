@@ -78,7 +78,7 @@ void Structure::UpdateNodeParent(Node* node)
         plist_type type = plist_get_node_type(node->_parent);
         if (PLIST_ARRAY ==type || PLIST_DICT == type )
         {
-            auto* s = static_cast<Structure*>(node->_parent);
+            auto* s = dynamic_cast<Structure*>(node->_parent);
             s->Remove(node);
         }
     }
@@ -92,7 +92,7 @@ static Structure* ImportStruct(plist_t root)
 
     if (PLIST_ARRAY == type || PLIST_DICT == type)
     {
-        ret = static_cast<Structure*>(Node::FromPlist(root));
+        ret = dynamic_cast<Structure*>(Node::FromPlist(root));
     }
     else
     {
