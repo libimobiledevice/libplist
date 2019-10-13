@@ -78,7 +78,7 @@ void Structure::UpdateNodeParent(Node* node)
         plist_type type = plist_get_node_type(node->_parent);
         if (PLIST_ARRAY ==type || PLIST_DICT == type )
         {
-            Structure* s = static_cast<Structure*>(node->_parent);
+            auto* s = static_cast<Structure*>(node->_parent);
             s->Remove(node);
         }
     }
