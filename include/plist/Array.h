@@ -34,7 +34,7 @@ public :
     Array(Node* parent = NULL);
     Array(plist_t node, Node* parent = NULL);
     Array(const Array& a);
-    Array& operator=(Array& a);
+    Array& operator=(const Array& a);
     virtual ~Array();
 
     Node* Clone() const;

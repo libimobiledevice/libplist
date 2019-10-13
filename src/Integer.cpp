@@ -37,7 +37,7 @@ Integer::Integer(const PList::Integer& i) : Node(PLIST_UINT)
     plist_set_uint_val(_node, i.GetValue());
 }
 
-Integer& Integer::operator=(PList::Integer& i)
+Integer& Integer::operator=(const PList::Integer& i)
 {
     plist_free(_node);
     _node = plist_copy(i.GetPlist());

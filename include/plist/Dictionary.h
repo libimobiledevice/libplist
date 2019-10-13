@@ -35,7 +35,7 @@ public :
     Dictionary(Node* parent = NULL);
     Dictionary(plist_t node, Node* parent = NULL);
     Dictionary(const Dictionary& d);
-    Dictionary& operator=(Dictionary& d);
+    Dictionary& operator=(const Dictionary& d);
     virtual ~Dictionary();
 
     Node* Clone() const;

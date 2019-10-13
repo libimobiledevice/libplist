@@ -33,7 +33,7 @@ public :
     Real(Node* parent = NULL);
     Real(plist_t node, Node* parent = NULL);
     Real(const Real& d);
-    Real& operator=(Real& d);
+    Real& operator=(const Real& d);
     Real(double d);
     virtual ~Real();
 

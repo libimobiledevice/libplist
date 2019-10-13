@@ -38,7 +38,7 @@ Data::Data(const PList::Data& d) : Node(PLIST_DATA)
     plist_set_data_val(_node, &b[0], b.size());
 }
 
-Data& Data::operator=(PList::Data& b)
+Data& Data::operator=(const PList::Data& b)
 {
     plist_free(_node);
     _node = plist_copy(b.GetPlist());

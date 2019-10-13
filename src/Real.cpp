@@ -37,7 +37,7 @@ Real::Real(const PList::Real& d) : Node(PLIST_UINT)
     plist_set_real_val(_node, d.GetValue());
 }
 
-Real& Real::operator=(PList::Real& d)
+Real& Real::operator=(const PList::Real& d)
 {
     plist_free(_node);
     _node = plist_copy(d.GetPlist());

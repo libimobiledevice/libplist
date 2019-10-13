@@ -35,7 +35,7 @@ public :
     Date(Node* parent = NULL);
     Date(plist_t node, Node* parent = NULL);
     Date(const Date& d);
-    Date& operator=(Date& d);
+    Date& operator=(const Date& d);
     Date(timeval t);
     virtual ~Date();
 

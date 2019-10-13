@@ -37,7 +37,7 @@ Boolean::Boolean(const PList::Boolean& b) : Node(PLIST_BOOLEAN)
     plist_set_bool_val(_node, b.GetValue());
 }
 
-Boolean& Boolean::operator=(PList::Boolean& b)
+Boolean& Boolean::operator=(const PList::Boolean& b)
 {
     plist_free(_node);
     _node = plist_copy(b.GetPlist());

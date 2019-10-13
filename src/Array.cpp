@@ -58,7 +58,7 @@ Array::Array(const PList::Array& a)
     array_fill(this, _array, _node);
 }
 
-Array& Array::operator=(PList::Array& a)
+Array& Array::operator=(const PList::Array& a)
 {
     plist_free(_node);
     for (auto & it : _array)

@@ -34,7 +34,7 @@ public :
     Data(Node* parent = NULL);
     Data(plist_t node, Node* parent = NULL);
     Data(const Data& d);
-    Data& operator=(Data& b);
+    Data& operator=(const Data& b);
     Data(const std::vector<char>& buff);
     virtual ~Data();
 
