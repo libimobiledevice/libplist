@@ -29,7 +29,7 @@ extern "C"
 {
 #endif
 
-#if _MSC_VER && _MSC_VER < 1700
+#if defined(_MSC_VER) && _MSC_VER < 1700
     typedef __int8 int8_t;
     typedef __int16 int16_t;
     typedef __int32 int32_t;
