@@ -61,9 +61,9 @@ Array::Array(const PList::Array& a) : Structure()
 Array& Array::operator=(PList::Array& a)
 {
     plist_free(_node);
-    for (unsigned int it = 0; it < _array.size(); it++)
+    for (auto & it : _array)
     {
-        delete _array.at(it);
+        delete it;
     }
     _array.clear();
     _node = plist_copy(a.GetPlist());
@@ -73,9 +73,9 @@ Array& Array::operator=(PList::Array& a)
 
 Array::~Array()
 {
-    for (unsigned int it = 0; it < _array.size(); it++)
+    for (auto & it : _array)
     {
-        delete (_array.at(it));
+        delete it;
     }
     _array.clear();
 }
