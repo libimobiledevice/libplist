@@ -30,6 +30,8 @@ src/Makefile
 src/Makefile.in
 src/.libs
 src/.deps
+fuzz/.deps
+fuzz/.libs
 include/Makefile
 include/Makefile.in
 libcnary/Makefile
