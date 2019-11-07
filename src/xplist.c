@@ -117,6 +117,8 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
             if (buf[i] == ',') {
                 buf[i] = '.';
                 break;
+            } else if (buf[i] == '.') {
+                break;
             }
         }
     }
