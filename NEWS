@@ -1,3 +1,26 @@
+Version 2.1.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * Add new plist_get_data_ptr() and plist_get_string_ptr() for direct access to underlying buffer
+  * Increase precision when converting PLIST_REAL nodes to XML
+  * Fix several issues in libcnary (UaF, segfault, memory leak)
+  * Fix copying of hash table entries when cloning array/dict nodes
+  * cython: Implement load()/loads() and dump()/dumps() to match up with plistlib (Python 3.4)
+  * Add new plist_dict_item_get_key() for retrieving key node of a dict item
+  * Add new plist_array_item_remove() to allow removing an array's child node without relying on the index
+  * Make plist_array_get_item_index() return UINT_MAX instead of 0 when node can't be found
+  * Add index lookup table for large PLIST_ARRAY nodes
+  * Add iterator for array nodes: plist_array_new_iter(), plist_array_next_item()
+  * Improve performance of plist_dict_next_item() drastically
+  * Improve performance and memory usage when writing XML plists
+  * Improve performance and memory usage when writing binary plists
+  * Allow building with sanitizers (without fuzzers)
+  * Prevent store to misaligned address when writing real/date nodes
+  * Work around misaligned reads in binary plist parser
+  * Integrate fuzzing targets (libFuzzer) into project
+  * Add sanitizers (ASAN, UBSAN) when building fuzzers (--with-fuzzers)
+
 Version 2.0.0
 ~~~~~~~~~~~~~
 
