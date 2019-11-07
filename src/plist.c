@@ -868,6 +868,19 @@ PLIST_API void plist_get_string_val(plist_t node, char **val)
     assert(length == strlen(*val));
 }
 
+PLIST_API const char* plist_get_string_ptr(plist_t node, uint64_t* length)
+{
+    if (!node)
+        return NULL;
+    plist_type type = plist_get_node_type(node);
+    if (PLIST_STRING != type)
+        return NULL;
+    plist_data_t data = plist_get_data(node);
+    if (length)
+        *length = data->length;
+    return (const char*)data->strval;
+}
+
 PLIST_API void plist_get_bool_val(plist_t node, uint8_t * val)
 {
     if (!node || !val)
@@ -924,6 +937,18 @@ PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length)
     if (PLIST_DATA != type)
         return;
     plist_get_type_and_value(node, &type, (void *) val, length);
+}
+
+PLIST_API const char* plist_get_data_ptr(plist_t node, uint64_t* length)
+{
+    if (!node || !length)
+        return NULL;
+    plist_type type = plist_get_node_type(node);
+    if (PLIST_DATA != type)
+        return NULL;
+    plist_data_t data = plist_get_data(node);
+    *length = data->length;
+    return (const char*)data->buff;
 }
 
 PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)

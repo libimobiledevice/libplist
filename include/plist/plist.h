@@ -463,6 +463,19 @@ extern "C"
     void plist_get_string_val(plist_t node, char **val);
 
     /**
+     * Get a pointer to the buffer of a #PLIST_STRING node.
+     *
+     * @note DO NOT MODIFY the buffer. Mind that the buffer is only available
+     *   until the plist node gets freed. Make a copy if needed.
+     *
+     * @param node The node
+     * @param length If non-NULL, will be set to the length of the string
+     *
+     * @return Pointer to the NULL-terminated buffer.
+     */
+    const char* plist_get_string_ptr(plist_t node, uint64_t* length);
+
+    /**
      * Get the value of a #PLIST_BOOLEAN node.
      * This function does nothing if node is not of type #PLIST_BOOLEAN
      *
@@ -499,6 +512,19 @@ extern "C"
      * @param length the length of the buffer
      */
     void plist_get_data_val(plist_t node, char **val, uint64_t * length);
+
+    /**
+     * Get a pointer to the data buffer of a #PLIST_DATA node.
+     *
+     * @note DO NOT MODIFY the buffer. Mind that the buffer is only available
+     *   until the plist node gets freed. Make a copy if needed.
+     *
+     * @param node The node
+     * @param length Pointer to a uint64_t that will be set to the length of the buffer
+     *
+     * @return Pointer to the buffer
+     */
+    const char* plist_get_data_ptr(plist_t node, uint64_t* length);
 
     /**
      * Get the value of a #PLIST_DATE node.
