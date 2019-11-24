@@ -1,0 +1,13 @@
+name: C/C++ CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: autogen
+      run: ./autogen.sh
+    - name: make
+      run: make
+    - name: make install
+      run: sudo make install
