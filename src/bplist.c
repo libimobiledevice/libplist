@@ -745,7 +745,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
             ptr_array_add(bplist->used_indexes, node_index);
         }
     } else {
-		ptr_array_set(bplist->used_indexes, node_index, bplist->level);
+	ptr_array_set(bplist->used_indexes, node_index, bplist->level);
     }
 
     /* recursion check */
