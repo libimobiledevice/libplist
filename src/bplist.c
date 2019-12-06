@@ -201,7 +201,7 @@ struct bplist_data {
     uint8_t offset_size;
     const char* offset_table;
     uint32_t level;
-    plist_t used_indexes;
+    ptrarray_t* used_indexes;
 };
 
 #ifdef DEBUG
@@ -740,20 +740,20 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     }
 
     /* store node_index for current recursion level */
-    if (plist_array_get_size(bplist->used_indexes) < bplist->level+1) {
-        while (plist_array_get_size(bplist->used_indexes) < bplist->level+1) {
-            plist_array_append_item(bplist->used_indexes, plist_new_uint(node_index));
+    if (ptr_array_size(bplist->used_indexes) < bplist->level+1) {
+        while (ptr_array_size(bplist->used_indexes) < bplist->level+1) {
+            ptr_array_add(bplist->used_indexes, node_index);
         }
     } else {
-        plist_array_set_item(bplist->used_indexes, plist_new_uint(node_index), bplist->level);
+		ptr_array_set(bplist->used_indexes, node_index, bplist->level);
     }
 
     /* recursion check */
     if (bplist->level > 0) {
         for (i = bplist->level-1; i >= 0; i--) {
-            plist_t node_i = plist_array_get_item(bplist->used_indexes, i);
-            plist_t node_level = plist_array_get_item(bplist->used_indexes, bplist->level);
-            if (plist_compare_node_value(node_i, node_level)) {
+            uint32_t node_i = ptr_array_index(bplist->used_indexes, i);
+            uint32_t node_level = ptr_array_index(bplist->used_indexes, bplist->level);
+            if (node_i == node_level) {
                 PLIST_BIN_ERR("recursion detected in binary plist\n");
                 return NULL;
             }
@@ -850,7 +850,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
     bplist.offset_size = offset_size;
     bplist.offset_table = offset_table;
     bplist.level = 0;
-    bplist.used_indexes = plist_new_array();
+    bplist.used_indexes = ptr_array_new(16);
 
     if (!bplist.used_indexes) {
         PLIST_BIN_ERR("failed to create array to hold used node indexes. Out of memory?\n");
@@ -859,7 +859,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
 
     *plist = parse_bin_node_at_index(&bplist, root_object);
 
-    plist_free(bplist.used_indexes);
+    ptr_array_free(bplist.used_indexes);
 }
 
 static unsigned int plist_data_hash(const void* key)
