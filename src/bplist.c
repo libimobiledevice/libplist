@@ -742,17 +742,17 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     /* store node_index for current recursion level */
     if (ptr_array_size(bplist->used_indexes) < bplist->level+1) {
         while (ptr_array_size(bplist->used_indexes) < bplist->level+1) {
-            ptr_array_add(bplist->used_indexes, node_index);
+            ptr_array_add(bplist->used_indexes, (void*)(uintptr_t)node_index);
         }
     } else {
-	ptr_array_set(bplist->used_indexes, node_index, bplist->level);
+	ptr_array_set(bplist->used_indexes, (void*)(uintptr_t)node_index, bplist->level);
     }
 
     /* recursion check */
     if (bplist->level > 0) {
         for (i = bplist->level-1; i >= 0; i--) {
-            uint32_t node_i = ptr_array_index(bplist->used_indexes, i);
-            uint32_t node_level = ptr_array_index(bplist->used_indexes, bplist->level);
+            uint32_t node_i = (uint32_t)(uintptr_t)ptr_array_index(bplist->used_indexes, i);
+            uint32_t node_level = (uint32_t)(uintptr_t)ptr_array_index(bplist->used_indexes, bplist->level);
             if (node_i == node_level) {
                 PLIST_BIN_ERR("recursion detected in binary plist\n");
                 return NULL;
