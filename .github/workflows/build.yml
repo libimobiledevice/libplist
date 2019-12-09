@@ -3,28 +3,12 @@ name: build
 on: [push]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        platform: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.platform }}
+  build-linux-ubuntu:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
     - name: install dependencies
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt-get install cython
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          if test -x "`which port`"; then
-            sudo port install libtool autoconf automake cython
-          else
-            brew install libtool autoconf automake cython
-          fi
-        else
-          echo "$RUNNER_OS not supported"
-          exit 1
-        fi
-      shell: bash
+      run: sudo apt-get install cython
+    - uses: actions/checkout@v1
     - name: autogen
       run: ./autogen.sh
     - name: make
@@ -33,4 +17,34 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
-
+  build-macOS:
+    runs-on: macOS-latest
+    steps:
+    - name: install dependencies
+      run: |
+          if test -x "`which port`"; then
+            sudo port install libtool autoconf automake cython
+          else
+            brew install libtool autoconf automake cython
+          fi
+      shell: bash
+    - uses: actions/checkout@v1
+    - name: autogen
+      run: ./autogen.sh
+    - name: make
+      run: make
+    - name: make check
+      run: make check
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: numworks/setup-msys2@v1
+    - name: install dependencies
+      run: msys2do pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-g++ make libtool autoconf automake mingw-w64-x86_64
+    - uses: actions/checkout@v1
+    - name: autogen
+      run: ./autogen.sh --without-cython
+    - name: make
+      run: make
+    - name: make check
+      run: make check
