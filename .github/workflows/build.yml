@@ -18,7 +18,7 @@ jobs:
           if test -x "`which port`"; then
             sudo port install libtool autoconf automake cython
           else
-            sudo brew install libtool autoconf automake cython
+            brew install libtool autoconf automake cython
           fi
         else
           echo "$RUNNER_OS not supported"
