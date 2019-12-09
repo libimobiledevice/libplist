@@ -36,4 +36,5 @@ void ptr_array_insert(ptrarray_t *pa, void *data, long index);
 void ptr_array_remove(ptrarray_t *pa, long index);
 void ptr_array_set(ptrarray_t *pa, void *data, long index);
 void* ptr_array_index(ptrarray_t *pa, long index);
+long ptr_array_size(ptrarray_t *pa);
 #endif
