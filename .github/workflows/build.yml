@@ -43,8 +43,8 @@ jobs:
       run: msys2do pacman -S --noconfirm mingw-w64-x86_64-gcc make libtool autoconf automake-wrapper
     - uses: actions/checkout@v1
     - name: autogen
-      run: ./autogen.sh --without-cython
+      run: msys2do ./autogen.sh --without-cython
     - name: make
-      run: make
+      run: msys2do make
     - name: make check
-      run: make check
+      run: msys2do make check
