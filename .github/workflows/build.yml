@@ -10,6 +10,21 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v1
+    - name: install dependencies
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get install cython
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          if test -x "`which port`"; then
+            sudo port install libtool autoconf automake cython
+          else
+            sudo brew install libtool autoconf automake cython
+          fi
+        else
+          echo "$RUNNER_OS not supported"
+          exit 1
+        fi
+      shell: bash
     - name: autogen
       run: ./autogen.sh
     - name: make
