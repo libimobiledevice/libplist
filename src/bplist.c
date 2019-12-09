@@ -740,8 +740,8 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     }
 
     /* store node_index for current recursion level */
-    if (ptr_array_size(bplist->used_indexes) < bplist->level+1) {
-        while (ptr_array_size(bplist->used_indexes) < bplist->level+1) {
+    if ((uint32_t)ptr_array_size(bplist->used_indexes) < bplist->level+1) {
+        while ((uint32_t)ptr_array_size(bplist->used_indexes) < bplist->level+1) {
             ptr_array_add(bplist->used_indexes, (void*)(uintptr_t)node_index);
         }
     } else {
