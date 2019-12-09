@@ -40,7 +40,7 @@ jobs:
     steps:
     - uses: numworks/setup-msys2@v1
     - name: install dependencies
-      run: msys2do pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-g++ make libtool autoconf automake mingw-w64-x86_64
+      run: msys2do pacman -S --noconfirm mingw-w64-x86_64-gcc make libtool autoconf automake-wrapper
     - uses: actions/checkout@v1
     - name: autogen
       run: ./autogen.sh --without-cython
