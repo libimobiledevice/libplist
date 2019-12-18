@@ -19,5 +19,5 @@ DATAOUT1=$top_builddir/test/data/$TESTFILE1.xml
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 $top_builddir/tools/plistutil -i $DATAIN1 -o $DATAOUT1
 
-diff $DATACMP0 $DATAOUT0
-diff $DATACMP1 $DATAOUT1
+diff --strip-trailing-cr $DATACMP0 $DATAOUT0
+diff --strip-trailing-cr $DATACMP1 $DATAOUT1
