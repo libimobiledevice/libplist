@@ -60,3 +60,4 @@ jobs:
             fi
           done
       shell: bash
+      if: always()
