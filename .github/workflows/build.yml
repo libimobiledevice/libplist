@@ -48,3 +48,15 @@ jobs:
       run: msys2do make
     - name: make check
       run: msys2do make check
+    - name: print test logs
+      run: |
+          for I in test/*.trs; do
+            RES=`grep ":test-result" $I |cut -d ":" -f 3`
+            if test $RES != PASS; then
+              TESTNAME=`basename $I .trs`
+              echo $TESTNAME:
+              cat test/$TESTNAME.log
+              echo
+            fi
+          done
+      shell: bash
