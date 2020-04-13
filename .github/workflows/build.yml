@@ -23,10 +23,11 @@ jobs:
     - name: install dependencies
       run: |
           if test -x "`which port`"; then
-            sudo port install libtool autoconf automake cython
+            sudo port install libtool autoconf automake
           else
-            brew install libtool autoconf automake cython
+            brew install libtool autoconf automake
           fi
+          pip install cython
       shell: bash
     - uses: actions/checkout@v1
     - name: autogen
