@@ -2,10 +2,6 @@ cimport cpython
 cimport libc.stdlib
 from libc.stdint cimport *
 
-# https://groups.google.com/forum/#!topic/cython-users/xoKNFTRagvk
-cdef _from_string_and_size(char *s, size_t length):
-    return s[:length].encode('utf-8')
-
 cdef extern from *:
     ctypedef enum plist_type:
         PLIST_BOOLEAN,
@@ -553,7 +549,7 @@ cdef class Data(Node):
         plist_get_data_val(self._c_node, &val, &length)
 
         try:
-            return _from_string_and_size(val, length)
+            return bytes(val[:length])
         finally:
             libc.stdlib.free(val)
 
