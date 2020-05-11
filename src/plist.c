@@ -25,6 +25,7 @@
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE 1
 #include <string.h>
 #include "plist.h"
 #include <stdlib.h>
