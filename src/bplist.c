@@ -1170,11 +1170,9 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     uint64_t offset_table_index = 0;
     bytearray_t *bplist_buff = NULL;
     uint64_t i = 0;
-    uint8_t *buff = NULL;
     uint64_t *offsets = NULL;
     bplist_trailer_t trailer;
     uint64_t objects_len = 0;
-    uint64_t buff_len = 0;
 
     //check for valid input
     if (!plist || !plist_bin || *plist_bin || !length)
@@ -1298,13 +1296,11 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
         switch (data->type)
         {
-        case PLIST_BOOLEAN:
-            buff = (uint8_t *) malloc(sizeof(uint8_t));
-            buff[0] = data->boolval ? BPLIST_TRUE : BPLIST_FALSE;
-            byte_array_append(bplist_buff, buff, sizeof(uint8_t));
-            free(buff);
+        case PLIST_BOOLEAN: {
+            uint8_t b = data->boolval ? BPLIST_TRUE : BPLIST_FALSE;
+            byte_array_append(bplist_buff, &b, 1);
             break;
-
+        }
         case PLIST_UINT:
             if (data->length == 16) {
                 write_uint(bplist_buff, data->intval);
@@ -1353,8 +1349,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     hash_table_destroy(ref_table);
 
     //write offsets
-    buff_len = bplist_buff->len;
-    offset_size = get_needed_bytes(buff_len);
+    offset_size = get_needed_bytes(bplist_buff->len);
     offset_table_index = bplist_buff->len;
     for (i = 0; i < num_objects; i++) {
         uint64_t offset = be64toh(offsets[i]);
