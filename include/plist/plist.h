@@ -762,6 +762,189 @@ extern "C"
     #define PLIST_IS_KEY(__plist)     _PLIST_IS_TYPE(__plist, KEY)
     #define PLIST_IS_UID(__plist)     _PLIST_IS_TYPE(__plist, UID)
 
+    /**
+     * Helper function to check the value of a PLIST_BOOL node.
+     *
+     * @param boolnode node of type PLIST_BOOL
+     * @return 1 if the boolean node has a value of TRUE, 0 if FALSE,
+     *   or -1 if the node is not of type PLIST_BOOL
+     */
+    int plist_bool_val_is_true(plist_t boolnode);
+
+    /**
+     * Helper function to compare the value of a PLIST_UINT node against
+     * a given value.
+     *
+     * @param uintnode node of type PLIST_UINT
+     * @param cmpval value to compare against
+     * @return 0 if the node's value and cmpval are equal,
+     *         1 if the node's value is greater than cmpval,
+     *         or -1 if the node's value is less than cmpval.
+     */
+    int plist_uint_val_compare(plist_t uintnode, uint64_t cmpval);
+
+    /**
+     * Helper function to compare the value of a PLIST_UID node against
+     * a given value.
+     *
+     * @param uidnode node of type PLIST_UID
+     * @param cmpval value to compare against
+     * @return 0 if the node's value and cmpval are equal,
+     *         1 if the node's value is greater than cmpval,
+     *         or -1 if the node's value is less than cmpval.
+     */
+    int plist_uid_val_compare(plist_t uidnode, uint64_t cmpval);
+
+    /**
+     * Helper function to compare the value of a PLIST_REAL node against
+     * a given value.
+     *
+     * @note WARNING: Comparing floating point values can give inaccurate
+     *     results because of the nature of floating point values on computer
+     *     systems. While this function is designed to be as accurate as
+     *     possible, please don't rely on it too much.
+     *
+     * @param realnode node of type PLIST_REAL
+     * @param cmpval value to compare against
+     * @return 0 if the node's value and cmpval are (almost) equal,
+     *         1 if the node's value is greater than cmpval,
+     *         or -1 if the node's value is less than cmpval.
+     */
+    int plist_real_val_compare(plist_t realnode, double cmpval);
+
+    /**
+     * Helper function to compare the value of a PLIST_DATE node against
+     * a given set of seconds and fraction of a second since epoch.
+     *
+     * @param datenode node of type PLIST_DATE
+     * @param cmpsec number of seconds since epoch to compare against
+     * @param cmpusec fraction of a second in microseconds to compare against
+     * @return 0 if the node's date is equal to the supplied values,
+     *         1 if the node's date is greater than the supplied values,
+     *         or -1 if the node's date is less than the supplied values.
+     */
+    int plist_date_val_compare(plist_t datenode, int32_t cmpsec, int32_t cmpusec);
+
+    /**
+     * Helper function to compare the value of a PLIST_STRING node against
+     * a given value.
+     * This function basically behaves like strcmp.
+     *
+     * @param strnode node of type PLIST_STRING
+     * @param cmpval value to compare against
+     * @return 0 if the node's value and cmpval are equal,
+     *     > 0 if the node's value is lexicographically greater than cmpval,
+     *     or < 0 if the node's value is lexicographically less than cmpval.
+     */
+    int plist_string_val_compare(plist_t strnode, const char* cmpval);
+
+    /**
+     * Helper function to compare the value of a PLIST_STRING node against
+     * a given value, while not comparing more than n characters.
+     * This function basically behaves like strncmp.
+     *
+     * @param strnode node of type PLIST_STRING
+     * @param cmpval value to compare against
+     * @param n maximum number of characters to compare
+     * @return 0 if the node's value and cmpval are equal,
+     *     > 0 if the node's value is lexicographically greater than cmpval,
+     *     or < 0 if the node's value is lexicographically less than cmpval.
+     */
+    int plist_string_val_compare_with_size(plist_t strnode, const char* cmpval, size_t n);
+
+    /**
+     * Helper function to match a given substring in the value of a
+     * PLIST_STRING node.
+     *
+     * @param strnode node of type PLIST_STRING
+     * @param substr value to match
+     * @return 1 if the node's value contains the given substring,
+     *     or 0 if not.
+     */
+    int plist_string_val_contains(plist_t strnode, const char* substr);
+
+    /**
+     * Helper function to compare the value of a PLIST_KEY node against
+     * a given value.
+     * This function basically behaves like strcmp.
+     *
+     * @param keynode node of type PLIST_KEY
+     * @param cmpval value to compare against
+     * @return 0 if the node's value and cmpval are equal,
+     *     > 0 if the node's value is lexicographically greater than cmpval,
+     *     or < 0 if the node's value is lexicographically less than cmpval.
+     */
+    int plist_key_val_compare(plist_t keynode, const char* cmpval);
+
+    /**
+     * Helper function to compare the value of a PLIST_KEY node against
+     * a given value, while not comparing more than n characters.
+     * This function basically behaves like strncmp.
+     *
+     * @param keynode node of type PLIST_KEY
+     * @param cmpval value to compare against
+     * @param n maximum number of characters to compare
+     * @return 0 if the node's value and cmpval are equal,
+     *     > 0 if the node's value is lexicographically greater than cmpval,
+     *     or < 0 if the node's value is lexicographically less than cmpval.
+     */
+    int plist_key_val_compare_with_size(plist_t keynode, const char* cmpval, size_t n);
+
+    /**
+     * Helper function to match a given substring in the value of a
+     * PLIST_KEY node.
+     *
+     * @param keynode node of type PLIST_KEY
+     * @param substr value to match
+     * @return 1 if the node's value contains the given substring,
+     *     or 0 if not.
+     */
+    int plist_key_val_contains(plist_t keynode, const char* substr);
+
+    /**
+     * Helper function to compare the data of a PLIST_DATA node against
+     * a given blob and size.
+     * This function basically behaves like memcmp after making sure the
+     * size of the node's data value is equal to the size of cmpval (n),
+     * making this a "full match" comparison.
+     *
+     * @param datanode node of type PLIST_DATA
+     * @param cmpval data blob to compare against
+     * @param n size of data blob passed in cmpval
+     * @return 0 if the node's data blob and cmpval are equal,
+     *     > 0 if the node's value is lexicographically greater than cmpval,
+     *     or < 0 if the node's value is lexicographically less than cmpval.
+     */
+    int plist_data_val_compare(plist_t datanode, const uint8_t* cmpval, size_t n);
+
+    /**
+     * Helper function to compare the data of a PLIST_DATA node against
+     * a given blob and size, while no more than n bytes are compared.
+     * This function basically behaves like memcmp after making sure the
+     * size of the node's data value is at least n, making this a
+     * "starts with" comparison.
+     *
+     * @param datanode node of type PLIST_DATA
+     * @param cmpval data blob to compare against
+     * @param n size of data blob passed in cmpval
+     * @return 0 if the node's value and cmpval are equal,
+     *     > 0 if the node's value is lexicographically greater than cmpval,
+     *     or < 0 if the node's value is lexicographically less than cmpval.
+     */
+    int plist_data_val_compare_with_size(plist_t datanode, const uint8_t* cmpval, size_t n);
+
+    /**
+     * Helper function to match a given data blob within the value of a
+     * PLIST_DATA node.
+     *
+     * @param datanode node of type PLIST_KEY
+     * @param cmpval data blob to match
+     * @param n size of data blob passed in cmpval
+     * @return 1 if the node's value contains the given data blob
+     *     or 0 if not.
+     */
+    int plist_data_val_contains(plist_t datanode, const uint8_t* cmpval, size_t n);
+
     /*@}*/
 
 #ifdef __cplusplus
