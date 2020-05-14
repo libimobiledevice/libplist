@@ -80,12 +80,18 @@ esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
 # Check if we need libm for fmin
+CACHED_CFLAGS="$CFLAGS"
+CFLAGS="-O0"
 AC_CACHE_CHECK(if fmin is a builtin function, ac_cv_fmin_builtin,
-	AC_TRY_COMPILE([
+	AC_TRY_LINK([
 		#include <math.h>
+		#include <float.h>
 	], [
-		fmin(0.1f, 0.2f);
+		double val = 3.1415f * 0.55555f;
+		double diff = fmin(val, DBL_MAX);
+		if (diff > 0) return 1;
 	], ac_cv_fmin_builtin=yes, ac_cv_fmin_builtin=no))
+CFLAGS="$CACHED_CFLAGS"
 
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
