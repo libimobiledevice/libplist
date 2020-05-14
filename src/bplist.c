@@ -1170,6 +1170,7 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     uint64_t offset_table_index = 0;
     bytearray_t *bplist_buff = NULL;
     uint64_t i = 0;
+    uint64_t buff_len = 0;
     uint64_t *offsets = NULL;
     bplist_trailer_t trailer;
     uint64_t objects_len = 0;
@@ -1349,7 +1350,8 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     hash_table_destroy(ref_table);
 
     //write offsets
-    offset_size = get_needed_bytes(bplist_buff->len);
+    buff_len = bplist_buff->len;
+    offset_size = get_needed_bytes(buff_len);
     offset_table_index = bplist_buff->len;
     for (i = 0; i < num_objects; i++) {
         uint64_t offset = be64toh(offsets[i]);
