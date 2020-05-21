@@ -1186,7 +1186,7 @@ PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
     plist_set_element_val(node, PLIST_DATE, &val, sizeof(struct timeval));
 }
 
-PLIST_API int plist_boolean_is_true(plist_t boolnode)
+PLIST_API int plist_bool_val_is_true(plist_t boolnode)
 {
     if (!PLIST_IS_BOOLEAN(boolnode)) {
         return -1;
