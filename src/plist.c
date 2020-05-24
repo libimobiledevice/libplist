@@ -445,7 +445,7 @@ static plist_t plist_copy_node(node_t *node)
 
 PLIST_API plist_t plist_copy(plist_t node)
 {
-    return plist_copy_node(node);
+    return node ? plist_copy_node(node) : NULL;
 }
 
 PLIST_API uint32_t plist_array_get_size(plist_t node)
