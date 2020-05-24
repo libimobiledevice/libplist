@@ -28,6 +28,9 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <unistd.h>
+
+#define BUF_SIZE 2048 // Seems to be a decent start to cover most stdin files
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
@@ -45,8 +48,8 @@ static void print_usage(int argc, char *argv[])
     name = strrchr(argv[0], '/');
     printf("Usage: %s -i|--infile FILE [-o|--outfile FILE] [-d|--debug]\n", (name ? name + 1: argv[0]));
     printf("Convert a plist FILE from binary to XML format or vice-versa.\n\n");
-    printf("  -i, --infile FILE\tThe FILE to convert from\n");
-    printf("  -o, --outfile FILE\tOptional FILE to convert to or stdout if not used\n");
+    printf("  -i, --infile FILE\tOptional FILE to convert from or stdin if - or not used\n");
+    printf("  -o, --outfile FILE\tOptional FILE to convert to or stdout if - or not used\n");
     printf("  -d, --debug\t\tEnable extended debug output\n");
     printf("\n");
 }
@@ -96,12 +99,6 @@ static options_t *parse_arguments(int argc, char *argv[])
         }
     }
 
-    if (!options->in_file)
-    {
-        free(options);
-        return NULL;
-    }
-
     return options;
 }
 
@@ -122,27 +119,76 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    // read input file
-    iplist = fopen(options->in_file, "rb");
-    if (!iplist) {
-        printf("ERROR: Could not open input file '%s': %s\n", options->in_file, strerror(errno));
-        free(options);
-        return 1;
+    if (!options->in_file || !strcmp(options->in_file, "-"))
+    {
+	read_size = 0;
+        plist_entire = malloc(sizeof(char) * BUF_SIZE);
+        if(plist_entire == NULL)
+        {
+            printf("ERROR: Failed to allocate buffer to read from stdin");
+	    free(options);
+            return 1;
+        }
+	plist_entire[read_size] = '\0';
+        char ch;
+	while(read(STDIN_FILENO, &ch, 1) > 0)
+        {
+            if (read_size >= BUF_SIZE) {
+                char *old = plist_entire;
+                plist_entire = realloc(plist_entire, sizeof(char) * (read_size + 1));
+                if (plist_entire == NULL)
+                {
+                    printf("ERROR: Failed to reallocate stdin buffer\n");
+                    free(old);
+                    free(options);
+                    return 1;
+                }
+            }
+            plist_entire[read_size] = ch;
+            read_size++;
+        }
+        plist_entire[read_size] = '\0';
+
+	// Not positive we need this, but it doesnt seem to hurt lol
+        if(ferror(stdin))
+        {
+            printf("ERROR: reading from stdin.\n");
+            free(plist_entire);
+            free(options);
+            return 1;
+        }
+
+        if (read_size < 8) {
+            printf("ERROR: Input file is too small to contain valid plist data.\n");
+	    free(plist_entire);
+            free(options);
+	    return 1;
+	}
     }
+    else
+    {
+	// read input file
+	iplist = fopen(options->in_file, "rb");
+        if (!iplist) {
+            printf("ERROR: Could not open input file '%s': %s\n", options->in_file, strerror(errno));
+            free(options);
+            return 1;
+        }
 
-    memset(&filestats, '\0', sizeof(struct stat));
-    fstat(fileno(iplist), &filestats);
+        memset(&filestats, '\0', sizeof(struct stat));
+        fstat(fileno(iplist), &filestats);
 
-    if (filestats.st_size < 8) {
-        printf("ERROR: Input file is too small to contain valid plist data.\n");
-        free(options);
+        if (filestats.st_size < 8) {
+            printf("ERROR: Input file is too small to contain valid plist data.\n");
+            free(options);
+            fclose(iplist);
+            return -1;
+        }
+
+        plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
+        read_size = fread(plist_entire, sizeof(char), filestats.st_size, iplist);
         fclose(iplist);
-        return -1;
     }
-
-    plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
-    read_size = fread(plist_entire, sizeof(char), filestats.st_size, iplist);
-    fclose(iplist);
 
     // convert from binary to xml or vice-versa
     if (plist_is_binary(plist_entire, read_size))
@@ -160,7 +206,7 @@ int main(int argc, char *argv[])
 
     if (plist_out)
     {
-        if (options->out_file != NULL)
+        if (options->out_file != NULL && strcmp(options->out_file, "-"))
         {
             FILE *oplist = fopen(options->out_file, "wb");
             if (!oplist) {
