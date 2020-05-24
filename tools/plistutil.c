@@ -39,7 +39,7 @@
 typedef struct _options
 {
     char *in_file, *out_file;
-    uint8_t debug, in_fmt, out_fmt;
+    uint8_t debug, in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json someday
 } options_t;
 
 static void print_usage(int argc, char *argv[])
@@ -50,6 +50,7 @@ static void print_usage(int argc, char *argv[])
     printf("Convert a plist FILE from binary to XML format or vice-versa.\n\n");
     printf("  -i, --infile FILE\tOptional FILE to convert from or stdin if - or not used\n");
     printf("  -o, --outfile FILE\tOptional FILE to convert to or stdout if - or not used\n");
+    printf("  -f, --format [bin|xml]\t\tForce output format, regardless of input type\n");
     printf("  -d, --debug\t\tEnable extended debug output\n");
     printf("\n");
 }
@@ -60,6 +61,7 @@ static options_t *parse_arguments(int argc, char *argv[])
 
     options_t *options = (options_t *) malloc(sizeof(options_t));
     memset(options, 0, sizeof(options_t));
+    options->out_fmt = 0;
 
     for (i = 1; i < argc; i++)
     {
@@ -83,6 +85,26 @@ static options_t *parse_arguments(int argc, char *argv[])
                 return NULL;
             }
             options->out_file = argv[i + 1];
+            i++;
+            continue;
+        }
+
+        if (!strcmp(argv[i], "--format") || !strcmp(argv[i], "-f"))
+        {
+            if ((i + 1) == argc)
+            {
+                free(options);
+                return NULL;
+            }
+            if (!strncmp(argv[i+1], "bin", 3)) {
+                options->out_fmt = 1;
+            } else if (!strncmp(argv[i+1], "xml", 3)) {
+                options->out_fmt = 2;
+            } else {
+                printf("ERROR: Unsupported output format\n");
+                free(options);
+                return NULL;
+            }
             i++;
             continue;
         }
@@ -190,16 +212,45 @@ int main(int argc, char *argv[])
         fclose(iplist);
     }
 
-    // convert from binary to xml or vice-versa
-    if (plist_is_binary(plist_entire, read_size))
-    {
-        plist_from_bin(plist_entire, read_size, &root_node);
-        plist_to_xml(root_node, &plist_out, &size);
+    if (options->out_fmt == 0) {
+        // convert from binary to xml or vice-versa<br>
+        if (plist_is_binary(plist_entire, read_size))
+        {
+            plist_from_bin(plist_entire, read_size, &root_node);
+            plist_to_xml(root_node, &plist_out, &size);
+        }
+        else
+        {
+            plist_from_xml(plist_entire, read_size, &root_node);
+            plist_to_bin(root_node, &plist_out, &size);
+        }
     }
     else
     {
-        plist_from_xml(plist_entire, read_size, &root_node);
-        plist_to_bin(root_node, &plist_out, &size);
+        if (options->out_fmt == 1) {
+            if (plist_is_binary(plist_entire, read_size))
+            {
+                plist_out = malloc(sizeof(char) * read_size);
+                memcpy(plist_out, plist_entire, read_size);
+                size = read_size;
+            }
+            else
+            {
+                plist_from_xml(plist_entire, read_size, &root_node);
+                plist_to_bin(root_node, &plist_out, &size);
+            }
+        } else if (options->out_fmt == 2) {
+            if (plist_is_binary(plist_entire, read_size)) {
+                plist_from_bin(plist_entire, read_size, &root_node);
+                plist_to_xml(root_node, &plist_out, &size);
+            }
+            else
+            {
+                plist_out = malloc(sizeof(char) * read_size);
+                memcpy(plist_out, plist_entire, read_size);
+                size = read_size;
+            }
+        }
     }
     plist_free(root_node);
     free(plist_entire);
