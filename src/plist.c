@@ -1189,7 +1189,7 @@ PLIST_API void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 PLIST_API int plist_bool_val_is_true(plist_t boolnode)
 {
     if (!PLIST_IS_BOOLEAN(boolnode)) {
-        return -1;
+        return 0;
     }
     uint8_t bv = 0;
     plist_get_bool_val(boolnode, &bv);
