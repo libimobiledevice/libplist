@@ -1,3 +1,17 @@
+Version 2.2.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * bplist: Improve recursion check performance by at least 30% for large files
+  * test: Fix test suite on Windows
+  * cython: Fix handling of Date nodes (MACH_EPOCH)
+  * Add new plist_*_val_compare(), plist_*_val_contains() helper functions
+  * Fix/suppress several compiler warnings
+  * plistutil: Added ability for files to be read from stdin
+  * plistutil: Added ability to specify output format
+  * Fix: Return NULL from plist_copy() if passed a NULL pointer instead of asserting
+  * Add GitHub Actions integration for automatic build tests
+
 Version 2.1.0
 ~~~~~~~~~~~~~
 
