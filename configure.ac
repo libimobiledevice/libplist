@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.64)
-AC_INIT([libplist], [2.1.0], [https://github.com/libimobiledevice/libplist/issues],, [http://libimobiledevice.org])
+AC_INIT([libplist], [2.2.0], [https://github.com/libimobiledevice/libplist/issues],, [https://libimobiledevice.org])
 AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip check-news])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 AC_CONFIG_SRCDIR([src/])
@@ -15,7 +15,7 @@ dnl libtool versioning
 #                 changes to the signature and the semantic)
 #  ? :+1 : ?   == just internal changes
 # CURRENT : REVISION : AGE
-LIBPLIST_SO_VERSION=5:0:2
+LIBPLIST_SO_VERSION=6:0:3
 
 AC_SUBST(LIBPLIST_SO_VERSION)
 
