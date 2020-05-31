@@ -370,8 +370,6 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         str_buf_append(*outbuf, ">", 1);
     }
     str_buf_append(*outbuf, "\n", 1);
-
-    return;
 }
 
 static void parse_date(const char *strval, struct TM *btime)

@@ -525,7 +525,6 @@ PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
             }
         }
     }
-    return;
 }
 
 PLIST_API void plist_array_append_item(plist_t node, plist_t item)
@@ -535,7 +534,6 @@ PLIST_API void plist_array_append_item(plist_t node, plist_t item)
         node_attach(node, item);
         _plist_array_post_insert(node, item, -1);
     }
-    return;
 }
 
 PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n)
@@ -545,7 +543,6 @@ PLIST_API void plist_array_insert_item(plist_t node, plist_t item, uint32_t n)
         node_insert(node, n, item);
         _plist_array_post_insert(node, item, (long)n);
     }
-    return;
 }
 
 PLIST_API void plist_array_remove_item(plist_t node, uint32_t n)
@@ -562,7 +559,6 @@ PLIST_API void plist_array_remove_item(plist_t node, uint32_t n)
             plist_free(old_item);
         }
     }
-    return;
 }
 
 PLIST_API void plist_array_item_remove(plist_t node)
@@ -587,7 +583,6 @@ PLIST_API void plist_array_new_iter(plist_t node, plist_array_iter *iter)
         *iter = malloc(sizeof(node_t*));
         *((node_t**)(*iter)) = node_first_child(node);
     }
-    return;
 }
 
 PLIST_API void plist_array_next_item(plist_t node, plist_array_iter iter, plist_t *item)
@@ -607,7 +602,6 @@ PLIST_API void plist_array_next_item(plist_t node, plist_array_iter iter, plist_
         }
         *iter_node = node_next_sibling(*iter_node);
     }
-    return;
 }
 
 PLIST_API uint32_t plist_dict_get_size(plist_t node)
@@ -627,7 +621,6 @@ PLIST_API void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
         *iter = malloc(sizeof(node_t*));
         *((node_t**)(*iter)) = node_first_child(node);
     }
-    return;
 }
 
 PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val)
@@ -656,7 +649,6 @@ PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **k
         }
         *iter_node = node_next_sibling(*iter_node);
     }
-    return;
 }
 
 PLIST_API void plist_dict_get_item_key(plist_t node, char **key)
@@ -752,7 +744,6 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
             }
         }
     }
-    return;
 }
 
 PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item)
@@ -776,7 +767,6 @@ PLIST_API void plist_dict_remove_item(plist_t node, const char* key)
             plist_free(old_item);
         }
     }
-    return;
 }
 
 PLIST_API void plist_dict_merge(plist_t *target, plist_t source)

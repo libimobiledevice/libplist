@@ -941,8 +941,6 @@ static void serialize_plist(node_t* node, void* data)
     for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
         serialize_plist(ch, data);
     }
-
-    return;
 }
 
 #define Log2(x) (x == 8 ? 3 : (x == 4 ? 2 : (x == 2 ? 1 : 0)))
