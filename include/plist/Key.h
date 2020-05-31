@@ -33,8 +33,8 @@ class Key : public Node
 public :
     Key(Node* parent = NULL);
     Key(plist_t node, Node* parent = NULL);
-    Key(const Key& s);
-    Key& operator=(Key& s);
+    Key(const Key& k);
+    Key& operator=(Key& k);
     Key(const std::string& s);
     virtual ~Key();
 
