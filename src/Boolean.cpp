@@ -70,4 +70,4 @@ bool Boolean::GetValue() const
     return b != 0 ;
 }
 
-};
+}  // namespace PList

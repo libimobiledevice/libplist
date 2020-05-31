@@ -179,4 +179,4 @@ std::string Dictionary::GetNodeKey(Node* node)
     return "";
 }
 
-};
+}  // namespace PList
