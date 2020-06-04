@@ -49,13 +49,18 @@ static void print_usage(int argc, char *argv[])
 {
     char *name = NULL;
     name = strrchr(argv[0], '/');
-    printf("Usage: %s -i|--infile FILE [-o|--outfile FILE] [-d|--debug]\n", (name ? name + 1: argv[0]));
-    printf("Convert a plist FILE from binary to XML format or vice-versa.\n\n");
-    printf("  -i, --infile FILE    Optional FILE to convert from or stdin if - or not used\n");
-    printf("  -o, --outfile FILE   Optional FILE to convert to or stdout if - or not used\n");
-    printf("  -f, --format [bin|xml]  Force output format, regardless of input type\n");
-    printf("  -d, --debug          Enable extended debug output\n");
+    printf("Usage: %s [OPTIONS] [-i FILE] [-o FILE]\n", (name ? name + 1: argv[0]));
     printf("\n");
+    printf("Convert a plist FILE from binary to XML format or vice-versa.\n");
+    printf("\n");
+    printf("OPTIONS:\n");
+    printf("  -i, --infile FILE       Optional FILE to convert from or stdin if - or not used\n");
+    printf("  -o, --outfile FILE      Optional FILE to convert to or stdout if - or not used\n");
+    printf("  -f, --format [bin|xml]  Force output format, regardless of input type\n");
+    printf("  -d, --debug             Enable extended debug output\n");
+    printf("\n");
+    printf("Homepage:    <" PACKAGE_URL ">\n");
+    printf("Bug Reports: <" PACKAGE_BUGREPORT ">\n");
 }
 
 static options_t *parse_arguments(int argc, char *argv[])
