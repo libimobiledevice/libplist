@@ -143,17 +143,17 @@ int main(int argc, char *argv[])
 
     if (!options->in_file || !strcmp(options->in_file, "-"))
     {
-	read_size = 0;
+        read_size = 0;
         plist_entire = malloc(sizeof(char) * BUF_SIZE);
         if(plist_entire == NULL)
         {
             printf("ERROR: Failed to allocate buffer to read from stdin");
-	    free(options);
+            free(options);
             return 1;
         }
-	plist_entire[read_size] = '\0';
+        plist_entire[read_size] = '\0';
         char ch;
-	while(read(STDIN_FILENO, &ch, 1) > 0)
+        while(read(STDIN_FILENO, &ch, 1) > 0)
         {
             if (read_size >= BUF_SIZE) {
                 char *old = plist_entire;
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
         }
         plist_entire[read_size] = '\0';
 
-	// Not positive we need this, but it doesnt seem to hurt lol
+        // Not positive we need this, but it doesnt seem to hurt lol
         if(ferror(stdin))
         {
             printf("ERROR: reading from stdin.\n");
@@ -182,15 +182,15 @@ int main(int argc, char *argv[])
 
         if (read_size < 8) {
             printf("ERROR: Input file is too small to contain valid plist data.\n");
-	    free(plist_entire);
+            free(plist_entire);
             free(options);
-	    return 1;
-	}
+            return 1;
+        }
     }
     else
     {
-	// read input file
-	iplist = fopen(options->in_file, "rb");
+        // read input file
+        iplist = fopen(options->in_file, "rb");
         if (!iplist) {
             printf("ERROR: Could not open input file '%s': %s\n", options->in_file, strerror(errno));
             free(options);
