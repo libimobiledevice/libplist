@@ -288,6 +288,7 @@ src/libplist.pc
 src/libplist++.pc
 include/Makefile
 tools/Makefile
+docs/Makefile
 cython/Makefile
 test/Makefile
 fuzz/Makefile
