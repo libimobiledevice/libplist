@@ -58,6 +58,7 @@ static void print_usage(int argc, char *argv[])
     printf("  -o, --outfile FILE      Optional FILE to convert to or stdout if - or not used\n");
     printf("  -f, --format [bin|xml]  Force output format, regardless of input type\n");
     printf("  -d, --debug             Enable extended debug output\n");
+    printf("  -v, --version           Print version information\n");
     printf("\n");
     printf("Homepage:    <" PACKAGE_URL ">\n");
     printf("Bug Reports: <" PACKAGE_BUGREPORT ">\n");
@@ -122,6 +123,11 @@ static options_t *parse_arguments(int argc, char *argv[])
         {
             free(options);
             return NULL;
+        }
+        else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v"))
+        {
+            printf("plistutil %s\n", PACKAGE_VERSION);
+            exit(EXIT_SUCCESS);
         }
         else
         {
