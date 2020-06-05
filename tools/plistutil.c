@@ -84,8 +84,7 @@ static options_t *parse_arguments(int argc, char *argv[])
             i++;
             continue;
         }
-
-        if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-o"))
+        else if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-o"))
         {
             if ((i + 1) == argc)
             {
@@ -96,8 +95,7 @@ static options_t *parse_arguments(int argc, char *argv[])
             i++;
             continue;
         }
-
-        if (!strcmp(argv[i], "--format") || !strcmp(argv[i], "-f"))
+        else if (!strcmp(argv[i], "--format") || !strcmp(argv[i], "-f"))
         {
             if ((i + 1) == argc)
             {
@@ -116,14 +114,18 @@ static options_t *parse_arguments(int argc, char *argv[])
             i++;
             continue;
         }
-
-        if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
+        else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
         {
             options->debug = 1;
         }
-
-        if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
+        else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
         {
+            free(options);
+            return NULL;
+        }
+        else
+        {
+            printf("ERROR: Invalid option '%s'\n", argv[i]);
             free(options);
             return NULL;
         }
