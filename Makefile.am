@@ -8,6 +8,9 @@ if BUILD_FUZZERS
 SUBDIRS += fuzz
 endif
 
+EXTRA_DIST = \
+	README.md
+
 docs/html: $(top_builddir)/doxygen.cfg $(top_srcdir)/include/plist/*.h
 	rm -rf docs
 	doxygen doxygen.cfg
