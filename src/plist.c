@@ -516,12 +516,11 @@ PLIST_API void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
             assert(idx >= 0);
             if (idx < 0) {
                 return;
-            } else {
-                node_insert(node, idx, item);
-                ptrarray_t* pa = ((plist_data_t)((node_t*)node)->data)->hashtable;
-                if (pa) {
-                    ptr_array_set(pa, item, idx);
-                }
+            }
+            node_insert(node, idx, item);
+            ptrarray_t* pa = ((plist_data_t)((node_t*)node)->data)->hashtable;
+            if (pa) {
+                ptr_array_set(pa, item, idx);
             }
         }
     }
@@ -714,9 +713,8 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
             assert(idx >= 0);
             if (idx < 0) {
                 return;
-            } else {
-                node_insert(node, idx, item);
             }
+            node_insert(node, idx, item);
             key_node = node_prev_sibling(item);
         } else {
             key_node = plist_new_key(key);
@@ -1038,33 +1036,22 @@ int plist_data_compare(const void *a, const void *b)
     case PLIST_UID:
         if (val_a->length != val_b->length)
             return FALSE;
-        if (val_a->intval == val_b->intval)	//it is an union so this is sufficient
-            return TRUE;
-        else
-            return FALSE;
+        return val_a->intval == val_b->intval;	//it is an union so this is sufficient
 
     case PLIST_KEY:
     case PLIST_STRING:
-        if (!strcmp(val_a->strval, val_b->strval))
-            return TRUE;
-        else
-            return FALSE;
+        return strcmp(val_a->strval, val_b->strval) == 0;
 
     case PLIST_DATA:
         if (val_a->length != val_b->length)
             return FALSE;
-        if (!memcmp(val_a->buff, val_b->buff, val_a->length))
-            return TRUE;
-        else
-            return FALSE;
+        return memcmp(val_a->buff, val_b->buff, val_a->length) == 0;
+
     case PLIST_ARRAY:
     case PLIST_DICT:
         //compare pointer
-        if (a == b)
-            return TRUE;
-        else
-            return FALSE;
-        break;
+        return a == b;
+
     default:
         break;
     }
@@ -1195,11 +1182,13 @@ PLIST_API int plist_uint_val_compare(plist_t uintnode, uint64_t cmpval)
     plist_get_uint_val(uintnode, &uintval);
     if (uintval == cmpval) {
         return 0;
-    } else if (uintval < cmpval) {
-        return -1;
-    } else {
-        return 1;
     }
+
+    if (uintval < cmpval) {
+        return -1;
+    }
+
+    return 1;
 }
 
 PLIST_API int plist_uid_val_compare(plist_t uidnode, uint64_t cmpval)
@@ -1211,11 +1200,13 @@ PLIST_API int plist_uid_val_compare(plist_t uidnode, uint64_t cmpval)
     plist_get_uid_val(uidnode, &uidval);
     if (uidval == cmpval) {
         return 0;
-    } else if (uidval < cmpval) {
-        return -1;
-    } else {
-        return 1;
     }
+
+    if (uidval < cmpval) {
+        return -1;
+    }
+
+    return 1;
 }
 
 PLIST_API int plist_real_val_compare(plist_t realnode, double cmpval)
@@ -1231,16 +1222,22 @@ PLIST_API int plist_real_val_compare(plist_t realnode, double cmpval)
     double diff = fabs(a - b);
     if (a == b) {
         return 0;
-    } else if (a == 0 || b == 0 || (abs_a + abs_b < DBL_MIN)) {
+    }
+
+    if (a == 0 || b == 0 || (abs_a + abs_b < DBL_MIN)) {
         if (diff < (DBL_EPSILON * DBL_MIN)) {
             return 0;
-        } else if (a < b) {
+        }
+
+        if (a < b) {
             return -1;
         }
     } else {
         if ((diff / fmin(abs_a + abs_b, DBL_MAX)) < DBL_EPSILON) {
             return 0;
-        } else if (a < b) {
+        }
+
+        if (a < b) {
             return -1;
         }
     }
@@ -1259,11 +1256,13 @@ PLIST_API int plist_date_val_compare(plist_t datenode, int32_t cmpsec, int32_t c
     uint64_t cmpval = ((int64_t)cmpsec << 32) | cmpusec;
     if (dateval == cmpval) {
         return 0;
-    } else if (dateval < cmpval) {
-        return -1;
-    } else {
-        return 1;
     }
+
+    if (dateval < cmpval) {
+        return -1;
+    }
+
+    return 1;
 }
 
 PLIST_API int plist_string_val_compare(plist_t strnode, const char* cmpval)
@@ -1328,9 +1327,12 @@ PLIST_API int plist_data_val_compare(plist_t datanode, const uint8_t* cmpval, si
     plist_data_t data = plist_get_data(datanode);
     if (data->length < n) {
         return -1;
-    } else if (data->length > n) {
+    }
+
+    if (data->length > n) {
         return 1;
     }
+
     return memcmp(data->buff, cmpval, n);
 }
 

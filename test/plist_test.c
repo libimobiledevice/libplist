@@ -77,36 +77,32 @@ int main(int argc, char *argv[])
         printf("PList XML parsing failed\n");
         return 3;
     }
-    else
-        printf("PList XML parsing succeeded\n");
 
+    printf("PList XML parsing succeeded\n");
     plist_to_bin(root_node1, &plist_bin, &size_out);
     if (!plist_bin)
     {
         printf("PList BIN writing failed\n");
         return 4;
     }
-    else
-        printf("PList BIN writing succeeded\n");
 
+    printf("PList BIN writing succeeded\n");
     plist_from_bin(plist_bin, size_out, &root_node2);
     if (!root_node2)
     {
         printf("PList BIN parsing failed\n");
         return 5;
     }
-    else
-        printf("PList BIN parsing succeeded\n");
 
+    printf("PList BIN parsing succeeded\n");
     plist_to_xml(root_node2, &plist_xml2, &size_out2);
     if (!plist_xml2)
     {
         printf("PList XML writing failed\n");
         return 8;
     }
-    else
-        printf("PList XML writing succeeded\n");
 
+    printf("PList XML writing succeeded\n");
     if (plist_xml2)
     {
         FILE *oplist = NULL;
