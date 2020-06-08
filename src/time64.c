@@ -176,34 +176,28 @@ static int is_exception_century(Year year)
 static int cmp_date( const struct TM* left, const struct tm* right ) {
     if( left->tm_year > right->tm_year )
         return 1;
-    else if( left->tm_year < right->tm_year )
+    if( left->tm_year < right->tm_year )
         return -1;
-
     if( left->tm_mon > right->tm_mon )
         return 1;
-    else if( left->tm_mon < right->tm_mon )
+    if( left->tm_mon < right->tm_mon )
         return -1;
-
     if( left->tm_mday > right->tm_mday )
         return 1;
-    else if( left->tm_mday < right->tm_mday )
+    if( left->tm_mday < right->tm_mday )
         return -1;
-
     if( left->tm_hour > right->tm_hour )
         return 1;
-    else if( left->tm_hour < right->tm_hour )
+    if( left->tm_hour < right->tm_hour )
         return -1;
-
     if( left->tm_min > right->tm_min )
         return 1;
-    else if( left->tm_min < right->tm_min )
+    if( left->tm_min < right->tm_min )
         return -1;
-
     if( left->tm_sec > right->tm_sec )
         return 1;
-    else if( left->tm_sec < right->tm_sec )
+    if( left->tm_sec < right->tm_sec )
         return -1;
-
     return 0;
 }
 
@@ -774,15 +768,15 @@ struct TM *localtime64_r (const Time64_T *timev, struct TM *local_tm)
 static int valid_tm_wday( const struct TM* date ) {
     if( 0 <= date->tm_wday && date->tm_wday <= 6 )
         return 1;
-    else
-        return 0;
+
+    return 0;
 }
 
 static int valid_tm_mon( const struct TM* date ) {
     if( 0 <= date->tm_mon && date->tm_mon <= 11 )
         return 1;
-    else
-        return 0;
+
+    return 0;
 }
 
 

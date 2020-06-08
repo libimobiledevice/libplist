@@ -139,11 +139,9 @@ int main(int argc, char *argv[])
         printf("PList parsing failed\n");
         return 3;
     }
-    else
-        printf("PList parsing succeeded\n");
 
+    printf("PList parsing succeeded\n");
     res = compare_plist(root_node1, root_node2);
-
 
     plist_free(root_node1);
     plist_free(root_node2);
