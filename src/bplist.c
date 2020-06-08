@@ -143,28 +143,28 @@ union plist_uint_ptr
 #ifdef __BIG_ENDIAN__
 #define beNtoh(x,n) (x >> ((8-n) << 3))
 #else
-#define beNtoh(x,n) be64toh(x << ((8-n) << 3))
+#define beNtoh(x,n) be64toh((x) << ((8-(n)) << 3))
 #endif
 
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
-		__up.src = (n > 8) ? x + (n - 8) : x; \
-		(n >= 8 ? be64toh( get_unaligned(__up.u64ptr) ) : \
-		(n == 4 ? be32toh( get_unaligned(__up.u32ptr) ) : \
-		(n == 2 ? be16toh( get_unaligned(__up.u16ptr) ) : \
-                (n == 1 ? *__up.u8ptr : \
+		__up.src = ((n) > 8) ? (x) + ((n) - 8) : (x); \
+		((n) >= 8 ? be64toh( get_unaligned(__up.u64ptr) ) : \
+		((n) == 4 ? be32toh( get_unaligned(__up.u32ptr) ) : \
+		((n) == 2 ? be16toh( get_unaligned(__up.u16ptr) ) : \
+                ((n) == 1 ? *__up.u8ptr : \
 		beNtoh( get_unaligned(__up.u64ptr), n) \
 		)))); \
 	})
 
 #define get_needed_bytes(x) \
-		( ((uint64_t)x) < (1ULL << 8) ? 1 : \
-		( ((uint64_t)x) < (1ULL << 16) ? 2 : \
-		( ((uint64_t)x) < (1ULL << 24) ? 3 : \
-		( ((uint64_t)x) < (1ULL << 32) ? 4 : 8))))
+		( ((uint64_t)(x)) < (1ULL << 8) ? 1 : \
+		( ((uint64_t)(x)) < (1ULL << 16) ? 2 : \
+		( ((uint64_t)(x)) < (1ULL << 24) ? 3 : \
+		( ((uint64_t)(x)) < (1ULL << 32) ? 4 : 8))))
 
-#define get_real_bytes(x) (x == (float) x ? sizeof(float) : sizeof(double))
+#define get_real_bytes(x) ((x) == (float) (x) ? sizeof(float) : sizeof(double))
 
 #if (defined(__LITTLE_ENDIAN__) \
      && !defined(__FLOAT_WORD_ORDER__)) \
@@ -182,7 +182,7 @@ union plist_uint_ptr
 #endif
 
 #if __has_builtin(__builtin_umulll_overflow) || __GNUC__ >= 5
-#define uint64_mul_overflow(a, b, r) __builtin_umulll_overflow(a, b, (unsigned long long*)r)
+#define uint64_mul_overflow(a, b, r) __builtin_umulll_overflow(a, b, (unsigned long long*)(r))
 #else
 static int uint64_mul_overflow(uint64_t a, uint64_t b, uint64_t *res)
 {
@@ -191,7 +191,7 @@ static int uint64_mul_overflow(uint64_t a, uint64_t b, uint64_t *res)
 }
 #endif
 
-#define NODE_IS_ROOT(x) (((node_t*)x)->isRoot)
+#define NODE_IS_ROOT(x) (((node_t*)(x))->isRoot)
 
 struct bplist_data {
     const char* data;
@@ -943,7 +943,7 @@ static void serialize_plist(node_t* node, void* data)
     }
 }
 
-#define Log2(x) (x == 8 ? 3 : (x == 4 ? 2 : (x == 2 ? 1 : 0)))
+#define Log2(x) ((x) == 8 ? 3 : ((x) == 4 ? 2 : ((x) == 2 ? 1 : 0)))
 
 static void write_int(bytearray_t * bplist, uint64_t val)
 {
