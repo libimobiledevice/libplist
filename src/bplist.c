@@ -339,7 +339,7 @@ static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read,
 				read_lead_surrogate = 1;
 				w = 0x010000 + ((wc & 0x3FF) << 10);
 			} else {
-				// This is invalid, the next 16 bit char should be a trail surrogate. 
+				// This is invalid, the next 16 bit char should be a trail surrogate.
 				// Handling error by skipping.
 				read_lead_surrogate = 0;
 			}

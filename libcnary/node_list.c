@@ -151,7 +151,7 @@ int node_list_remove(node_list_t* list, node_t* node) {
 			return node_index;
 		}
 		node_index++;
-	}	
+	}
 	return -1;
 }
 

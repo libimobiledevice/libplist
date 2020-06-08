@@ -790,7 +790,7 @@ PLIST_API void plist_dict_merge(plist_t *target, plist_t source)
 		free(key);
 		key = NULL;
 	} while (1);
-	free(it);	
+	free(it);
 }
 
 PLIST_API plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
