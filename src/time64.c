@@ -227,12 +227,7 @@ Time64_T timegm64(const struct TM *date) {
     Year     orig_year = (Year)date->tm_year;
     int      cycles  = 0;
 
-    if( orig_year > 100 ) {
-        cycles = (orig_year - 100) / 400;
-        orig_year -= cycles * 400;
-        days      += (Time64_T)cycles * days_in_gregorian_cycle;
-    }
-    else if( orig_year < -300 ) {
+    if( (orig_year > 100) || (orig_year < -300) ) {
         cycles = (orig_year - 100) / 400;
         orig_year -= cycles * 400;
         days      += (Time64_T)cycles * days_in_gregorian_cycle;
