@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 
     if (plist_out)
     {
-        if (options->out_file != NULL && strcmp(options->out_file, "-"))
+        if (options->out_file != NULL && strcmp(options->out_file, "-") != 0)
         {
             FILE *oplist = fopen(options->out_file, "wb");
             if (!oplist) {
