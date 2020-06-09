@@ -16,6 +16,3 @@ docs/html: $(top_builddir)/doxygen.cfg $(top_srcdir)/include/plist/*.h
 	doxygen doxygen.cfg
 
 docs: doxygen.cfg docs/html
-
-clean-local:
-	rm -rf docs
