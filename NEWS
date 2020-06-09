@@ -11,6 +11,8 @@ Version 2.2.0
   * plistutil: Added ability to specify output format
   * Fix: Return NULL from plist_copy() if passed a NULL pointer instead of asserting
   * Add GitHub Actions integration for automatic build tests
+  * plistutil: Add manual page and usage output
+  * Rename libplist*.pc to libplist*-2.0.pc according to pkg-config standard
 
 Version 2.1.0
 ~~~~~~~~~~~~~
