@@ -1,4 +1,7 @@
-AM_CFLAGS = $(GLOBAL_CFLAGS) -I$(top_srcdir)/include
+AM_CFLAGS = \
+	$(GLOBAL_CFLAGS) \
+	-I$(top_srcdir)/include
+
 AM_LDFLAGS =
 
 bin_PROGRAMS = plistutil

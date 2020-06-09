@@ -1,10 +1,18 @@
-AM_CFLAGS = $(GLOBAL_CFLAGS) -I$(top_srcdir)/include -I$(top_srcdir)/libcnary/include
+AM_CFLAGS = \
+	$(GLOBAL_CFLAGS) \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/libcnary/include
+
 AM_LDFLAGS =
 
-noinst_PROGRAMS = plist_cmp plist_test
+noinst_PROGRAMS = \
+	plist_cmp \
+	plist_test
 
 plist_cmp_SOURCES = plist_cmp.c
-plist_cmp_LDADD = $(top_builddir)/src/libplist.la $(top_builddir)/libcnary/libcnary.la
+plist_cmp_LDADD = \
+	$(top_builddir)/src/libplist.la \
+	$(top_builddir)/libcnary/libcnary.la
 
 plist_test_SOURCES = plist_test.c
 plist_test_LDADD = $(top_builddir)/src/libplist.la
@@ -77,7 +85,9 @@ EXTRA_DIST = \
 	data/unsigned.bplist \
 	data/unsigned.plist
 
-TESTS_ENVIRONMENT = top_srcdir=$(top_srcdir) top_builddir=$(top_builddir)
+TESTS_ENVIRONMENT = \
+	top_srcdir=$(top_srcdir) \
+	top_builddir=$(top_builddir)
 
 clean-local:
 	if test -d $(top_builddir)/test/data; then cd $(top_builddir)/test/data && rm -f *.out *.bin *.xml; fi

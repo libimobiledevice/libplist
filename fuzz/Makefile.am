@@ -19,7 +19,9 @@ LIBFUZZER_SRC:
 
 CLEANFILES = libFuzzer.a
 
-noinst_PROGRAMS = xplist_fuzzer bplist_fuzzer
+noinst_PROGRAMS = \
+	xplist_fuzzer \
+	bplist_fuzzer
 
 xplist_fuzzer_SOURCES = xplist_fuzzer.cc
 xplist_fuzzer_LDFLAGS = -static
@@ -31,6 +33,11 @@ bplist_fuzzer_LDADD = $(top_builddir)/src/libplist.la libFuzzer.a
 
 TESTS = fuzzers.test
 
-EXTRA_DIST = bplist.dict xplist.dict init-fuzzers.sh test-fuzzers.sh fuzzers.test
+EXTRA_DIST = \
+	bplist.dict \
+	xplist.dict \
+	init-fuzzers.sh \
+	test-fuzzers.sh \
+	fuzzers.test
 
 endif
