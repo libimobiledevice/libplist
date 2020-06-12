@@ -3,6 +3,8 @@
 *A small portable C library to handle Apple Property List files in binary or XML
 format.*
 
+![](https://github.com/libimobiledevice/libplist/workflows/build/badge.svg)
+
 ## Features
 
 The project provides an interface to read and write plist files in binary or
