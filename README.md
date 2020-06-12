@@ -1,55 +1,90 @@
 # libplist
 
-## About
+*A small portable C library to handle Apple Property List files in binary or XML
+format.*
 
-A small portable C library to handle Apple Property List files in binary or XML.
+## Features
 
-## Requirements
+The project provides an interface to read and write plist files in binary or
+XML format alongside a command-line utility named `plistutil`.
 
-Software:
-* make
-* autoheader
-* automake
-* autoconf
-* libtool
-* pkg-config
-* gcc or clang
+- **Formats:** Supports binary and XML format
+- **Utility:** Provides a `plistutil` utility for the command-line
+- **Python:** Provides Cython based bindings for Python
+- **Tested:** Uses fuzzing and data compliance tests
+- **Efficient:** Lean library with performance and resources in mind
 
-Optional:
-* cython (Python bindings)
-* doxygen (Documentation)
+## Installation / Getting started
 
-## Installation
+### Debian / Ubuntu Linux
 
-To compile run:
-```bash
+First install all required dependencies and build tools:
+```shell
+sudo apt-get install \
+	build-essential \
+	checkinstall \
+	git \
+	autoconf \
+	automake \
+	libtool-bin
+```
+
+If you want to optionally build the documentation or Python bindings use:
+```shell
+sudo apt-get install \
+	doxygen \
+	cython
+```
+
+Then clone the actual project repository:
+```shell
+git clone https://github.com/libimobiledevice/libplist.git
+cd libplist
+```
+
+Now you can build and install it:
+```shell
 ./autogen.sh
 make
 sudo make install
 ```
 
-If you require a custom prefix or other option being passed to `./configure`
-you can pass them directly to `./autogen.sh` like this:
-```bash
-./autogen.sh --prefix=/opt/local --without-cython
-make
-sudo make install
+## Usage
+
+Then simply run:
+```shell
+plistutil -i foobar.plist -o output.plist
 ```
 
-## Who/What/Where?
+This converts the `foobar.plist` file to the opposite format, e.g. binary to
+XML or vice versa, and outputs it to the `output.plist` file.
 
-* Home: https://libimobiledevice.org/
-* Code: `git clone https://git.libimobiledevice.org/libplist.git`
-* Code (Mirror): `git clone https://github.com/libimobiledevice/libplist.git`
-* Tickets: https://github.com/libimobiledevice/libplist/issues
+Please consult the usage information or manual page for a full documentation of
+available command line options:
+```shell
+plistutil --help
+man plistutil
+```
+
+## Links
+
+* Homepage: https://libimobiledevice.org/
+* Repository: https://git.libimobiledevice.org/libplist.git
+* Repository (Mirror): https://github.com/libimobiledevice/libplist.git
+* Issue Tracker: https://github.com/libimobiledevice/libplist/issues
 * Mailing List: https://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 * Twitter: https://twitter.com/libimobiledev
+
+## License
+
+This project is licensed under the [GNU Lesser General Public License v2.1](https://www.gnu.org/licenses/lgpl-2.1.en.html),
+also included in the repository in the `COPYING` file.
 
 ## Credits
 
 Apple, iPhone, iPod, and iPod Touch are trademarks of Apple Inc.
 
-libplist is an independent software library and has not been
-authorized, sponsored, or otherwise approved by Apple Inc.
+This project is an independent software library and has not been authorized,
+sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2020-06-08
+README Updated on: 2020-06-12
