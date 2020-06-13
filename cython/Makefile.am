@@ -40,7 +40,7 @@ plist_la_CFLAGS = \
 	-fvisibility=default
 
 plist_la_LDFLAGS = -module -avoid-version $(PYTHON_LIBS) $(AM_LDFLAGS)
-plist_la_LIBADD = $(top_builddir)/src/libplist.la
+plist_la_LIBADD = $(top_builddir)/src/libplist-2.0.la
 
 plist.c: plist.pyx $(PXDINCLUDES) $(PXIINCLUDES)
 

@@ -25,11 +25,11 @@ noinst_PROGRAMS = \
 
 xplist_fuzzer_SOURCES = xplist_fuzzer.cc
 xplist_fuzzer_LDFLAGS = -static
-xplist_fuzzer_LDADD = $(top_builddir)/src/libplist.la libFuzzer.a
+xplist_fuzzer_LDADD = $(top_builddir)/src/libplist-2.0.la libFuzzer.a
 
 bplist_fuzzer_SOURCES = bplist_fuzzer.cc
 bplist_fuzzer_LDFLAGS = -static
-bplist_fuzzer_LDADD = $(top_builddir)/src/libplist.la libFuzzer.a
+bplist_fuzzer_LDADD = $(top_builddir)/src/libplist-2.0.la libFuzzer.a
 
 TESTS = fuzzers.test
 
