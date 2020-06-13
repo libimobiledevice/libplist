@@ -10,6 +10,8 @@ format.*
 The project provides an interface to read and write plist files in binary or
 XML format alongside a command-line utility named `plistutil`.
 
+Some key features are:
+
 - **Formats:** Supports binary and XML format
 - **Utility:** Provides a `plistutil` utility for the command-line
 - **Python:** Provides Cython based bindings for Python
