@@ -159,7 +159,7 @@ fi
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
-               [enable debugging, default: no]),
+               [build debug message output code (default is no)]),
 [case "${enableval}" in
              yes) debug=yes ;;
              no)  debug=no ;;
@@ -168,7 +168,7 @@ esac],
 [debug=no])
 
 if (test "x$debug" = "xyes"); then
-       AC_DEFINE(DEBUG, 1, [Define if debug code should be enabled.])
+       AC_DEFINE(DEBUG, 1, [Define if debug message output code should be built.])
        GLOBAL_CFLAGS+=" -g"
 fi
 
