@@ -12,7 +12,11 @@ Version 2.2.0
   * Fix: Return NULL from plist_copy() if passed a NULL pointer instead of asserting
   * Add GitHub Actions integration for automatic build tests
   * plistutil: Add manual page and usage output
-  * Rename libplist*.pc to libplist*-2.0.pc according to pkg-config standard
+  * Fix removal of docs directory on `make clean`
+  * Improve README.md with project description, installation, contributing and
+    usage sections
+  * Rename library and all related files by adding an API version resulting
+    in "libplist-2.0" and "libplist++-2.0"
 
 Version 2.1.0
 ~~~~~~~~~~~~~
