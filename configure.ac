@@ -79,19 +79,7 @@ case ${host_os} in
 esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
-# Check if we need libm for fmin
-CACHED_CFLAGS="$CFLAGS"
-CFLAGS="-O0"
-AC_CACHE_CHECK(if fmin is a builtin function, ac_cv_fmin_builtin,
-	AC_TRY_LINK([
-		#include <math.h>
-		#include <float.h>
-	], [
-		double val = 3.1415f * 0.55555f;
-		double diff = fmin(val, DBL_MAX);
-		if (diff > 0) return 1;
-	], ac_cv_fmin_builtin=yes, ac_cv_fmin_builtin=no))
-CFLAGS="$CACHED_CFLAGS"
+AC_SEARCH_LIBS([fmin],[m])
 
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
@@ -152,10 +140,6 @@ AM_CONDITIONAL([HAVE_CYTHON],[test "x$cython_python_bindings" = "xyes"])
 
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing -fvisibility=hidden $PTHREAD_CFLAGS")
 GLOBAL_LDFLAGS="$PTHREAD_LIBS"
-
-if test "x$ac_cv_fmin_builtin" != "xyes"; then
-	GLOBAL_LDFLAGS+=" -lm"
-fi
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
