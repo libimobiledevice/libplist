@@ -8,7 +8,7 @@ jobs:
     steps:
     - name: install dependencies
       run: sudo apt-get install cython
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: autogen
       run: ./autogen.sh
     - name: make
@@ -27,7 +27,7 @@ jobs:
           fi
           pip install cython
       shell: bash
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: autogen
       run: ./autogen.sh
     - name: make
@@ -36,17 +36,29 @@ jobs:
       run: make check
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
-    - uses: numworks/setup-msys2@v1
-    - name: install dependencies
-      run: msys2do pacman -S --noconfirm mingw-w64-x86_64-gcc make libtool autoconf automake-wrapper
-    - uses: actions/checkout@v1
+    - uses: msys2/setup-msys2@v2
+      with:
+        release: false
+        update: false
+        install: >-
+          base-devel
+          git
+          mingw-w64-x86_64-gcc
+          make
+          libtool
+          autoconf
+          automake-wrapper
+    - uses: actions/checkout@v2
     - name: autogen
-      run: msys2do ./autogen.sh --without-cython
+      run: ./autogen.sh CC=gcc CXX=g++ --without-cython
     - name: make
-      run: msys2do make
+      run: make
     - name: make check
-      run: msys2do make check
+      run: make check
     - name: print test logs
       run: |
           for I in test/*.trs; do
@@ -59,4 +71,3 @@ jobs:
             fi
           done
       shell: bash
-      if: always()
