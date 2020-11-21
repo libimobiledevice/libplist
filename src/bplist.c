@@ -837,7 +837,7 @@ PLIST_API void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * 
         return;
     }
 
-    if ((offset_table + offset_table_size < offset_table) || (offset_table + offset_table_size > end_data)) {
+    if (offset_table_size > (uint64_t)(end_data - offset_table)) {
         PLIST_BIN_ERR("offset table points outside of valid range\n");
         return;
     }
