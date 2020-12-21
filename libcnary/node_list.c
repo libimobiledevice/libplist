@@ -33,11 +33,10 @@ void node_list_destroy(node_list_t* list) {
 }
 
 node_list_t* node_list_create() {
-	node_list_t* list = (node_list_t*) malloc(sizeof(node_list_t));
-	if(list == NULL) {
+	node_list_t* list = (node_list_t*)calloc(1, sizeof(node_list_t));
+	if (list == NULL) {
 		return NULL;
 	}
-	memset(list, '\0', sizeof(node_list_t));
 
 	// Initialize structure
 	list->begin = NULL;
