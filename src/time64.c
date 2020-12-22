@@ -531,7 +531,7 @@ Time64_T mktime64(struct TM *input_date) {
     /* Correct the user's possibly out of bound input date */
     copy_tm_to_TM64(&safe_date, input_date);
 
-    timev += seconds_between_years(year, (Year)(safe_date.tm_year + 1900));
+    timev += seconds_between_years(year, (Year)(safe_date.tm_year) + 1900);
 
     return timev;
 }
@@ -706,7 +706,7 @@ struct TM *localtime64_r (const Time64_T *timev, struct TM *local_tm)
        )
     {
         TIME64_TRACE1("Mapping tm_year %lld to safe_year\n", (Year)gm_tm.tm_year);
-        gm_tm.tm_year = safe_year((Year)(gm_tm.tm_year + 1900)) - 1900;
+        gm_tm.tm_year = safe_year((Year)(gm_tm.tm_year) + 1900) - 1900;
     }
 
     safe_time = (time_t)timegm64(&gm_tm);
