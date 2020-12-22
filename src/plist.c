@@ -195,7 +195,7 @@ plist_t plist_new_node(plist_data_t data)
     return (plist_t) node_create(NULL, data);
 }
 
-plist_data_t plist_get_data(const plist_t node)
+plist_data_t plist_get_data(plist_t node)
 {
     if (!node)
         return NULL;
