@@ -61,8 +61,7 @@ Array::Array(const PList::Array& a)
 Array& Array::operator=(const PList::Array& a)
 {
     plist_free(_node);
-    for (unsigned int it = 0; it < _array.size(); it++)
-    {
+    for (size_t it = 0; it < _array.size(); it++) {
         delete _array.at(it);
     }
     _array.clear();
@@ -73,8 +72,7 @@ Array& Array::operator=(const PList::Array& a)
 
 Array::~Array()
 {
-    for (unsigned int it = 0; it < _array.size(); it++)
-    {
+    for (size_t it = 0; it < _array.size(); it++) {
         delete (_array.at(it));
     }
     _array.clear();
