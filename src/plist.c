@@ -395,7 +395,7 @@ static plist_t plist_copy_node(node_t *node)
             break;
         case PLIST_KEY:
         case PLIST_STRING:
-            newdata->strval = strdup((char *) data->strval);
+            newdata->strval = strdup(data->strval);
             break;
         case PLIST_ARRAY:
             if (data->hashtable) {
