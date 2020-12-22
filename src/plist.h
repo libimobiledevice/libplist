@@ -65,7 +65,7 @@ struct plist_data_s
 typedef struct plist_data_s *plist_data_t;
 
 plist_t plist_new_node(plist_data_t data);
-plist_data_t plist_get_data(const plist_t node);
+plist_data_t plist_get_data(plist_t node);
 plist_data_t plist_new_plist_data(void);
 void plist_free_data(plist_data_t data);
 int plist_data_compare(const void *a, const void *b);
