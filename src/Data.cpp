@@ -70,7 +70,7 @@ std::vector<char> Data::GetValue() const
     uint64_t length = 0;
     plist_get_data_val(_node, &buff, &length);
     std::vector<char> ret(buff, buff + length);
-    free(buff);
+    delete buff;
     return ret;
 }
 

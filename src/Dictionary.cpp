@@ -39,7 +39,7 @@ static void dictionary_fill(Dictionary *_this, std::map<std::string,Node*> &map,
         plist_dict_next_item(node, it, &key, &subnode);
         if (key && subnode)
             map[std::string(key)] = Node::FromPlist(subnode, _this);
-        free(key);
+        delete key;
     } while (subnode);
     free(it);
 }
@@ -156,7 +156,7 @@ void Dictionary::Remove(Node* node)
         plist_dict_get_item_key(node->GetPlist(), &key);
         plist_dict_remove_item(_node, key);
         std::string skey = key;
-        free(key);
+        delete key;
         _map.erase(skey);
         delete node;
     }

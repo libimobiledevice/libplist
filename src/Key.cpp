@@ -67,13 +67,8 @@ std::string Key::GetValue() const
 {
     char* s = NULL;
     plist_get_key_val(_node, &s);
-    std::string ret;
-    if (s) {
-        ret = s;
-        free(s);
-    } else {
-        ret = "";
-    }
+    std::string ret = s ? s : "";
+    delete s;
     return ret;
 }
 
