@@ -59,11 +59,11 @@ static const short julian_days_by_month[2][12] = {
     {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335},
 };
 
-static char wday_name[7][4] = {
+static const char wday_name[7][4] = {
     "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-static char mon_name[12][4] = {
+static const char mon_name[12][4] = {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };

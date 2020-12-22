@@ -69,8 +69,8 @@ typedef volatile struct {
     int state;
 } thread_once_t;
 
-static thread_once_t init_once = {0, 0};
-static thread_once_t deinit_once = {0, 0};
+static const thread_once_t init_once = {0, 0};
+static const thread_once_t deinit_once = {0, 0};
 
 void thread_once(thread_once_t *once_control, void (*init_routine)(void))
 {
