@@ -38,7 +38,7 @@ Date::Date(const PList::Date& d) : Node(PLIST_DATE)
     plist_set_date_val(_node, t.tv_sec, t.tv_usec);
 }
 
-Date& Date::operator=(PList::Date& d)
+Date& Date::operator=(const PList::Date& d)
 {
     plist_free(_node);
     _node = plist_copy(d.GetPlist());

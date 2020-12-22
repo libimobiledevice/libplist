@@ -62,7 +62,7 @@ Dictionary::Dictionary(const PList::Dictionary& d)
     dictionary_fill(this, _map, _node);
 }
 
-Dictionary& Dictionary::operator=(PList::Dictionary& d)
+Dictionary& Dictionary::operator=(const PList::Dictionary& d)
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {

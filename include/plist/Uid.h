@@ -33,7 +33,7 @@ public :
     Uid(Node* parent = NULL);
     Uid(plist_t node, Node* parent = NULL);
     Uid(const Uid& i);
-    Uid& operator=(Uid& i);
+    Uid& operator=(const Uid& i);
     Uid(uint64_t i);
     virtual ~Uid();
 

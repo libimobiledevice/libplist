@@ -37,7 +37,7 @@ String::String(const PList::String& s) : Node(PLIST_UINT)
     plist_set_string_val(_node, s.GetValue().c_str());
 }
 
-String& String::operator=(PList::String& s)
+String& String::operator=(const PList::String& s)
 {
     plist_free(_node);
     _node = plist_copy(s.GetPlist());
