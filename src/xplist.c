@@ -108,7 +108,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
         len = snprintf(buf, bufsize, "nan");
     } else if (isinf(realval)) {
         len = snprintf(buf, bufsize, "%cinfinity", (realval > 0.0) ? '+' : '-');
-    } else if (realval == 0.0f) {
+    } else if (realval == 0.0F) {
         len = snprintf(buf, bufsize, "0.0");
     } else {
         size_t i = 0;
