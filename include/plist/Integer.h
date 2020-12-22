@@ -33,7 +33,7 @@ public :
     Integer(Node* parent = NULL);
     Integer(plist_t node, Node* parent = NULL);
     Integer(const Integer& i);
-    Integer& operator=(Integer& i);
+    Integer& operator=(const Integer& i);
     Integer(uint64_t i);
     virtual ~Integer();
 

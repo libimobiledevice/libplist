@@ -33,7 +33,7 @@ public :
     Boolean(Node* parent = NULL);
     Boolean(plist_t node, Node* parent = NULL);
     Boolean(const Boolean& b);
-    Boolean& operator=(Boolean& b);
+    Boolean& operator=(const Boolean& b);
     Boolean(bool b);
     virtual ~Boolean();
 
