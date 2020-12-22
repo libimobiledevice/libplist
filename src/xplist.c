@@ -211,8 +211,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
             struct TM _btime;
             struct TM *btime = gmtime64_r(&timev, &_btime);
             if (btime) {
-                val = (char*)malloc(24);
-                memset(val, 0, 24);
+                val = (char *)calloc(1, 24);
                 struct tm _tmcopy;
                 copy_TM64_to_tm(btime, &_tmcopy);
                 val_len = strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", &_tmcopy);

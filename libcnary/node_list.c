@@ -33,17 +33,16 @@ void node_list_destroy(node_list_t* list) {
 }
 
 node_list_t* node_list_create() {
-	node_list_t* list = (node_list_t*) malloc(sizeof(node_list_t));
-	if(list == NULL) {
-		return NULL;
-	}
-	memset(list, '\0', sizeof(node_list_t));
+    node_list_t *list = (node_list_t *)calloc(1, sizeof(node_list_t));
+    if (list == NULL) {
+        return NULL;
+    }
 
-	// Initialize structure
-	list->begin = NULL;
-	list->end = NULL;
-	list->count = 0;
-	return list;
+    // Initialize structure
+    list->begin = NULL;
+    list->end = NULL;
+    list->count = 0;
+    return list;
 }
 
 int node_list_add(node_list_t* list, node_t* node) {

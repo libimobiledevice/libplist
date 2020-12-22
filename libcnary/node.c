@@ -46,32 +46,31 @@ void node_destroy(node_t* node) {
 node_t* node_create(node_t* parent, void* data) {
 	int error = 0;
 
-	node_t* node = (node_t*) malloc(sizeof(node_t));
-	if(node == NULL) {
-		return NULL;
-	}
-	memset(node, '\0', sizeof(node_t));
+        node_t *node = (node_t *)calloc(1, sizeof(node_t));
+        if (node == NULL) {
+            return NULL;
+        }
 
-	node->data = data;
-	node->next = NULL;
-	node->prev = NULL;
-	node->count = 0;
-	node->parent = NULL;
-	node->children = NULL;
+        node->data = data;
+        node->next = NULL;
+        node->prev = NULL;
+        node->count = 0;
+        node->parent = NULL;
+        node->children = NULL;
 
-	// Pass NULL to create a root node
-	if(parent != NULL) {
-		// This is a child node so attach it to it's parent
-		error = node_attach(parent, node);
-		if(error < 0) {
-			// Unable to attach nodes
-			printf("ERROR: %d \"Unable to attach nodes\"\n", error);
-			node_destroy(node);
-			return NULL;
-		}
-	}
+        // Pass NULL to create a root node
+        if (parent != NULL) {
+            // This is a child node so attach it to it's parent
+            error = node_attach(parent, node);
+            if (error < 0) {
+                // Unable to attach nodes
+                printf("ERROR: %d \"Unable to attach nodes\"\n", error);
+                node_destroy(node);
+                return NULL;
+            }
+        }
 
-	return node;
+        return node;
 }
 
 int node_attach(node_t* parent, node_t* child) {

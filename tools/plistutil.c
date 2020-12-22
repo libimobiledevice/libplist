@@ -69,8 +69,7 @@ static options_t *parse_arguments(int argc, char *argv[])
 {
     int i = 0;
 
-    options_t *options = (options_t *) malloc(sizeof(options_t));
-    memset(options, 0, sizeof(options_t));
+    options_t *options = (options_t *)calloc(1, sizeof(options_t));
     options->out_fmt = 0;
 
     for (i = 1; i < argc; i++)
