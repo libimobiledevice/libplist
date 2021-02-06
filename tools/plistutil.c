@@ -34,8 +34,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-#define BUF_SIZE 2048 // Seems to be a decent start to cover most stdin files
-
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #endif
@@ -147,6 +145,7 @@ int main(int argc, char *argv[])
     char *plist_out = NULL;
     uint32_t size = 0;
     int read_size = 0;
+    int read_capacity = 4096;
     char *plist_entire = NULL;
     struct stat filestats;
     options_t *options = parse_arguments(argc, argv);
@@ -160,7 +159,7 @@ int main(int argc, char *argv[])
     if (!options->in_file || !strcmp(options->in_file, "-"))
     {
         read_size = 0;
-        plist_entire = malloc(sizeof(char) * BUF_SIZE);
+        plist_entire = malloc(sizeof(char) * read_capacity);
         if(plist_entire == NULL)
         {
             printf("ERROR: Failed to allocate buffer to read from stdin");
@@ -171,9 +170,10 @@ int main(int argc, char *argv[])
         char ch;
         while(read(STDIN_FILENO, &ch, 1) > 0)
         {
-            if (read_size >= BUF_SIZE) {
+            if (read_size >= read_capacity) {
                 char *old = plist_entire;
-                plist_entire = realloc(plist_entire, sizeof(char) * (read_size + 1));
+                read_capacity += 4096;
+                plist_entire = realloc(plist_entire, sizeof(char) * read_capacity);
                 if (plist_entire == NULL)
                 {
                     printf("ERROR: Failed to reallocate stdin buffer\n");
@@ -184,6 +184,17 @@ int main(int argc, char *argv[])
             }
             plist_entire[read_size] = ch;
             read_size++;
+        }
+        if (read_size >= read_capacity) {
+            char *old = plist_entire;
+            plist_entire = realloc(plist_entire, sizeof(char) * (read_capacity+1));
+            if (plist_entire == NULL)
+            {
+                printf("ERROR: Failed to reallocate stdin buffer\n");
+                free(old);
+                free(options);
+                return 1;
+            }
         }
         plist_entire[read_size] = '\0';
 
