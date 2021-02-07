@@ -123,7 +123,9 @@ fi
 if [test "x$CYTHON" != "xfalse"]; then
             PKG_PROG_PKG_CONFIG
             AC_MSG_CHECKING([for libplist Cython bindings])
-            CYTHON_PLIST_INCLUDE_DIR=$($PKG_CONFIG --variable=includedir libplist-2.0)/plist/cython
+            if test -x "$PKG_CONFIG"; then
+                CYTHON_PLIST_INCLUDE_DIR=$($PKG_CONFIG --variable=includedir libplist-2.0)/plist/cython
+            fi
             if [test ! -d "$CYTHON_PLIST_INCLUDE_DIR"]; then
                 CYTHON_PLIST_INCLUDE_DIR=.
                 cython_python_bindings=yes
