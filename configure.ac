@@ -19,12 +19,6 @@ LIBPLIST_SO_VERSION=6:0:3
 
 AC_SUBST(LIBPLIST_SO_VERSION)
 
-# prefer clang if it is available and CC is not set
-if test -z "$CC" && test -z "$CXX" && test -x "`which clang`"; then
-    CC=clang
-    CXX=clang++
-fi
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
