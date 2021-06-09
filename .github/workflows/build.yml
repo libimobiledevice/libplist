@@ -9,15 +9,31 @@ jobs:
     - name: install dependencies
       run: |
           sudo apt-get install cython3
+    - name: prepare environment
+      run: |
+          echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - uses: actions/checkout@v2
     - name: autogen
       run: |
           export PYTHON=python3
+          export LDFLAGS="-Wl,-rpath=/usr/local/lib"
           ./autogen.sh
     - name: make
       run: make
     - name: make check
       run: make check
+    - name: make install
+      run: sudo make install
+    - name: prepare artifact
+      run: |
+          mkdir -p dest
+          DESTDIR=`pwd`/dest make install
+          tar -C dest -cf libplist.tar usr
+    - name: publish artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: libplist-latest_${{env.target_triplet}}
+        path: libplist.tar
   build-macOS:
     runs-on: macOS-latest
     steps:
@@ -62,6 +78,18 @@ jobs:
       run: make
     - name: make check
       run: make check
+    - name: make install
+      run: sudo make install
+    - name: prepare artifact
+      run: |
+          mkdir -p dest
+          DESTDIR=`pwd`/dest make install
+          tar -C dest -cf libplist.tar usr
+    - name: publish artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: libplist-latest_macOS
+        path: libplist.tar
   build-windows:
     runs-on: windows-latest
     defaults:
@@ -89,6 +117,11 @@ jobs:
           autoconf
           automake-wrapper
           cython
+    - name: prepare environment
+      run: |
+          dest=`echo ${{ matrix.msystem }} |tr [:upper:] [:lower:]`
+          echo "dest=$dest" >> $GITHUB_ENV
+          echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - uses: actions/checkout@v2
     - name: autogen
       run: ./autogen.sh CC=gcc CXX=g++
@@ -108,3 +141,15 @@ jobs:
             fi
           done
       shell: bash
+    - name: make install
+      run: make install
+    - name: prepare artifact
+      run: |
+          mkdir -p dest
+          DESTDIR=`pwd`/dest make install
+          tar -C dest -cf libplist.tar ${{ env.dest }}
+    - name: publish artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: libplist-latest_${{ matrix.arch }}-${{ env.dest }}
+        path: libplist.tar
