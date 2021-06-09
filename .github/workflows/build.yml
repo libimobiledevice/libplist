@@ -7,10 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: install dependencies
-      run: sudo apt-get install cython
+      run: |
+          sudo apt-get install cython3
     - uses: actions/checkout@v2
     - name: autogen
-      run: ./autogen.sh
+      run: |
+          export PYTHON=python3
+          ./autogen.sh
     - name: make
       run: make
     - name: make check
@@ -25,7 +28,7 @@ jobs:
           else
             brew install libtool autoconf automake
           fi
-          pip install cython
+          pip3 install cython
       shell: bash
     - uses: actions/checkout@v2
     - name: autogen
@@ -40,9 +43,20 @@ jobs:
           done
           export CFLAGS="$USEARCHS -isysroot $SDKDIR"
           echo "Using CFLAGS: $CFLAGS"
-          export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/2.7/bin"
-          export LIBS="-L/Library/Frameworks/Python.framework/Versions/2.7/lib"
-          export PYTHON_EXTRA_LDFLAGS="-u _PyMac_Error /System/Library/Frameworks/Python.framework/Versions/2.7/Python"
+          PYTHON3_BIN=`xcrun -f python3`
+          if test -x $PYTHON3_BIN; then
+            export PYTHON=$PYTHON3_BIN
+            PYTHON_VER=`$PYTHON3_BIN -c "import distutils.sysconfig; print(distutils.sysconfig.get_config_var('VERSION'))"`
+            PYTHON_EXEC_PREFIX=`$PYTHON3_BIN -c "import distutils.sysconfig; print(distutils.sysconfig.get_config_var('exec_prefix'))"`
+            PYTHON_LIBS_PATH=$PYTHON_EXEC_PREFIX/lib
+            PYTHON_FRAMEWORK_PATH=$PYTHON_EXEC_PREFIX/Python3
+            export PYTHON_LIBS="-L$PYTHON_LIBS_PATH -lpython$PYTHON_VER"
+            export PYTHON_EXTRA_LDFLAGS="-Wl,-stack_size,1000000  -framework CoreFoundation $PYTHON_FRAMEWORK_PATH"
+          else
+            export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/2.7/bin"
+            export LIBS="-L/Library/Frameworks/Python.framework/Versions/2.7/lib"
+            export PYTHON_EXTRA_LDFLAGS="-u _PyMac_Error /System/Library/Frameworks/Python.framework/Versions/2.7/Python"
+          fi
           ./autogen.sh
     - name: make
       run: make
