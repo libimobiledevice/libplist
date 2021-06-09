@@ -30,6 +30,16 @@ jobs:
     - uses: actions/checkout@v2
     - name: autogen
       run: |
+          SDKDIR=`xcrun --sdk macosx --show-sdk-path`
+          TESTARCHS="arm64 x86_64"
+          USEARCHS=
+          for ARCH in $TESTARCHS; do
+            if echo "int main(int argc, char **argv) { return 0; }" |clang -arch $ARCH -o /dev/null -isysroot $SDKDIR -x c - 2>/dev/null; then
+              USEARCHS="$USEARCHS -arch $ARCH"
+            fi
+          done
+          export CFLAGS="$USEARCHS -isysroot $SDKDIR"
+          echo "Using CFLAGS: $CFLAGS"
           export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/2.7/bin"
           export LIBS="-L/Library/Frameworks/Python.framework/Versions/2.7/lib"
           export PYTHON_EXTRA_LDFLAGS="-u _PyMac_Error /System/Library/Frameworks/Python.framework/Versions/2.7/Python"
