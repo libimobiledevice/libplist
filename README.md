@@ -32,6 +32,10 @@ sudo apt-get install \
 	automake \
 	libtool-bin
 ```
+### Arch Linux
+```shell
+sudo pacman -S --noconfirm base-devel git usbmuxd
+```
 
 If you want to optionally build the documentation or Python bindings use:
 ```shell
