@@ -32,7 +32,7 @@ Array::Array(Node* parent) : Structure(PLIST_ARRAY, parent)
     _array.clear();
 }
 
-static void array_fill(Array *_this, std::vector<Node*> array, plist_t node)
+static void array_fill(Array *_this, std::vector<Node*> &array, plist_t node)
 {
     plist_array_iter iter = NULL;
     plist_array_new_iter(node, &iter);
