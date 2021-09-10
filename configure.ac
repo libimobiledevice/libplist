@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.64)
+AC_PREREQ(2.68)
 AC_INIT([libplist], [2.2.1], [https://github.com/libimobiledevice/libplist/issues],, [https://libimobiledevice.org])
 AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip check-news])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
@@ -33,10 +33,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[])],
 AC_LANG_POP
 
 AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
+LT_INIT
 
 # Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([stdint.h stdlib.h string.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -77,25 +76,33 @@ AC_SEARCH_LIBS([fmin],[m])
 
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
-	AC_TRY_COMPILE([
-		#include <time.h>
-	], [
-		struct tm tm;
-		tm.tm_gmtoff = 1;
-	], ac_cv_struct_tm_gmtoff=yes, ac_cv_struct_tm_gmtoff=no))
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+      #include <time.h>
+    ], [
+      struct tm tm;
+      tm.tm_gmtoff = 1;
+    ])],
+    [ac_cv_struct_tm_gmtoff=yes],
+    [ac_cv_struct_tm_gmtoff=no]
+  )
+)
 
 if (test "$ac_cv_struct_tm_gmtoff" = "yes"); then
-	AC_DEFINE(HAVE_TM_TM_GMTOFF, 1, [Define if struct tm has a tm_gmtoff member])
+  AC_DEFINE(HAVE_TM_TM_GMTOFF, 1, [Define if struct tm has a tm_gmtoff member])
 fi
 
 # Check if struct tm has a tm_zone member
 AC_CACHE_CHECK(for tm_zone in struct tm, ac_cv_struct_tm_zone,
-	AC_TRY_COMPILE([
-		#include <time.h>
-	], [
-		struct tm tm;
-		tm.tm_zone = 1;
-	], ac_cv_struct_tm_zone=yes, ac_cv_struct_tm_zone=no))
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+      #include <time.h>
+    ], [
+      struct tm tm;
+      tm.tm_zone = 1;
+    ])],
+    [ac_cv_struct_tm_zone=yes],
+    [ac_cv_struct_tm_zone=no]
+  )
+)
 
 if (test "$ac_cv_struct_tm_zone" = "yes"); then
 	AC_DEFINE(HAVE_TM_TM_ZONE, 1, [Define if struct tm has a tm_zone member])
@@ -260,7 +267,7 @@ fi
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 libcnary/Makefile
 src/Makefile
@@ -274,6 +281,7 @@ test/Makefile
 fuzz/Makefile
 doxygen.cfg
 ])
+AC_OUTPUT
 
 echo "
 Configuration for $PACKAGE $VERSION:
