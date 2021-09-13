@@ -63,7 +63,6 @@ static void internal_plist_deinit(void)
 }
 
 #ifdef WIN32
-
 typedef volatile struct {
     LONG lock;
     int state;
@@ -83,7 +82,29 @@ static void thread_once(thread_once_t *once_control, void (*init_routine)(void))
     }
     InterlockedExchange(&(once_control->lock), 0);
 }
+#else
+static pthread_once_t init_once = PTHREAD_ONCE_INIT;
+static pthread_once_t deinit_once = PTHREAD_ONCE_INIT;
+#define thread_once pthread_once
+#endif
 
+#ifndef HAVE_ATTRIBUTE_CONSTRUCTOR
+  #if defined(__llvm__) || defined(__GNUC__)
+    #define HAVE_ATTRIBUTE_CONSTRUCTOR
+  #endif
+#endif
+
+#ifdef HAVE_ATTRIBUTE_CONSTRUCTOR
+static void __attribute__((constructor)) libplist_initialize(void)
+{
+    thread_once(&init_once, internal_plist_init);
+}
+
+static void __attribute__((destructor)) libplist_deinitialize(void)
+{
+    thread_once(&deinit_once, internal_plist_deinit);
+}
+#elif defined(WIN32)
 BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, LPVOID lpReserved)
 {
     switch (dwReason) {
@@ -98,22 +119,8 @@ BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, LPVOID lpReserved)
     }
     return 1;
 }
-
 #else
-
-static pthread_once_t init_once = PTHREAD_ONCE_INIT;
-static pthread_once_t deinit_once = PTHREAD_ONCE_INIT;
-
-static void __attribute__((constructor)) libplist_initialize(void)
-{
-    pthread_once(&init_once, internal_plist_init);
-}
-
-static void __attribute__((destructor)) libplist_deinitialize(void)
-{
-    pthread_once(&deinit_once, internal_plist_deinit);
-}
-
+#warning No compiler support for constructor/destructor attributes, some features might not be available.
 #endif
 
 #ifndef HAVE_MEMMEM

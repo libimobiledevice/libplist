@@ -55,17 +55,17 @@ AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
 
 
 # Check for operating system
-AC_MSG_CHECKING([wether we need platform-specific build settings for ${host_os}])
+AC_MSG_CHECKING([for platform-specific build settings])
 case ${host_os} in
   *mingw32*|*cygwin*)
-    AC_MSG_RESULT([yes])
+    AC_MSG_RESULT([${host_os}])
     win32=true
     ;;
   darwin*|*android*)
-    AC_MSG_RESULT([no])
+    AC_MSG_RESULT([${host_os}])
     ;;
   *)
-    AC_MSG_RESULT([yes])
+    AC_MSG_RESULT([${host_os}])
     AX_PTHREAD([], [AC_MSG_ERROR([pthread is required to build libplist])])
     AC_CHECK_LIB(pthread, [pthread_once], [], [AC_MSG_ERROR([pthread with pthread_once required to build libplist])])
     ;;
@@ -73,6 +73,24 @@ esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
 AC_SEARCH_LIBS([fmin],[m])
+
+# Check if the C compiler supports __attribute__((constructor))
+AC_CACHE_CHECK([wether the C compiler supports constructor/destructor attributes],
+  ac_cv_attribute_constructor, [
+  ac_cv_attribute_constructor=no
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[
+      static void __attribute__((constructor)) test_constructor(void) {
+      }
+      static void __attribute__((destructor)) test_destructor(void) {
+      }
+    ]], [])],
+    [ac_cv_attribute_constructor=yes]
+  )]
+)
+if test "$ac_cv_attribute_constructor" = "yes"; then
+  AC_DEFINE(HAVE_ATTRIBUTE_CONSTRUCTOR, 1, [Define if the C compiler supports constructor/destructor attributes])
+fi
 
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
