@@ -1046,7 +1046,10 @@ PLIST_API void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     if (sec)
         *sec = (int32_t)val;
     if (usec)
-        *usec = (int32_t)fabs((val - (int64_t)val) * 1000000);
+    {
+	val = fabs((val - (int64_t)val) * 1000000);
+        *usec = (int32_t)val;
+    }
 }
 
 int plist_data_compare(const void *a, const void *b)
