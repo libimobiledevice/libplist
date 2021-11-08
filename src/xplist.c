@@ -113,7 +113,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     } else {
         size_t i = 0;
         len = snprintf(buf, bufsize, "%.*g", 17, realval);
-        for (i = 0; i < len; i++) {
+        for (i = 0; buf && i < len; i++) {
             if (buf[i] == ',') {
                 buf[i] = '.';
                 break;
@@ -479,7 +479,7 @@ static void node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
             *size += (XPLIST_INT_LEN << 1) + 6;
             break;
         case PLIST_REAL:
-            *size += num_digits_i((int64_t)data->realval) + 7;
+            *size += dtostr(NULL, 0, data->realval);
             *size += (XPLIST_REAL_LEN << 1) + 6;
             break;
         case PLIST_DATE:
