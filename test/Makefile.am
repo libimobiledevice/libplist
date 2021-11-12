@@ -7,12 +7,16 @@ AM_LDFLAGS =
 
 noinst_PROGRAMS = \
 	plist_cmp \
-	plist_test
+	plist_test \
+	plist_test++
 
 plist_cmp_SOURCES = plist_cmp.c
 plist_cmp_LDADD = \
 	$(top_builddir)/src/libplist-2.0.la \
 	$(top_builddir)/libcnary/libcnary.la
+
+plist_test___SOURCES = plist_test++.cpp
+plist_test___LDADD = $(top_builddir)/src/libplist++-2.0.la
 
 plist_test_SOURCES = plist_test.c
 plist_test_LDADD = $(top_builddir)/src/libplist-2.0.la
@@ -24,6 +28,12 @@ TESTS = \
 	large.test \
 	huge.test \
 	bigarray.test \
+	empty++.test \
+	small++.test \
+	medium++.test \
+	large++.test \
+	huge++.test \
+	bigarray++.test \
 	dates.test \
 	timezone1.test \
 	timezone2.test \
