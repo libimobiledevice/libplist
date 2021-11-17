@@ -382,6 +382,14 @@ PLIST_API void plist_free(plist_t plist)
     }
 }
 
+PLIST_API plist_free_memory(void* ptr)
+{
+    if (ptr)
+    {
+        free(ptr);
+    }
+}
+
 static plist_t plist_copy_node(node_t *node)
 {
     plist_type node_type = PLIST_NONE;
