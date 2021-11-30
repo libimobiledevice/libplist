@@ -382,7 +382,7 @@ PLIST_API void plist_free(plist_t plist)
     }
 }
 
-PLIST_API plist_free_memory(void* ptr)
+PLIST_API void plist_free_memory(void* ptr)
 {
     if (ptr)
     {
