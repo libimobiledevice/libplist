@@ -103,17 +103,18 @@ extern "C"
      */
     typedef enum
     {
-        PLIST_BOOLEAN,	/**< Boolean, scalar type */
-        PLIST_UINT,	/**< Unsigned integer, scalar type */
-        PLIST_REAL,	/**< Real, scalar type */
-        PLIST_STRING,	/**< ASCII string, scalar type */
-        PLIST_ARRAY,	/**< Ordered array, structured type */
-        PLIST_DICT,	/**< Unordered dictionary (key/value pair), structured type */
-        PLIST_DATE,	/**< Date, scalar type */
-        PLIST_DATA,	/**< Binary data, scalar type */
-        PLIST_KEY,	/**< Key in dictionaries (ASCII String), scalar type */
+        PLIST_BOOLEAN,  /**< Boolean, scalar type */
+        PLIST_UINT,     /**< Unsigned integer, scalar type */
+        PLIST_REAL,     /**< Real, scalar type */
+        PLIST_STRING,   /**< ASCII string, scalar type */
+        PLIST_ARRAY,    /**< Ordered array, structured type */
+        PLIST_DICT,     /**< Unordered dictionary (key/value pair), structured type */
+        PLIST_DATE,     /**< Date, scalar type */
+        PLIST_DATA,     /**< Binary data, scalar type */
+        PLIST_KEY,      /**< Key in dictionaries (ASCII String), scalar type */
         PLIST_UID,      /**< Special type used for 'keyed encoding' */
-        PLIST_NONE	/**< No type */
+        PLIST_NULL,     /**< NULL type */
+        PLIST_NONE      /**< No type */
     } plist_type;
 
 
@@ -203,6 +204,15 @@ extern "C"
      * @sa #plist_type
      */
     plist_t plist_new_uid(uint64_t val);
+
+    /**
+     * Create a new plist_t type #PLIST_NULL
+     * @return the created item
+     * @sa #plist_type
+     * @note This type is not valid for all formats, e.g. the XML format
+     *     does not support it.
+     */
+    plist_t plist_new_null(void);
 
     /**
      * Destruct a plist_t node and all its children recursively

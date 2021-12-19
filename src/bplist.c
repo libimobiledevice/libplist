@@ -630,6 +630,13 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         }
 
         case BPLIST_NULL:
+        {
+            plist_data_t data = plist_new_plist_data();
+            data->type = PLIST_NULL;
+            data->length = 0;
+            return node_create(NULL, data);
+        }
+
         default:
             return NULL;
         }
@@ -1295,6 +1302,11 @@ PLIST_API void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
         switch (data->type)
         {
+        case PLIST_NULL: {
+            uint8_t b = 0;
+            byte_array_append(bplist_buff, &b, 1);
+            break;
+        }
         case PLIST_BOOLEAN: {
             uint8_t b = data->boolval ? BPLIST_TRUE : BPLIST_FALSE;
             byte_array_append(bplist_buff, &b, 1);

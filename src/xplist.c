@@ -81,8 +81,10 @@ static const char XML_PLIST_EPILOG[] = "</plist>\n";
 #ifdef DEBUG
 static int plist_xml_debug = 0;
 #define PLIST_XML_ERR(...) if (plist_xml_debug) { fprintf(stderr, "libplist[xmlparser] ERROR: " __VA_ARGS__); }
+#define PLIST_XML_WRITE_ERR(...) if (plist_xml_debug) { fprintf(stderr, "libplist[xmlwriter] ERROR: " __VA_ARGS__); }
 #else
 #define PLIST_XML_ERR(...)
+#define PLIST_XML_WRITE_ERR(...)
 #endif
 
 void plist_xml_init(void)
@@ -125,7 +127,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     return len;
 }
 
-static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
+static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
 {
     plist_data_t node_data = NULL;
 
@@ -139,8 +141,10 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
 
     uint32_t i = 0;
 
-    if (!node)
-        return;
+    if (!node) {
+        PLIST_XML_WRITE_ERR("Encountered invalid empty node in property list\n");
+        return -1;
+    }
 
     node_data = plist_get_data(node);
 
@@ -232,6 +236,9 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
             val_len = snprintf(val, 64, "%"PRIi64, node_data->intval);
         }
         break;
+    case PLIST_NULL:
+        PLIST_XML_WRITE_ERR("PLIST_NULL type is not valid for XML format\n");
+        return -1;
     default:
         break;
     }
@@ -353,7 +360,8 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         }
         node_t *ch;
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            node_to_xml(ch, outbuf, depth+1);
+            int res = node_to_xml(ch, outbuf, depth+1);
+            if (res < 0) return res;
         }
 
         /* fix indent for structured types */
@@ -369,6 +377,7 @@ static void node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         str_buf_append(*outbuf, ">", 1);
     }
     str_buf_append(*outbuf, "\n", 1);
+    return 0;
 }
 
 static void parse_date(const char *strval, struct TM *btime)
@@ -519,7 +528,12 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 
     str_buf_append(outbuf, XML_PLIST_PROLOG, sizeof(XML_PLIST_PROLOG)-1);
 
-    node_to_xml(plist, &outbuf, 0);
+    if (node_to_xml(plist, &outbuf, 0) < 0) {
+        str_buf_free(outbuf);
+        *plist_xml = NULL;
+        *length = 0;
+        return;
+    }
 
     str_buf_append(outbuf, XML_PLIST_EPILOG, sizeof(XML_PLIST_EPILOG));
 

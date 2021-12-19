@@ -374,6 +374,15 @@ PLIST_API plist_t plist_new_date(int32_t sec, int32_t usec)
     return plist_new_node(data);
 }
 
+PLIST_API plist_t plist_new_null(void)
+{
+    plist_data_t data = plist_new_plist_data();
+    data->type = PLIST_NULL;
+    data->intval = 0;
+    data->length = 0;
+    return plist_new_node(data);
+}
+
 PLIST_API void plist_free(plist_t plist)
 {
     if (plist)
