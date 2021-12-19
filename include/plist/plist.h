@@ -449,6 +449,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it.
+     * @note Use plist_mem_free() to free the allocated memory.
      */
     void plist_get_key_val(plist_t node, char **val);
 
@@ -459,6 +460,7 @@ extern "C"
      * @param node the node
      * @param val a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it. Data is UTF-8 encoded.
+     * @note Use plist_mem_free() to free the allocated memory.
      */
     void plist_get_string_val(plist_t node, char **val);
 
@@ -510,6 +512,7 @@ extern "C"
      * @param val a pointer to an unallocated char buffer. This function allocates the memory,
      *            caller is responsible for freeing it.
      * @param length the length of the buffer
+     * @note Use plist_mem_free() to free the allocated memory.
      */
     void plist_get_data_val(plist_t node, char **val, uint64_t * length);
 
@@ -642,15 +645,9 @@ extern "C"
      * @param plist_xml a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it. Data is UTF-8 encoded.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @note Use plist_mem_free() to free the allocated memory.
      */
     void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
-
-    /**
-     * Frees the memory allocated by plist_to_xml().
-     *
-     * @param plist_xml The buffer allocated by plist_to_xml().
-     */
-    void plist_to_xml_free(char *plist_xml);
 
     /**
      * Export the #plist_t structure to binary format.
@@ -659,15 +656,9 @@ extern "C"
      * @param plist_bin a pointer to a char* buffer. This function allocates the memory,
      *            caller is responsible for freeing it.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @note Use plist_mem_free() to free the allocated memory.
      */
     void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
-
-    /**
-     * Frees the memory allocated by plist_to_bin().
-     *
-     * @param plist_bin The buffer allocated by plist_to_bin().
-     */
-    void plist_to_bin_free(char *plist_bin);
 
     /**
      * Import the #plist_t structure from XML format.
@@ -944,6 +935,21 @@ extern "C"
      *     or 0 if not.
      */
     int plist_data_val_contains(plist_t datanode, const uint8_t* cmpval, size_t n);
+
+    /**
+     * Free memory allocated by relevant libplist API calls:
+     * - plist_to_xml()
+     * - plist_to_bin()
+     * - plist_get_key_val()
+     * - plist_get_string_val()
+     * - plist_get_data_val()
+     *
+     * @param ptr pointer to the memory to free
+     *
+     * @note Do not use this function to free plist_t nodes, use plist_free()
+     *     instead.
+     */
+    void plist_mem_free(void* ptr);
 
     /*@}*/
 

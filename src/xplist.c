@@ -530,11 +530,6 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     str_buf_free(outbuf);
 }
 
-PLIST_API void plist_to_xml_free(char *plist_xml)
-{
-    free(plist_xml);
-}
-
 struct _parse_ctx {
     const char *pos;
     const char *end;
