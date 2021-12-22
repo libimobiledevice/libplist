@@ -183,18 +183,22 @@ PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
 }
 
 
-PLIST_API void plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist)
+PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist)
 {
-    if (length < 8) {
-        *plist = NULL;
-        return;
+    int res = -1;
+    if (!plist) {
+        return PLIST_ERR_INVALID_ARG;
     }
-
+    *plist = NULL;
+    if (!plist_data || length < 8) {
+        return PLIST_ERR_INVALID_ARG;
+    }
     if (plist_is_binary(plist_data, length)) {
-        plist_from_bin(plist_data, length, plist);
+        res = plist_from_bin(plist_data, length, plist);
     } else {
-        plist_from_xml(plist_data, length, plist);
+        res = plist_from_xml(plist_data, length, plist);
     }
+    return res;
 }
 
 plist_t plist_new_node(plist_data_t data)

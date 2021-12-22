@@ -117,6 +117,15 @@ extern "C"
         PLIST_NONE      /**< No type */
     } plist_type;
 
+    typedef enum
+    {
+        PLIST_ERR_SUCCESS      =  0,  /**< operation successful */
+        PLIST_ERR_INVALID_ARG  = -1,  /**< one or more of the parameters are invalid */
+        PLIST_ERR_FORMAT       = -2,  /**< the plist contains nodes not compatible with the output format */
+        PLIST_ERR_PARSE        = -3,  /**< parsing of the input format failed */
+        PLIST_ERR_NO_MEM       = -4,  /**< not enough memory to handle the operation */
+        PLIST_ERR_UNKNOWN      = -255 /**< an unspecified error occurred */
+    } plist_err_t;
 
     /********************************************
      *                                          *
@@ -655,9 +664,10 @@ extern "C"
      * @param plist_xml a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it. Data is UTF-8 encoded.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
      * @note Use plist_mem_free() to free the allocated memory.
      */
-    void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
+    plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
 
     /**
      * Export the #plist_t structure to binary format.
@@ -666,9 +676,10 @@ extern "C"
      * @param plist_bin a pointer to a char* buffer. This function allocates the memory,
      *            caller is responsible for freeing it.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
      * @note Use plist_mem_free() to free the allocated memory.
      */
-    void plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
+    plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
 
     /**
      * Import the #plist_t structure from XML format.
@@ -676,8 +687,9 @@ extern "C"
      * @param plist_xml a pointer to the xml buffer.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
      */
-    void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
+    plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
 
     /**
      * Import the #plist_t structure from binary format.
@@ -685,8 +697,9 @@ extern "C"
      * @param plist_bin a pointer to the xml buffer.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
      */
-    void plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
+    plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
     /**
      * Import the #plist_t structure from memory data.
@@ -696,8 +709,9 @@ extern "C"
      * @param plist_data a pointer to the memory buffer containing plist data.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
      */
-    void plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
+    plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
 
     /**
      * Test if in-memory plist data is binary or XML

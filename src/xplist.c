@@ -143,7 +143,7 @@ static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
 
     if (!node) {
         PLIST_XML_WRITE_ERR("Encountered invalid empty node in property list\n");
-        return -1;
+        return PLIST_ERR_INVALID_ARG;
     }
 
     node_data = plist_get_data(node);
@@ -238,9 +238,9 @@ static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         break;
     case PLIST_NULL:
         PLIST_XML_WRITE_ERR("PLIST_NULL type is not valid for XML format\n");
-        return -1;
+        return PLIST_ERR_FORMAT;
     default:
-        break;
+        return PLIST_ERR_UNKNOWN;
     }
 
     for (i = 0; i < depth; i++) {
@@ -377,7 +377,7 @@ static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         str_buf_append(*outbuf, ">", 1);
     }
     str_buf_append(*outbuf, "\n", 1);
-    return 0;
+    return PLIST_ERR_SUCCESS;
 }
 
 static void parse_date(const char *strval, struct TM *btime)
@@ -438,11 +438,11 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static void node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
+static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
 {
     plist_data_t data;
     if (!node) {
-        return;
+        return PLIST_ERR_INVALID_ARG;
     }
     data = plist_get_data(node);
     if (node->children) {
@@ -511,28 +511,47 @@ static void node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
             *size += 18; /* <key>CF$UID</key> */
             *size += (XPLIST_INT_LEN << 1) + 6;
             break;
+        case PLIST_NULL:
+            PLIST_XML_WRITE_ERR("PLIST_NULL type is not valid for XML format\n");
+            return PLIST_ERR_FORMAT;
         default:
-            break;
+            PLIST_XML_WRITE_ERR("invalid node type encountered\n");
+            return PLIST_ERR_UNKNOWN;
         }
         *size += indent;
     }
+    return PLIST_ERR_SUCCESS;
 }
 
-PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
+PLIST_API plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 {
     uint64_t size = 0;
-    node_estimate_size(plist, &size, 0);
+    int res;
+
+    if (!plist || !plist_xml || !length) {
+        return PLIST_ERR_INVALID_ARG;
+    }
+
+    res = node_estimate_size(plist, &size, 0);
+    if (res < 0) {
+        return res;
+    }
     size += sizeof(XML_PLIST_PROLOG) + sizeof(XML_PLIST_EPILOG) - 1;
 
     strbuf_t *outbuf = str_buf_new(size);
+    if (!outbuf) {
+        PLIST_XML_WRITE_ERR("Could not allocate output buffer");
+        return PLIST_ERR_NO_MEM;
+    }
 
     str_buf_append(outbuf, XML_PLIST_PROLOG, sizeof(XML_PLIST_PROLOG)-1);
 
-    if (node_to_xml(plist, &outbuf, 0) < 0) {
+    res = node_to_xml(plist, &outbuf, 0);
+    if (res < 0) {
         str_buf_free(outbuf);
         *plist_xml = NULL;
         *length = 0;
-        return;
+        return res;
     }
 
     str_buf_append(outbuf, XML_PLIST_EPILOG, sizeof(XML_PLIST_EPILOG));
@@ -542,6 +561,8 @@ PLIST_API void plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 
     outbuf->data = NULL;
     str_buf_free(outbuf);
+
+    return PLIST_ERR_SUCCESS;
 }
 
 struct _parse_ctx {
@@ -932,8 +953,9 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
     return str;
 }
 
-static void node_from_xml(parse_ctx ctx, plist_t *plist)
+static int node_from_xml(parse_ctx ctx, plist_t *plist)
 {
+    int res;
     char *tag = NULL;
     char *keyname = NULL;
     plist_t subnode = NULL;
@@ -1427,17 +1449,24 @@ err_out:
     if (ctx->err) {
         plist_free(*plist);
         *plist = NULL;
+        res = PLIST_ERR_PARSE;
+    } else {
+        res = PLIST_ERR_SUCCESS;
     }
+    return res;
 }
 
-PLIST_API void plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
+PLIST_API plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
+    if (!plist) {
+        return PLIST_ERR_INVALID_ARG;
+    }
+    *plist = NULL;
     if (!plist_xml || (length == 0)) {
-        *plist = NULL;
-        return;
+        return PLIST_ERR_INVALID_ARG;
     }
 
     struct _parse_ctx ctx = { plist_xml, plist_xml + length, 0 };
 
-    node_from_xml(&ctx, plist);
+    return node_from_xml(&ctx, plist);
 }
