@@ -1,0 +1,36 @@
+## -*- sh -*-
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE0=data.bplist
+TESTFILE1=7.plist
+TESTFILE2=uid.bplist
+
+if ! test -d "$DATAOUT"; then
+	mkdir -p $DATAOUT
+fi
+
+export PLIST_JSON_DEBUG=1
+
+echo "Converting (failure expected)"
+STDERR=`$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE0 -o /dev/null 2>&1`
+echo "$STDERR"
+if ! echo "$STDERR" |grep "PLIST_DATA type is not valid for JSON format"; then
+  exit 1
+fi
+
+echo "Converting (failure expected)"
+STDERR=`$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE1 -o /dev/null 2>&1`
+echo "$STDERR"
+if ! echo "$STDERR" |grep "PLIST_DATE type is not valid for JSON format"; then
+  exit 2
+fi
+
+echo "Converting (failure expected)"
+STDERR=`$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE2 -o /dev/null 2>&1`
+echo "$STDERR"
+if ! echo "$STDERR" |grep "PLIST_UID type is not valid for JSON format"; then
+  exit 3
+fi
+
+exit 0

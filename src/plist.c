@@ -49,17 +49,21 @@ extern void plist_xml_init(void);
 extern void plist_xml_deinit(void);
 extern void plist_bin_init(void);
 extern void plist_bin_deinit(void);
+extern void plist_json_init(void);
+extern void plist_json_deinit(void);
 
 static void internal_plist_init(void)
 {
     plist_bin_init();
     plist_xml_init();
+    plist_json_init();
 }
 
 static void internal_plist_deinit(void)
 {
     plist_bin_deinit();
     plist_xml_deinit();
+    plist_json_deinit();
 }
 
 #ifdef WIN32
@@ -195,6 +199,8 @@ PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length,
     }
     if (plist_is_binary(plist_data, length)) {
         res = plist_from_bin(plist_data, length, plist);
+    } else if (plist_data[0] == '[' || plist_data[0] == '{') {
+        res = plist_from_json(plist_data, length, plist);
     } else {
         res = plist_from_xml(plist_data, length, plist);
     }

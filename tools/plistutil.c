@@ -41,7 +41,7 @@
 typedef struct _options
 {
     char *in_file, *out_file;
-    uint8_t debug, in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json someday
+    uint8_t debug, in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json
 } options_t;
 
 static void print_usage(int argc, char *argv[])
@@ -50,14 +50,19 @@ static void print_usage(int argc, char *argv[])
     name = strrchr(argv[0], '/');
     printf("Usage: %s [OPTIONS] [-i FILE] [-o FILE]\n", (name ? name + 1: argv[0]));
     printf("\n");
-    printf("Convert a plist FILE from binary to XML format or vice-versa.\n");
+    printf("Convert a plist FILE between binary, XML, and JSON format.\n");
+    printf("If -f is omitted, XML plist data will be converted to binary and vice-versa.\n");
+    printf("To convert to/from JSON the output format needs to be specified.\n");
     printf("\n");
     printf("OPTIONS:\n");
-    printf("  -i, --infile FILE       Optional FILE to convert from or stdin if - or not used\n");
-    printf("  -o, --outfile FILE      Optional FILE to convert to or stdout if - or not used\n");
-    printf("  -f, --format [bin|xml]  Force output format, regardless of input type\n");
-    printf("  -d, --debug             Enable extended debug output\n");
-    printf("  -v, --version           Print version information\n");
+    printf("  -i, --infile FILE    Optional FILE to convert from or stdin if - or not used\n");
+    printf("  -o, --outfile FILE   Optional FILE to convert to or stdout if - or not used\n");
+    printf("  -f, --format FORMAT  Force output format, regardless of input type\n");
+    printf("                       FORMAT is one of xml, bin, or json\n");
+    printf("                       If omitted XML will be converted to binary,\n");
+    printf("                       and binary to XML.\n");
+    printf("  -d, --debug          Enable extended debug output\n");
+    printf("  -v, --version        Print version information\n");
     printf("\n");
     printf("Homepage:    <" PACKAGE_URL ">\n");
     printf("Bug Reports: <" PACKAGE_BUGREPORT ">\n");
@@ -105,8 +110,10 @@ static options_t *parse_arguments(int argc, char *argv[])
                 options->out_fmt = 1;
             } else if (!strncmp(argv[i+1], "xml", 3)) {
                 options->out_fmt = 2;
+            } else if (!strncmp(argv[i+1], "json", 4)) {
+                options->out_fmt = 3;
             } else {
-                printf("ERROR: Unsupported output format\n");
+                fprintf(stderr, "ERROR: Unsupported output format\n");
                 free(options);
                 return NULL;
             }
@@ -129,7 +136,7 @@ static options_t *parse_arguments(int argc, char *argv[])
         }
         else
         {
-            printf("ERROR: Invalid option '%s'\n", argv[i]);
+            fprintf(stderr, "ERROR: Invalid option '%s'\n", argv[i]);
             free(options);
             return NULL;
         }
@@ -140,6 +147,7 @@ static options_t *parse_arguments(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    int ret = 0;
     FILE *iplist = NULL;
     plist_t root_node = NULL;
     char *plist_out = NULL;
@@ -162,7 +170,7 @@ int main(int argc, char *argv[])
         plist_entire = malloc(sizeof(char) * read_capacity);
         if(plist_entire == NULL)
         {
-            printf("ERROR: Failed to allocate buffer to read from stdin");
+            fprintf(stderr, "ERROR: Failed to allocate buffer to read from stdin");
             free(options);
             return 1;
         }
@@ -176,7 +184,7 @@ int main(int argc, char *argv[])
                 plist_entire = realloc(plist_entire, sizeof(char) * read_capacity);
                 if (plist_entire == NULL)
                 {
-                    printf("ERROR: Failed to reallocate stdin buffer\n");
+                    fprintf(stderr, "ERROR: Failed to reallocate stdin buffer\n");
                     free(old);
                     free(options);
                     return 1;
@@ -190,7 +198,7 @@ int main(int argc, char *argv[])
             plist_entire = realloc(plist_entire, sizeof(char) * (read_capacity+1));
             if (plist_entire == NULL)
             {
-                printf("ERROR: Failed to reallocate stdin buffer\n");
+                fprintf(stderr, "ERROR: Failed to reallocate stdin buffer\n");
                 free(old);
                 free(options);
                 return 1;
@@ -201,14 +209,14 @@ int main(int argc, char *argv[])
         // Not positive we need this, but it doesnt seem to hurt lol
         if(ferror(stdin))
         {
-            printf("ERROR: reading from stdin.\n");
+            fprintf(stderr, "ERROR: reading from stdin.\n");
             free(plist_entire);
             free(options);
             return 1;
         }
 
         if (read_size < 8) {
-            printf("ERROR: Input file is too small to contain valid plist data.\n");
+            fprintf(stderr, "ERROR: Input file is too small to contain valid plist data.\n");
             free(plist_entire);
             free(options);
             return 1;
@@ -219,7 +227,7 @@ int main(int argc, char *argv[])
         // read input file
         iplist = fopen(options->in_file, "rb");
         if (!iplist) {
-            printf("ERROR: Could not open input file '%s': %s\n", options->in_file, strerror(errno));
+            fprintf(stderr, "ERROR: Could not open input file '%s': %s\n", options->in_file, strerror(errno));
             free(options);
             return 1;
         }
@@ -228,7 +236,7 @@ int main(int argc, char *argv[])
         fstat(fileno(iplist), &filestats);
 
         if (filestats.st_size < 8) {
-            printf("ERROR: Input file is too small to contain valid plist data.\n");
+            fprintf(stderr, "ERROR: Input file is too small to contain valid plist data.\n");
             free(options);
             fclose(iplist);
             return -1;
@@ -240,7 +248,7 @@ int main(int argc, char *argv[])
     }
 
     if (options->out_fmt == 0) {
-        // convert from binary to xml or vice-versa<br>
+        // convert from binary to xml or vice-versa
         if (plist_is_binary(plist_entire, read_size))
         {
             plist_from_bin(plist_entire, read_size, &root_node);
@@ -254,29 +262,13 @@ int main(int argc, char *argv[])
     }
     else
     {
+        plist_from_memory(plist_entire, read_size, &root_node);
         if (options->out_fmt == 1) {
-            if (plist_is_binary(plist_entire, read_size))
-            {
-                plist_out = malloc(sizeof(char) * read_size);
-                memcpy(plist_out, plist_entire, read_size);
-                size = read_size;
-            }
-            else
-            {
-                plist_from_xml(plist_entire, read_size, &root_node);
-                plist_to_bin(root_node, &plist_out, &size);
-            }
+            plist_to_bin(root_node, &plist_out, &size);
         } else if (options->out_fmt == 2) {
-            if (plist_is_binary(plist_entire, read_size)) {
-                plist_from_bin(plist_entire, read_size, &root_node);
-                plist_to_xml(root_node, &plist_out, &size);
-            }
-            else
-            {
-                plist_out = malloc(sizeof(char) * read_size);
-                memcpy(plist_out, plist_entire, read_size);
-                size = read_size;
-            }
+            plist_to_xml(root_node, &plist_out, &size);
+        } else if (options->out_fmt == 3) {
+            plist_to_json(root_node, &plist_out, &size, 0);
         }
     }
     plist_free(root_node);
@@ -288,7 +280,7 @@ int main(int argc, char *argv[])
         {
             FILE *oplist = fopen(options->out_file, "wb");
             if (!oplist) {
-                printf("ERROR: Could not open output file '%s': %s\n", options->out_file, strerror(errno));
+                fprintf(stderr, "ERROR: Could not open output file '%s': %s\n", options->out_file, strerror(errno));
                 free(options);
                 return 1;
             }
@@ -301,9 +293,11 @@ int main(int argc, char *argv[])
 
         free(plist_out);
     }
-    else
-        printf("ERROR: Failed to convert input file.\n");
+    else {
+        fprintf(stderr, "ERROR: Failed to convert input file.\n");
+        ret = 2;
+    }
 
     free(options);
-    return 0;
+    return ret;
 }

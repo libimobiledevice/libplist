@@ -8,7 +8,8 @@ AM_LDFLAGS =
 noinst_PROGRAMS = \
 	plist_cmp \
 	plist_test \
-	plist_btest
+	plist_btest \
+	plist_jtest
 
 plist_cmp_SOURCES = plist_cmp.c
 plist_cmp_LDADD = \
@@ -20,6 +21,9 @@ plist_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 plist_btest_SOURCES = plist_btest.c
 plist_btest_LDADD = $(top_builddir)/src/libplist-2.0.la
+
+plist_jtest_SOURCES = plist_jtest.c
+plist_jtest_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 TESTS = \
 	empty.test \
@@ -45,7 +49,10 @@ TESTS = \
 	offsetsize.test \
 	refsize.test \
 	malformed_dict.test \
-	uid.test
+	uid.test \
+	json1.test \
+	json2.test \
+	json-invalid-types.test
 
 EXTRA_DIST = \
 	$(TESTS) \
@@ -89,7 +96,9 @@ EXTRA_DIST = \
 	data/signedunsigned.plist \
 	data/unsigned.bplist \
 	data/unsigned.plist \
-	data/uid.bplist
+	data/uid.bplist \
+	data/data.bplist \
+	data/j1.plist
 
 TESTS_ENVIRONMENT = \
 	top_srcdir=$(top_srcdir) \

@@ -1,7 +1,5 @@
 ## -*- sh -*-
 
-set -e
-
 DATASRC=$top_srcdir/test/data
 TESTFILE=recursion.bplist
 DATAIN0=$DATASRC/$TESTFILE
@@ -9,3 +7,9 @@ DATAOUT0=$top_builddir/test/data/$TESTFILE.out
 
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 
+# test succeeds if plistutil fails
+if [ $? -eq 0 ]; then
+  exit 1
+else
+  exit 0
+fi

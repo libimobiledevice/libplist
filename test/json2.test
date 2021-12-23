@@ -1,0 +1,22 @@
+## -*- sh -*-
+
+set -e
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE=entities.plist
+
+if ! test -d "$DATAOUT"; then
+	mkdir -p $DATAOUT
+fi
+
+export PLIST_JSON_DEBUG=1
+
+echo "Converting input file to JSON"
+$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE -o $DATASRC/$TESTFILE.json
+
+echo "Converting to binary and back to JSON"
+$top_builddir/test/plist_jtest $DATASRC/$TESTFILE.json $DATAOUT/$TESTFILE.json.out
+
+echo "Comparing"
+$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.json.out

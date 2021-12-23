@@ -682,6 +682,19 @@ extern "C"
     plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
 
     /**
+     * Export the #plist_t structure to JSON format.
+     *
+     * @param plist the root node to export
+     * @param json a pointer to a char* buffer. This function allocates the memory,
+     *     caller is responsible for freeing it.
+     * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @param prettify pretty print the output if != 0
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @note Use plist_mem_free() to free the allocated memory.
+     */
+    plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, int prettify);
+
+    /**
      * Import the #plist_t structure from XML format.
      *
      * @param plist_xml a pointer to the xml buffer.
@@ -702,9 +715,25 @@ extern "C"
     plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
     /**
+     * Import the #plist_t structure from JSON format.
+     *
+     * @param json a pointer to the JSON buffer.
+     * @param length length of the buffer to read.
+     * @param plist a pointer to the imported plist.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     */
+    plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist);
+
+    /**
      * Import the #plist_t structure from memory data.
      * This method will look at the first bytes of plist_data
-     * to determine if plist_data contains a binary or XML plist.
+     * to determine if plist_data contains a binary, JSON, or XML plist
+     * and tries to parse the data in the appropriate format.
+     * @note This is just a convenience function and the format detection is
+     *     very basic. It checks with plist_is_binary() if the data supposedly
+     *     contains binary plist data, if not it checks if the first byte is
+     *     either '{' or '[' and assumes JSON format, otherwise it will try
+     *     to parse the data as XML.
      *
      * @param plist_data a pointer to the memory buffer containing plist data.
      * @param length length of the buffer to read.
@@ -714,12 +743,12 @@ extern "C"
     plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
 
     /**
-     * Test if in-memory plist data is binary or XML
-     * This method will look at the first bytes of plist_data
-     * to determine if plist_data contains a binary or XML plist.
-     * This method is not validating the whole memory buffer to check if the
-     * content is truly a plist, it's only using some heuristic on the first few
-     * bytes of plist_data.
+     * Test if in-memory plist data is in binary format.
+     * This function will look at the first bytes of plist_data to determine
+     * if it supposedly contains a binary plist.
+     * @note The function is not validating the whole memory buffer to check
+     * if the content is truly a plist, it is only using some heuristic on
+     * the first few bytes of plist_data.
      *
      * @param plist_data a pointer to the memory buffer containing plist data.
      * @param length length of the buffer to read.

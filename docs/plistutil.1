@@ -1,13 +1,13 @@
 .TH "plistutil" 1
 .SH NAME
-plistutil \- Convert a plist FILE from binary to XML format or vice-versa
+plistutil \- Convert a plist FILE between binary, XML, and JSON format
 .SH SYNOPSIS
 .B plistutil
 [OPTIONS]
 [-i FILE]
 [-o FILE]
 .SH DESCRIPTION
-plistutil allows converting a file in Property List format from binary to XML format or vice-versa.
+plistutil allows converting a Property List file between binary, XML, and JSON format.
 .SH OPTIONS
 .TP
 .B \-i, \-\-infile FILE
@@ -18,10 +18,13 @@ filename, plistutil will read from stdin.
 Output FILE to convert to. If this argument is omitted or - is passed as
 filename, plistutil will write to stdout.
 .TP
-.B \-f, \-\-format [bin|xml]
+.B \-f, \-\-format [bin|xml|json]
 Force output format, regardless of input type. This is useful if the input
 format is not known, but the output format should always be in a specific
-format (like xml).
+format (like xml or json).
+
+If omitted, XML plist data will be converted to binary and vice-versa. To
+convert to/from JSON the output format needs to specified.
 .TP
 .B \-h, \-\-help
 Prints usage information.
@@ -46,6 +49,9 @@ Print test.plist as XML plist, regardless of the input format.
 .TP
 .B plistutil -i test.plist -f xml -o -
 Same as before.
+.TP
+.B plistutil -i test.plist -f json
+Print test.plist as JSON plist, regardless of the input format.
 .TP
 .B cat test.plist |plistutil -f xml
 Take plist data from stdin - piped via cat - and write the output as XML
