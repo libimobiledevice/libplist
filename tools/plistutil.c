@@ -148,6 +148,8 @@ static options_t *parse_arguments(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     int ret = 0;
+    int input_res = PLIST_ERR_UNKNOWN;
+    int output_res = PLIST_ERR_UNKNOWN;
     FILE *iplist = NULL;
     plist_t root_node = NULL;
     char *plist_out = NULL;
@@ -251,24 +253,30 @@ int main(int argc, char *argv[])
         // convert from binary to xml or vice-versa
         if (plist_is_binary(plist_entire, read_size))
         {
-            plist_from_bin(plist_entire, read_size, &root_node);
-            plist_to_xml(root_node, &plist_out, &size);
+            input_res = plist_from_bin(plist_entire, read_size, &root_node);
+            if (input_res == PLIST_ERR_SUCCESS) {
+                output_res = plist_to_xml(root_node, &plist_out, &size);
+            }
         }
         else
         {
-            plist_from_xml(plist_entire, read_size, &root_node);
-            plist_to_bin(root_node, &plist_out, &size);
+            input_res = plist_from_xml(plist_entire, read_size, &root_node);
+            if (input_res == PLIST_ERR_SUCCESS) {
+                output_res = plist_to_bin(root_node, &plist_out, &size);
+            }
         }
     }
     else
     {
-        plist_from_memory(plist_entire, read_size, &root_node);
-        if (options->out_fmt == 1) {
-            plist_to_bin(root_node, &plist_out, &size);
-        } else if (options->out_fmt == 2) {
-            plist_to_xml(root_node, &plist_out, &size);
-        } else if (options->out_fmt == 3) {
-            plist_to_json(root_node, &plist_out, &size, 0);
+        input_res = plist_from_memory(plist_entire, read_size, &root_node);
+        if (input_res == PLIST_ERR_SUCCESS) {
+            if (options->out_fmt == 1) {
+                output_res = plist_to_bin(root_node, &plist_out, &size);
+            } else if (options->out_fmt == 2) {
+                output_res = plist_to_xml(root_node, &plist_out, &size);
+            } else if (options->out_fmt == 3) {
+                output_res = plist_to_json(root_node, &plist_out, &size, 0);
+            }
         }
     }
     plist_free(root_node);
@@ -293,9 +301,22 @@ int main(int argc, char *argv[])
 
         free(plist_out);
     }
-    else {
-        fprintf(stderr, "ERROR: Failed to convert input file.\n");
-        ret = 2;
+
+    if (input_res == PLIST_ERR_SUCCESS) {
+        switch (output_res) {
+            case PLIST_ERR_SUCCESS:
+                break;
+            case PLIST_ERR_FORMAT:
+                fprintf(stderr, "ERROR: Input plist data is not compatible with output format.\n");
+                ret = 2;
+                break;
+            default:
+                fprintf(stderr, "ERROR: Failed to convert plist data (%d)\n", output_res);
+                ret = 1;
+        }
+    } else {
+        fprintf(stderr, "ERROR: Could not parse plist data (%d)\n", input_res);
+        ret = 1;
     }
 
     free(options);
