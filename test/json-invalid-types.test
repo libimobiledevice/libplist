@@ -13,23 +13,20 @@ fi
 export PLIST_JSON_DEBUG=1
 
 echo "Converting (failure expected)"
-STDERR=`$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE0 -o /dev/null 2>&1`
-echo "$STDERR"
-if ! echo "$STDERR" |grep "PLIST_DATA type is not valid for JSON format"; then
+$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE0 -o /dev/null
+if [ $? -neq 2 ]; then
   exit 1
 fi
 
 echo "Converting (failure expected)"
-STDERR=`$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE1 -o /dev/null 2>&1`
-echo "$STDERR"
-if ! echo "$STDERR" |grep "PLIST_DATE type is not valid for JSON format"; then
+$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE1 -o /dev/null
+if [ $? -neq 2 ]; then
   exit 2
 fi
 
 echo "Converting (failure expected)"
-STDERR=`$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE2 -o /dev/null 2>&1`
-echo "$STDERR"
-if ! echo "$STDERR" |grep "PLIST_UID type is not valid for JSON format"; then
+$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE2 -o /dev/null
+if [ $? -neq 2 ]; then
   exit 3
 fi
 
