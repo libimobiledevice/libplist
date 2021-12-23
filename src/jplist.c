@@ -66,7 +66,7 @@ void plist_json_deinit(void)
 }
 
 #ifndef HAVE_STRNDUP
-static char* strndup(char* str, size_t len)
+static char* strndup(const char* str, size_t len)
 {
     char *newstr = (char *)malloc(len+1);
     if (newstr) {
