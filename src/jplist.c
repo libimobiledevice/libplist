@@ -65,6 +65,18 @@ void plist_json_deinit(void)
     /* deinit JSON stuff */
 }
 
+#ifndef HAVE_STRNDUP
+static char* strndup(char* str, size_t len)
+{
+    char *newstr = (char *)malloc(len+1);
+    if (newstr) {
+        strncpy(newstr, str, len);
+        newstr[len]= '\0';
+    }
+    return newstr;
+}
+#endif
+
 static size_t dtostr(char *buf, size_t bufsize, double realval)
 {
     size_t len = 0;
