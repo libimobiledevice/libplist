@@ -18,7 +18,7 @@ jobs:
       run: |
           export PYTHON=python3
           export LDFLAGS="-Wl,-rpath=/usr/local/lib"
-          ./autogen.sh
+          ./autogen.sh --enable-debug
     - name: make
       run: make
     - name: make check
@@ -74,7 +74,7 @@ jobs:
             export LIBS="-L/Library/Frameworks/Python.framework/Versions/2.7/lib"
             export PYTHON_EXTRA_LDFLAGS="-u _PyMac_Error /System/Library/Frameworks/Python.framework/Versions/2.7/Python"
           fi
-          ./autogen.sh
+          ./autogen.sh --enable-debug
     - name: make
       run: make
     - name: make check
@@ -125,7 +125,7 @@ jobs:
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - uses: actions/checkout@v2
     - name: autogen
-      run: ./autogen.sh CC=gcc CXX=g++
+      run: ./autogen.sh CC=gcc CXX=g++ --enable-debug
     - name: make
       run: make
     - name: make check
