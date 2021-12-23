@@ -955,7 +955,6 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
 
 static int node_from_xml(parse_ctx ctx, plist_t *plist)
 {
-    int res;
     char *tag = NULL;
     char *keyname = NULL;
     plist_t subnode = NULL;
@@ -1449,11 +1448,21 @@ err_out:
     if (ctx->err) {
         plist_free(*plist);
         *plist = NULL;
-        res = PLIST_ERR_PARSE;
-    } else {
-        res = PLIST_ERR_SUCCESS;
+        return PLIST_ERR_PARSE;
     }
-    return res;
+
+    /* check if we have a UID "dict" so we can replace it with a proper UID node */
+    if (PLIST_IS_DICT(*plist) && plist_dict_get_size(*plist) == 1) {
+        plist_t value = plist_dict_get_item(*plist, "CF$UID");
+        if (PLIST_IS_UINT(value)) {
+            uint64_t u64val = 0;
+            plist_get_uint_val(value, &u64val);
+            plist_free(*plist);
+            *plist = plist_new_uid(u64val);
+        }
+    }
+
+    return PLIST_ERR_SUCCESS;
 }
 
 PLIST_API plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
