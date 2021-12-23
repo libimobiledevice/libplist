@@ -124,6 +124,9 @@ int main(int argc, char *argv[])
     fclose(iplist1);
     fclose(iplist2);
 
+    plist_1[size_in1] = '\0';
+    plist_2[size_in2] = '\0';
+
     if (memcmp(plist_1, "bplist00", 8) == 0)
         plist_from_bin(plist_1, size_in1, &root_node1);
     else if (plist_1[0] == '[' || plist_1[0] == '{')
