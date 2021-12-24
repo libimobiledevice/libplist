@@ -661,7 +661,7 @@ PLIST_API int plist_from_json(const char *json, uint32_t length, plist_t * plist
         }
 	tokens = newtokens;
 
-        r = jsmn_parse(&parser, json, tokens, maxtoks);
+        r = jsmn_parse(&parser, json, length, tokens, maxtoks);
         if (r == JSMN_ERROR_NOMEM) {
             maxtoks+=16;
             continue;
