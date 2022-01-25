@@ -4,7 +4,7 @@ set -e
 
 DATASRC=$top_srcdir/test/data
 DATAOUT=$top_builddir/test/data
-TESTFILE=j1.plist
+TESTFILE=j1.json
 
 if ! test -d "$DATAOUT"; then
 	mkdir -p $DATAOUT

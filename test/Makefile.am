@@ -99,7 +99,8 @@ EXTRA_DIST = \
 	data/unsigned.plist \
 	data/uid.bplist \
 	data/data.bplist \
-	data/j1.plist
+	data/j1.json \
+	data/j2.json
 
 TESTS_ENVIRONMENT = \
 	top_srcdir=$(top_srcdir) \
