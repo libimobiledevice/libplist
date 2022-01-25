@@ -272,9 +272,14 @@ if test "x$build_sanitizers" = "xyes"; then
 fi
 
 if test "x$build_fuzzers" = "xyes"; then
-    if test "$CXX" != "clang++"; then
+    IS_CLANG=`$CXX --version 2>/dev/null |grep clang`
+    case "$IS_CLANG" in
+        *clang*)
+        ;;
+        *)
         AC_MSG_WARN([building fuzzers requires clang/clang++ (continuing anyway)])
-    fi
+        ;;
+    esac
 
     CFLAGS+=" -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
 
