@@ -1,0 +1,15 @@
+#!/bin/sh
+SRCDIR=`dirname $0`
+if test -n "$1"; then
+  VER=$1
+else
+  if test -d "${SRCDIR}/.git" && test -x "`which git`" ; then
+    git update-index -q --refresh
+    VER=`git describe --tags --always --dirty=-dirty`
+  else
+    if test -f "${SRCDIR}/.tarball-version"; then
+      VER=`cat "${SRCDIR}/.tarball-version"`
+    fi
+  fi
+fi
+printf %s "$VER"
