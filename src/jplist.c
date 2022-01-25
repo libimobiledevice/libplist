@@ -462,19 +462,9 @@ static plist_t parse_primitive(const char* js, jsmntok_t* tokens, int* index)
     return val;
 }
 
-static plist_t parse_string(const char* js, jsmntok_t* tokens, int* index)
+static char* unescape_string(const char* str_val, size_t str_len, size_t *new_len)
 {
-    if (tokens[*index].type != JSMN_STRING) {
-        PLIST_JSON_ERR("%s: token type != JSMN_STRING\n", __func__);
-        return NULL;
-    }
-
-    const char* str_val = js + tokens[*index].start;
-    size_t str_len = tokens[*index].end - tokens[*index].start;
     char* strval = strndup(str_val, str_len);
-    plist_t node;
-
-    /* unescape */
     size_t i = 0;
     while (i < str_len) {
         if (strval[i] == '\\' && i < str_len-1) {
@@ -543,6 +533,23 @@ static plist_t parse_string(const char* js, jsmntok_t* tokens, int* index)
         }
         i++;
     }
+    strval[str_len] = '\0';
+    if (new_len) {
+        *new_len = str_len;
+    }
+    return strval;
+}
+
+static plist_t parse_string(const char* js, jsmntok_t* tokens, int* index)
+{
+    if (tokens[*index].type != JSMN_STRING) {
+        PLIST_JSON_ERR("%s: token type != JSMN_STRING\n", __func__);
+        return NULL;
+    }
+
+    size_t str_len = 0; ;
+    char* strval = unescape_string(js + tokens[*index].start, tokens[*index].end - tokens[*index].start, &str_len);
+    plist_t node;
 
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_STRING;
@@ -604,7 +611,7 @@ static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index)
     int j = (*index)+1;
     for (num = 0; num < num_tokens; num++) {
         if (tokens[j].type == JSMN_STRING) {
-            char* key = strndup(js + tokens[j].start, tokens[j].end - tokens[j].start);
+            char* key = unescape_string(js + tokens[j].start, tokens[j].end - tokens[j].start, NULL);
             plist_t val = NULL;
             j++;
             num++;
