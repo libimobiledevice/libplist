@@ -657,6 +657,7 @@ PLIST_API int plist_from_json(const char *json, uint32_t length, plist_t * plist
     jsmn_parser parser;
     jsmn_init(&parser);
     int maxtoks = 256;
+    int curtoks = 0;
     int r = 0;
     jsmntok_t *tokens = NULL;
 
@@ -666,14 +667,16 @@ PLIST_API int plist_from_json(const char *json, uint32_t length, plist_t * plist
             PLIST_JSON_ERR("%s: Out of memory\n", __func__);
             return PLIST_ERR_NO_MEM;
         }
-	tokens = newtokens;
+        memset((unsigned char*)newtokens + sizeof(jsmntok_t)*curtoks, '\0', sizeof(jsmntok_t)*(maxtoks-curtoks));
+        tokens = newtokens;
+        curtoks = maxtoks;
 
         r = jsmn_parse(&parser, json, length, tokens, maxtoks);
         if (r == JSMN_ERROR_NOMEM) {
             maxtoks+=16;
             continue;
-	}
-    } while (0);
+        }
+    } while (r == JSMN_ERROR_NOMEM);
 
     switch(r) {
         case JSMN_ERROR_NOMEM:
