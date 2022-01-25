@@ -52,6 +52,7 @@ TESTS = \
 	uid.test \
 	json1.test \
 	json2.test \
+	json3.test \
 	json-invalid-types.test
 
 EXTRA_DIST = \

@@ -1,0 +1,1 @@
+{"Some ASCII string":"Test ASCII String","Some UTF8 strings":["àéèçù","日本語","汉语/漢語","한국어/조선말","русский язык","الْعَرَبيّة","עִבְרִית","język polski","हिन्दी"],"Keys & \"entities\"":"hellow world & others <nodes> are \"fun!?'","Boolean":false,"Another Boolean":true,"Some Int":32434543632,"Some String with Unicode entity":"Yeah check this: \u1234 !!!"}
