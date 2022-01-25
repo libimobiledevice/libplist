@@ -14,6 +14,8 @@ jobs:
       run: |
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: autogen
       run: |
           export PYTHON=python3
@@ -48,6 +50,8 @@ jobs:
           pip3 install cython
       shell: bash
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: autogen
       run: |
           SDKDIR=`xcrun --sdk macosx --show-sdk-path`
@@ -124,6 +128,8 @@ jobs:
           echo "dest=$dest" >> $GITHUB_ENV
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: autogen
       run: ./autogen.sh CC=gcc CXX=g++ --enable-debug
     - name: make
