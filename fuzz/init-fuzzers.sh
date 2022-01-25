@@ -5,7 +5,7 @@ FUZZDIR=`dirname $0`
 
 cd ${FUZZDIR}
 
-if ! test -x xplist_fuzzer || ! test -x bplist_fuzzer; then
+if ! test -x xplist_fuzzer || ! test -x bplist_fuzzer || ! test -x jplist_fuzzer; then
 	echo "ERROR: you need to build the fuzzers first."
 	cd ${CURDIR}
 	exit 1
@@ -18,6 +18,13 @@ cp ../test/data/*.plist xplist-input/
 mkdir -p bplist-input
 cp ../test/data/*.bplist bplist-input/
 ./bplist_fuzzer -merge=1 bplist-input bplist-crashes bplist-leaks -dict=bplist.dict
+
+mkdir -p jplist-input
+mkdir -p jplist-crashes
+mkdir -p jplist-leaks
+cp ../test/data/j1.plist jplist-input/
+cp ../test/data/j2.plist jplist-input/
+./jplist_fuzzer -merge=1 jplist-input jplist-crashes jplist-leaks -dict=jplist.dict
 
 cd ${CURDIR}
 exit 0
