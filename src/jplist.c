@@ -549,6 +549,9 @@ static plist_t parse_string(const char* js, jsmntok_t* tokens, int* index)
 
     size_t str_len = 0; ;
     char* strval = unescape_string(js + tokens[*index].start, tokens[*index].end - tokens[*index].start, &str_len);
+    if (!strval) {
+        return NULL;
+    }
     plist_t node;
 
     plist_data_t data = plist_new_plist_data();
@@ -612,6 +615,9 @@ static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index)
     for (num = 0; num < num_tokens; num++) {
         if (tokens[j].type == JSMN_STRING) {
             char* key = unescape_string(js + tokens[j].start, tokens[j].end - tokens[j].start, NULL);
+            if (!key) {
+                return NULL;
+            }
             plist_t val = NULL;
             j++;
             num++;
