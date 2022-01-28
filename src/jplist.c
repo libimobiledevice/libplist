@@ -596,6 +596,9 @@ static plist_t parse_array(const char* js, jsmntok_t* tokens, int* index)
         }
         if (val) {
             plist_array_append_item(arr, val);
+        } else {
+            plist_free(arr);
+            return NULL;
         }
     }
     *(index) = j;
@@ -616,6 +619,7 @@ static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index)
         if (tokens[j].type == JSMN_STRING) {
             char* key = unescape_string(js + tokens[j].start, tokens[j].end - tokens[j].start, NULL);
             if (!key) {
+                plist_free(obj);
                 return NULL;
             }
             plist_t val = NULL;
@@ -643,6 +647,7 @@ static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index)
             free(key);
         } else {
             PLIST_JSON_ERR("%s: keys must be of type STRING\n", __func__);
+            plist_free(obj);
             return NULL;
         }
     }
