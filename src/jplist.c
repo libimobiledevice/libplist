@@ -496,13 +496,13 @@ static char* unescape_string(const char* str_val, size_t str_len, size_t *new_le
                 case 'u': {
                     unsigned int val = 0;
                     if (str_len-(i+2) < 4) {
-                        free(strval);
                         PLIST_JSON_ERR("%s: invalid escape sequence '%s' (too short)\n", __func__, strval+i);
+                        free(strval);
                         return NULL;
                     }
                     if (!(isxdigit(strval[i+2]) && isxdigit(strval[i+3]) && isxdigit(strval[i+4]) && isxdigit(strval[i+5])) || sscanf(strval+i+2, "%04x", &val) != 1) {
-                        free(strval);
                         PLIST_JSON_ERR("%s: invalid escape sequence '%.*s'\n", __func__, 6, strval+i);
+                        free(strval);
                         return NULL;
                     }
                     int bytelen = 0;
