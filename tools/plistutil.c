@@ -246,6 +246,7 @@ int main(int argc, char *argv[])
 
         plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
         read_size = fread(plist_entire, sizeof(char), filestats.st_size, iplist);
+        plist_entire[read_size] = '\0';
         fclose(iplist);
     }
 
