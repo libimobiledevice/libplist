@@ -418,16 +418,21 @@ PLIST_API int plist_to_json(plist_t plist, char **json, uint32_t* length, int pr
     return PLIST_ERR_SUCCESS;
 }
 
-static plist_t parse_primitive(const char* js, jsmntok_t* tokens, int* index)
+typedef struct {
+    jsmntok_t* tokens;
+    int count;
+} jsmntok_info_t;
+
+static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
 {
-    if (tokens[*index].type != JSMN_PRIMITIVE) {
+    if (ti->tokens[*index].type != JSMN_PRIMITIVE) {
         PLIST_JSON_ERR("%s: token type != JSMN_PRIMITIVE\n", __func__);
         return NULL;
     }
     plist_t val = NULL;
-    const char* str_val = js + tokens[*index].start;
-    const char* str_end = js + tokens[*index].end;
-    size_t str_len = tokens[*index].end - tokens[*index].start;
+    const char* str_val = js + ti->tokens[*index].start;
+    const char* str_end = js + ti->tokens[*index].end;
+    size_t str_len = ti->tokens[*index].end - ti->tokens[*index].start;
     if (!strncmp("false", str_val, str_len)) {
         val = plist_new_bool(0);
     } else if (!strncmp("true", str_val, str_len)) {
@@ -540,15 +545,15 @@ static char* unescape_string(const char* str_val, size_t str_len, size_t *new_le
     return strval;
 }
 
-static plist_t parse_string(const char* js, jsmntok_t* tokens, int* index)
+static plist_t parse_string(const char* js, jsmntok_info_t* ti, int* index)
 {
-    if (tokens[*index].type != JSMN_STRING) {
+    if (ti->tokens[*index].type != JSMN_STRING) {
         PLIST_JSON_ERR("%s: token type != JSMN_STRING\n", __func__);
         return NULL;
     }
 
     size_t str_len = 0; ;
-    char* strval = unescape_string(js + tokens[*index].start, tokens[*index].end - tokens[*index].start, &str_len);
+    char* strval = unescape_string(js + ti->tokens[*index].start, ti->tokens[*index].end - ti->tokens[*index].start, &str_len);
     if (!strval) {
         return NULL;
     }
@@ -564,32 +569,36 @@ static plist_t parse_string(const char* js, jsmntok_t* tokens, int* index)
     return node;
 }
 
-static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index);
+static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index);
 
-static plist_t parse_array(const char* js, jsmntok_t* tokens, int* index)
+static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index)
 {
-    if (tokens[*index].type != JSMN_ARRAY) {
+    if (ti->tokens[*index].type != JSMN_ARRAY) {
         PLIST_JSON_ERR("%s: token type != JSMN_ARRAY\n", __func__);
         return NULL;
     }
     plist_t arr = plist_new_array();
-    int num_tokens = tokens[*index].size;
+    int num_tokens = ti->tokens[*index].size;
     int num;
     int j = (*index)+1;
     for (num = 0; num < num_tokens; num++) {
+        if (j >= ti->count) {
+            PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
+            return NULL;
+        }
         plist_t val = NULL;
-        switch (tokens[j].type) {
+        switch (ti->tokens[j].type) {
             case JSMN_OBJECT:
-                val = parse_object(js, tokens, &j);
+                val = parse_object(js, ti, &j);
                 break;
             case JSMN_ARRAY:
-                val = parse_array(js, tokens, &j);
+                val = parse_array(js, ti, &j);
                 break;
             case JSMN_STRING:
-                val = parse_string(js, tokens, &j);
+                val = parse_string(js, ti, &j);
                 break;
             case JSMN_PRIMITIVE:
-                val = parse_primitive(js, tokens, &j);
+                val = parse_primitive(js, ti, &j);
                 break;
             default:
                 break;
@@ -605,19 +614,23 @@ static plist_t parse_array(const char* js, jsmntok_t* tokens, int* index)
     return arr;
 }
 
-static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index)
+static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
 {
-    if (tokens[*index].type != JSMN_OBJECT) {
+    if (ti->tokens[*index].type != JSMN_OBJECT) {
         PLIST_JSON_ERR("%s: token type != JSMN_OBJECT\n", __func__);
         return NULL;
     }
     plist_t obj = plist_new_dict();
-    int num_tokens = tokens[*index].size;
+    int num_tokens = ti->tokens[*index].size;
     int num;
     int j = (*index)+1;
     for (num = 0; num < num_tokens; num++) {
-        if (tokens[j].type == JSMN_STRING) {
-            char* key = unescape_string(js + tokens[j].start, tokens[j].end - tokens[j].start, NULL);
+        if (j >= ti->count) {
+            PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
+            return NULL;
+        }
+        if (ti->tokens[j].type == JSMN_STRING) {
+            char* key = unescape_string(js + ti->tokens[j].start, ti->tokens[j].end - ti->tokens[j].start, NULL);
             if (!key) {
                 plist_free(obj);
                 return NULL;
@@ -625,24 +638,27 @@ static plist_t parse_object(const char* js, jsmntok_t* tokens, int* index)
             plist_t val = NULL;
             j++;
             num++;
-            switch (tokens[j].type) {
+            switch (ti->tokens[j].type) {
                 case JSMN_OBJECT:
-                    val = parse_object(js, tokens, &j);
+                    val = parse_object(js, ti, &j);
                     break;
                 case JSMN_ARRAY:
-                    val = parse_array(js, tokens, &j);
+                    val = parse_array(js, ti, &j);
                     break;
                 case JSMN_STRING:
-                    val = parse_string(js, tokens, &j);
+                    val = parse_string(js, ti, &j);
                     break;
                 case JSMN_PRIMITIVE:
-                    val = parse_primitive(js, tokens, &j);
+                    val = parse_primitive(js, ti, &j);
                     break;
                 default:
                     break;
             }
             if (val) {
                 plist_dict_set_item(obj, key, val);
+            } else {
+                plist_free(obj);
+                return NULL;
             }
             free(key);
         } else {
@@ -707,18 +723,19 @@ PLIST_API int plist_from_json(const char *json, uint32_t length, plist_t * plist
     }
 
     int startindex = 0;
+    jsmntok_info_t ti = { tokens, parser.toknext };
     switch (tokens[startindex].type) {
         case JSMN_PRIMITIVE:
-            *plist = parse_primitive(json, tokens, &startindex);
+            *plist = parse_primitive(json, &ti, &startindex);
             break;
         case JSMN_STRING:
-            *plist = parse_string(json, tokens, &startindex);
+            *plist = parse_string(json, &ti, &startindex);
             break;
         case JSMN_ARRAY:
-            *plist = parse_array(json, tokens, &startindex);
+            *plist = parse_array(json, &ti, &startindex);
             break;
         case JSMN_OBJECT:
-            *plist = parse_object(json, tokens, &startindex);
+            *plist = parse_object(json, &ti, &startindex);
             break;
         default:
             break;
