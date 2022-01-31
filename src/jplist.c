@@ -663,6 +663,7 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
             if (val) {
                 plist_dict_set_item(obj, key, val);
             } else {
+                free(key);
                 plist_free(obj);
                 return NULL;
             }
