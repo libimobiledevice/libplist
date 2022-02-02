@@ -5,7 +5,7 @@ if test -n "$1"; then
 else
   if test -d "${SRCDIR}/.git" && test -x "`which git`" ; then
     git update-index -q --refresh
-    VER=`git describe --tags --always --dirty=-dirty`
+    VER=`git describe --tags --dirty=-dirty`
   else
     if test -f "${SRCDIR}/.tarball-version"; then
       VER=`cat "${SRCDIR}/.tarball-version"`
