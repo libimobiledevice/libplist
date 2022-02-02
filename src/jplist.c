@@ -671,12 +671,16 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
         PLIST_JSON_ERR("%s: token type != JSMN_OBJECT\n", __func__);
         return NULL;
     }
-    plist_t obj = plist_new_dict();
     int num_tokens = ti->tokens[*index].size;
     int num;
     int j = (*index)+1;
+    if (num_tokens % 2 != 0) {
+        PLIST_JSON_ERR("%s: number of children must be even\n", __func__);
+        return NULL;
+    }
+    plist_t obj = plist_new_dict();
     for (num = 0; num < num_tokens; num++) {
-        if (j >= ti->count) {
+        if (j+1 >= ti->count) {
             PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
             plist_free(obj);
             return NULL;
