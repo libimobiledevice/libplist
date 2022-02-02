@@ -634,6 +634,7 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index)
     for (num = 0; num < num_tokens; num++) {
         if (j >= ti->count) {
             PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
+            plist_free(arr);
             return NULL;
         }
         plist_t val = NULL;
@@ -677,6 +678,7 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
     for (num = 0; num < num_tokens; num++) {
         if (j >= ti->count) {
             PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
+            plist_free(obj);
             return NULL;
         }
         if (ti->tokens[j].type == JSMN_STRING) {
