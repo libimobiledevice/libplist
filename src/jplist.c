@@ -423,6 +423,26 @@ typedef struct {
     int count;
 } jsmntok_info_t;
 
+static long long parse_decimal(const char* str, const char* str_end, char** endp)
+{
+    long long x = 0;
+    int is_neg = 0;
+    *endp = (char*)str;
+
+    if (str[0] == '-') {
+        is_neg = 1;
+        (*endp)++;
+    }
+    while (*endp < str_end && isdigit(**endp)) {
+        x = x * 10 + (**endp - '0');
+        (*endp)++;
+    }
+    if (is_neg) {
+        x = -x;
+    }
+    return x;
+}
+
 static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
 {
     if (ti->tokens[*index].type != JSMN_PRIMITIVE) {
@@ -441,27 +461,51 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         plist_data_t data = plist_new_plist_data();
         data->type = PLIST_NULL;
         val = plist_new_node(data);
-    } else if (str_val[0] == '-' || isdigit(str_val[0])) {
-        char* endp = NULL;
-        char cbuf[48];
-        size_t maxlen = str_end-str_val;
-        if (maxlen >= sizeof(cbuf)) maxlen = sizeof(cbuf)-1;
-        strncpy(cbuf, str_val, maxlen);
-        cbuf[maxlen] = '\0';
-        long long intpart = strtoll(cbuf, &endp, 10);
-        endp = (char*)str_val + (endp-&cbuf[0]);
+    } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_end > str_val && isdigit(str_val[1]))) {
+        char* endp = (char*)str_val;
+        long long intpart = parse_decimal(str_val, str_end, &endp);
         if (endp >= str_end) {
             /* integer */
             val = plist_new_uint((uint64_t)intpart);
-        } else if (*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) {
-            /* float */
-            char* fendp = endp+1;
-            while (isdigit(*fendp) && fendp < str_end) fendp++;
-            if ((fendp > endp+1 && fendp >= str_end) || (fendp+2 < str_end && (*fendp == 'e' || *fendp == 'E') && (*(fendp+1) == '+' || *(fendp+1) == '-') && isdigit(*(fendp+2)))) {
-                double dval = atof(cbuf);
-                val = plist_new_real(dval);
-            } else {
-                PLIST_JSON_ERR("%s: invalid character at offset %d when parsing floating point value\n", __func__, (int)(fendp - js));
+        } else if ((*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) || ((*endp == 'e' || *endp == 'E') && endp < str_end && (isdigit(*(endp+1)) || ((*(endp+1) == '-') && endp+1 < str_end && isdigit(*(endp+2)))))) {
+            /* floating point */
+            double dval = (double)intpart;
+            char* fendp = endp;
+            int err = 0;
+            do {
+                if (*endp == '.') {
+                    fendp++;
+                    int is_neg = (str_val[0] == '-');
+                    double frac = 0;
+                    double p = 0.1;
+                    while (isdigit(*fendp) && fendp < str_end) {
+                        frac = frac + (*fendp - '0') * p;
+                        p *= 0.1;
+                        fendp++;
+                    }
+                    if (is_neg) {
+                        dval -= frac;
+                    } else {
+                        dval += frac;
+                    }
+                }
+                if (fendp >= str_end) {
+                    break;
+                }
+                if (fendp+1 < str_end && (*fendp == 'e' || *fendp == 'E') && (isdigit(*(fendp+1)) || ((*(fendp+1) == '-') && fendp+2 < str_end && isdigit(*(fendp+2))))) {
+                    double exp = (double)parse_decimal(fendp+1, str_end, &fendp);
+                    dval = dval * pow(10, exp);
+                } else {
+                    PLIST_JSON_ERR("%s: invalid character at offset %d when parsing floating point value\n", __func__, (int)(fendp - js));
+                    err++;
+                }
+            } while (0);
+            if (!err) {
+                if (isinf(dval) || isnan(dval)) {
+                   PLIST_JSON_ERR("%s: unrepresentable floating point value at offset %d when parsing numerical value\n", __func__, (int)(str_val - js));
+                } else {
+                    val = plist_new_real(dval);
+                }
             }
         } else {
             PLIST_JSON_ERR("%s: invalid character at offset %d when parsing numerical value\n", __func__, (int)(endp - js));
