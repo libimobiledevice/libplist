@@ -5,7 +5,11 @@ if test -n "$1"; then
 else
   if test -d "${SRCDIR}/.git" && test -x "`which git`" ; then
     git update-index -q --refresh
-    VER=`git describe --tags --dirty=-dirty`
+    if ! VER=`git describe --tags --dirty 2>/dev/null`; then
+      COMMIT=`git rev-parse --short HEAD`
+      DIRTY=`git diff --quiet HEAD || echo "-dirty"`
+      VER=`sed -n '1,/RE/s/Version \(.*\)/\1/p' ${SRCDIR}/NEWS`-git-${COMMIT}${DIRTY}
+    fi
   else
     if test -f "${SRCDIR}/.tarball-version"; then
       VER=`cat "${SRCDIR}/.tarball-version"`
