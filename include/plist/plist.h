@@ -117,6 +117,9 @@ extern "C"
         PLIST_NONE      /**< No type */
     } plist_type;
 
+    /**
+     * libplist error values
+     */
     typedef enum
     {
         PLIST_ERR_SUCCESS      =  0,  /**< operation successful */
@@ -664,7 +667,7 @@ extern "C"
      * @param plist_xml a pointer to a C-string. This function allocates the memory,
      *            caller is responsible for freeing it. Data is UTF-8 encoded.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      * @note Use plist_mem_free() to free the allocated memory.
      */
     plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length);
@@ -676,7 +679,7 @@ extern "C"
      * @param plist_bin a pointer to a char* buffer. This function allocates the memory,
      *            caller is responsible for freeing it.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      * @note Use plist_mem_free() to free the allocated memory.
      */
     plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length);
@@ -685,11 +688,11 @@ extern "C"
      * Export the #plist_t structure to JSON format.
      *
      * @param plist the root node to export
-     * @param json a pointer to a char* buffer. This function allocates the memory,
+     * @param plist_json a pointer to a char* buffer. This function allocates the memory,
      *     caller is responsible for freeing it.
      * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
      * @param prettify pretty print the output if != 0
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      * @note Use plist_mem_free() to free the allocated memory.
      */
     plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, int prettify);
@@ -700,7 +703,7 @@ extern "C"
      * @param plist_xml a pointer to the xml buffer.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
     plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist);
 
@@ -710,7 +713,7 @@ extern "C"
      * @param plist_bin a pointer to the xml buffer.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
     plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist);
 
@@ -720,7 +723,7 @@ extern "C"
      * @param json a pointer to the JSON buffer.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
     plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist);
 
@@ -738,7 +741,7 @@ extern "C"
      * @param plist_data a pointer to the memory buffer containing plist data.
      * @param length length of the buffer to read.
      * @param plist a pointer to the imported plist.
-     * @return PLIST_ERR_SUCCESS on success or a #plist_error on failure
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
     plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
 
