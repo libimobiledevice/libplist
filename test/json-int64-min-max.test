@@ -1,0 +1,19 @@
+## -*- sh -*-
+
+set -e
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE=int64_min_max.json
+
+if ! test -d "$DATAOUT"; then
+	mkdir -p $DATAOUT
+fi
+
+export PLIST_JSON_DEBUG=1
+
+echo "Converting"
+$top_builddir/test/plist_jtest $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out
+
+echo "Comparing"
+$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out

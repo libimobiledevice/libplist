@@ -53,7 +53,8 @@ TESTS = \
 	json1.test \
 	json2.test \
 	json3.test \
-	json-invalid-types.test
+	json-invalid-types.test \
+	json-int64-min-max.test
 
 EXTRA_DIST = \
 	$(TESTS) \
@@ -100,7 +101,8 @@ EXTRA_DIST = \
 	data/uid.bplist \
 	data/data.bplist \
 	data/j1.json \
-	data/j2.json
+	data/j2.json \
+	data/int64_min_max.json
 
 TESTS_ENVIRONMENT = \
 	top_srcdir=$(top_srcdir) \
