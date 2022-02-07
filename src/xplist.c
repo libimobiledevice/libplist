@@ -409,7 +409,7 @@ static int num_digits_i(int64_t i)
     int64_t po10;
     n=1;
     if (i < 0) {
-        i = -i;
+        i = (i == INT64_MIN) ? INT64_MAX : -i;
         n++;
     }
     po10=10;
