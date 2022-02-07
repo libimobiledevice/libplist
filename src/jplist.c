@@ -266,7 +266,7 @@ static int num_digits_i(int64_t i)
     int64_t po10;
     n=1;
     if (i < 0) {
-        i = -i;
+        i = (i == INT64_MIN) ? INT64_MAX : -i;
         n++;
     }
     po10=10;
@@ -423,9 +423,10 @@ typedef struct {
     int count;
 } jsmntok_info_t;
 
-static long long parse_decimal(const char* str, const char* str_end, char** endp)
+static int64_t parse_decimal(const char* str, const char* str_end, char** endp)
 {
-    long long x = 0;
+    uint64_t MAX = INT64_MAX;
+    uint64_t x = 0;
     int is_neg = 0;
     *endp = (char*)str;
 
@@ -433,14 +434,36 @@ static long long parse_decimal(const char* str, const char* str_end, char** endp
         is_neg = 1;
         (*endp)++;
     }
+    if (is_neg) {
+        MAX++;
+    }
     while (*endp < str_end && isdigit(**endp)) {
-        x = x * 10 + (**endp - '0');
+        if (x > PO10i_LIMIT) {
+            x = MAX;
+            break;
+        }
+        x = x * 10;
+        unsigned int add = (**endp - '0');
+        if (x + add > MAX) {
+            x = MAX;
+            break;
+        }
+        x += add;
         (*endp)++;
     }
+
+    // swallow the rest of the digits in case we dropped out early
+    while (*endp < str_end && isdigit(**endp)) (*endp)++;
+
+    int64_t result = x;
     if (is_neg) {
-        x = -x;
+        if (x == MAX) {
+            result = INT64_MIN;
+        } else {
+            result = -(int64_t)x;
+        }
     }
-    return x;
+    return result;
 }
 
 static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
