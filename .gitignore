@@ -49,7 +49,10 @@ test/.libs
 test/.deps
 test/plist_cmp
 test/plist_test
+test/plist_btest
+test/plist_jtest
 test/data/*.out
+test/*.trs
 cython/Makefile
 cython/Makefile.in
 cython/.deps
