@@ -486,7 +486,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         val = plist_new_node(data);
     } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_end > str_val && isdigit(str_val[1]))) {
         char* endp = (char*)str_val;
-        long long intpart = parse_decimal(str_val, str_end, &endp);
+        int64_t intpart = parse_decimal(str_val, str_end, &endp);
         if (endp >= str_end) {
             /* integer */
             val = plist_new_uint((uint64_t)intpart);
@@ -501,7 +501,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
                     int is_neg = (str_val[0] == '-');
                     double frac = 0;
                     double p = 0.1;
-                    while (isdigit(*fendp) && fendp < str_end) {
+                    while (fendp < str_end && isdigit(*fendp)) {
                         frac = frac + (*fendp - '0') * p;
                         p *= 0.1;
                         fendp++;
