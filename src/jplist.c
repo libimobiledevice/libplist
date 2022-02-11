@@ -484,7 +484,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         plist_data_t data = plist_new_plist_data();
         data->type = PLIST_NULL;
         val = plist_new_node(data);
-    } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_end > str_val && isdigit(str_val[1]))) {
+    } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_val+1 < str_end && isdigit(str_val[1]))) {
         char* endp = (char*)str_val;
         int64_t intpart = parse_decimal(str_val, str_end, &endp);
         if (endp >= str_end) {
