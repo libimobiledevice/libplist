@@ -490,7 +490,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         if (endp >= str_end) {
             /* integer */
             val = plist_new_uint((uint64_t)intpart);
-        } else if ((*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) || ((*endp == 'e' || *endp == 'E') && endp < str_end && (isdigit(*(endp+1)) || ((*(endp+1) == '-') && endp+1 < str_end && isdigit(*(endp+2)))))) {
+        } else if ((*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) || ((*endp == 'e' || *endp == 'E') && endp+1 < str_end && (isdigit(*(endp+1)) || ((*(endp+1) == '-') && endp+2 < str_end && isdigit(*(endp+2)))))) {
             /* floating point */
             double dval = (double)intpart;
             char* fendp = endp;
