@@ -151,6 +151,12 @@ static int node_to_json(node_t* node, bytearray_t **outbuf, uint32_t depth, int 
 
     case PLIST_STRING:
     case PLIST_KEY: {
+        const char *charmap[32] = {
+            "\\u0000", "\\u0001", "\\u0002", "\\u0003", "\\u0004", "\\u0005", "\\u0006", "\\u0007",
+            "\\b",     "\\t",     "\\n",     "\\u000b", "\\f",     "\\r",     "\\u000e", "\\u000f",
+            "\\u0010", "\\u0011", "\\u0012", "\\u0013", "\\u0014", "\\u0015", "\\u0016", "\\u0017",
+            "\\u0018", "\\u0019", "\\u001a", "\\u001b", "\\u001c", "\\u001d", "\\u001e", "\\u001f",
+        };
         size_t j = 0;
         size_t len = 0;
         off_t start = 0;
@@ -160,14 +166,15 @@ static int node_to_json(node_t* node, bytearray_t **outbuf, uint32_t depth, int 
 
         len = node_data->length;
         for (j = 0; j < len; j++) {
-            switch (node_data->strval[j]) {
-            case '"':
+            unsigned char ch = (unsigned char)node_data->strval[j];
+            if (ch < 0x20) {
+                str_buf_append(*outbuf, node_data->strval + start, cur - start);
+                str_buf_append(*outbuf, charmap[ch], (charmap[ch][1] == 'u') ? 6 : 2);
+                start = cur+1;
+            } else if (ch == '"') {
                 str_buf_append(*outbuf, node_data->strval + start, cur - start);
                 str_buf_append(*outbuf, "\\\"", 2);
                 start = cur+1;
-                break;
-            default:
-                break;
             }
             cur++;
         }
