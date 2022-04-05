@@ -199,10 +199,15 @@ PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length,
     }
     if (plist_is_binary(plist_data, length)) {
         res = plist_from_bin(plist_data, length, plist);
-    } else if (plist_data[0] == '[' || plist_data[0] == '{') {
-        res = plist_from_json(plist_data, length, plist);
     } else {
-        res = plist_from_xml(plist_data, length, plist);
+        /* skip whitespace before checking */
+        uint32_t pos = 0;
+        while (pos < length && ((plist_data[pos] == ' ') || (plist_data[pos] == '\t') || (plist_data[pos] == '\r') || (plist_data[pos] == '\n'))) pos++;
+        if (plist_data[pos] == '[' || plist_data[pos] == '{') {
+            res = plist_from_json(plist_data, length, plist);
+        } else {
+            res = plist_from_xml(plist_data, length, plist);
+        }
     }
     return res;
 }
