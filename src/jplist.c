@@ -523,8 +523,8 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
                     break;
                 }
                 if (fendp+1 < str_end && (*fendp == 'e' || *fendp == 'E') && (isdigit(*(fendp+1)) || ((*(fendp+1) == '-') && fendp+2 < str_end && isdigit(*(fendp+2))))) {
-                    double exp = (double)parse_decimal(fendp+1, str_end, &fendp);
-                    dval = dval * pow(10, exp);
+                    int64_t exp = parse_decimal(fendp+1, str_end, &fendp);
+                    dval = dval * pow(10, (double)exp);
                 } else {
                     PLIST_JSON_ERR("%s: invalid character at offset %d when parsing floating point value\n", __func__, (int)(fendp - js));
                     err++;
