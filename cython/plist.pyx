@@ -189,7 +189,8 @@ cdef class Integer(Node):
         return self.get_value()
 
     def __float__(self):
-        return float(self.get_value())
+        v = self.get_value()
+        return float(v)
 
     def __richcmp__(self, other, op):
         cdef int i = self.get_value()
@@ -281,7 +282,8 @@ cdef class Uid(Node):
         return self.get_value()
 
     def __float__(self):
-        return float(self.get_value())
+        v = self.get_value()
+        return float(v)
 
     def __richcmp__(self, other, op):
         cdef int i = self.get_value()
