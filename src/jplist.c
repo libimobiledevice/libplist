@@ -324,7 +324,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int 
             *size += n_children-1; // number of ':' and ','
             if (prettify) {
                 *size += n_children; // number of '\n' and extra space
-                *size += n_children * (depth+1); // indent for every 2nd child
+                *size += (uint64_t)n_children * (depth+1); // indent for every 2nd child
                 *size += 1; // additional '\n'
             }
             break;
@@ -333,7 +333,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int 
             *size += n_children-1; // number of ','
             if (prettify) {
                 *size += n_children; // number of '\n'
-                *size += n_children * ((depth+1)<<1); // indent for every child
+                *size += (uint64_t)n_children * ((depth+1)<<1); // indent for every child
                 *size += 1; // additional '\n'
             }
             break;
