@@ -1,0 +1,23 @@
+# Explain
+message("using ${PROJECT_NAME}-config.cmake find")
+
+# Find PLIST_INCLUDE
+find_path(PLIST_INCLUDE ${PROJECT_NAME}/ HINTS ${CMAKE_INSTALL_PREFIX}/include/)
+
+# Find PLIST_LIBRARY
+if (WIN32)
+	find_path(PLIST_LIBRARY ${PROJECT_NAME}.lib HINTS ${CMAKE_INSTALL_PREFIX}/lib/)
+elseif (MINGW)
+	find_path(PLIST_LIBRARY ${PROJECT_NAME}.dll.a HINTS ${CMAKE_INSTALL_PREFIX}/lib/)
+elseif (APPLE)
+	find_path(PLIST_LIBRARY lib${PROJECT_NAME}.dylib HINTS ${CMAKE_INSTALL_PREFIX}/lib/)
+	find_path(PLIST_LIBRARY lib${PROJECT_NAME}.a HINTS ${CMAKE_INSTALL_PREFIX}/lib/)
+elseif (UNIX)
+	find_path(PLIST_LIBRARY lib${PROJECT_NAME}.so HINTS ${CMAKE_INSTALL_PREFIX}/lib/)
+	find_path(PLIST_LIBRARY lib${PROJECT_NAME}.a HINTS ${CMAKE_INSTALL_PREFIX}/lib/)
+endif ()
+
+# Setting
+if(PLIST_INCLUDE AND PLIST_LIBRARY)
+	set(PLIST_FOUND TRUE)
+endif()
