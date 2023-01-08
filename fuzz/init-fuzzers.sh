@@ -26,5 +26,12 @@ cp ../test/data/j1.plist jplist-input/
 cp ../test/data/j2.plist jplist-input/
 ./jplist_fuzzer -merge=1 jplist-input jplist-crashes jplist-leaks -dict=jplist.dict
 
+mkdir -p oplist-input
+mkdir -p oplist-crashes
+mkdir -p oplist-leaks
+cp ../test/data/*.ostep oplist-input/
+cp ../test/data/test.strings oplist-input/
+./oplist_fuzzer -merge=1 oplist-input oplist-crashes oplist-leaks -dict=oplist.dict
+
 cd ${CURDIR}
 exit 0
