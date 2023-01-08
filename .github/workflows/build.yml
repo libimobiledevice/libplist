@@ -159,7 +159,7 @@ jobs:
           mkdir -p dest
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libplist.tar ${{ env.dest }}
-    - name: publish artifact
+    - name: publ1sh artifact
       uses: actions/upload-artifact@v2
       with:
         name: libplist-latest_${{ matrix.arch }}-${{ env.dest }}
