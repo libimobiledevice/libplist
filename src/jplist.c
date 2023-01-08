@@ -395,6 +395,11 @@ PLIST_API int plist_to_json(plist_t plist, char **json, uint32_t* length, int pr
         return PLIST_ERR_INVALID_ARG;
     }
 
+    if (!PLIST_IS_DICT(plist) && !PLIST_IS_ARRAY(plist)) {
+        PLIST_JSON_WRITE_ERR("plist data is not valid for JSON format\n");
+        return PLIST_ERR_FORMAT;
+    }
+
     res = node_estimate_size(plist, &size, 0, prettify);
     if (res < 0) {
         return res;
@@ -412,6 +417,9 @@ PLIST_API int plist_to_json(plist_t plist, char **json, uint32_t* length, int pr
         *json = NULL;
         *length = 0;
         return res;
+    }
+    if (prettify) {
+        str_buf_append(outbuf, "\n", 1);
     }
 
     str_buf_append(outbuf, "\0", 1);
