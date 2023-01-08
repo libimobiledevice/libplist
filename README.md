@@ -1,18 +1,18 @@
 # libplist
 
-*A small portable C library to handle Apple Property List files in binary or XML
-format.*
+*A small portable C library to handle Apple Property List files in binary, XML,
+JSON, or OpenStep format.*
 
 ![](https://github.com/libimobiledevice/libplist/workflows/build/badge.svg)
 
 ## Features
 
-The project provides an interface to read and write plist files in binary or
-XML format alongside a command-line utility named `plistutil`.
+The project provides an interface to read and write plist files in binary,
+XML, JSON, or OpenStep format alongside a command-line utility named `plistutil`.
 
 Some key features are:
 
-- **Formats:** Supports binary and XML format
+- **Formats:** Supports binary, XML, JSON, and OpenStep format
 - **Utility:** Provides a `plistutil` utility for the command-line
 - **Python:** Provides Cython based bindings for Python
 - **Tested:** Uses fuzzing and data compliance tests
@@ -59,9 +59,16 @@ Then simply run:
 ```shell
 plistutil -i foobar.plist -o output.plist
 ```
-
 This converts the `foobar.plist` file to the opposite format, e.g. binary to
 XML or vice versa, and outputs it to the `output.plist` file.
+
+To convert to a specific format - and also to convert from JSON or OpenStep
+format - use the `-f` command line switch:
+```shell
+plistutil -i input.plist -f json
+```
+This will convert input.plist, regardless of the input format, to JSON. The
+code auto-detects the input format and parses it accordingly.
 
 Please consult the usage information or manual page for a full documentation of
 available command line options:
@@ -111,4 +118,4 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2020-06-12
+README Updated on: 2023-01-08
