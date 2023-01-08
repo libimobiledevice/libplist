@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <float.h>
+#include <ctype.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -51,12 +52,15 @@ extern void plist_bin_init(void);
 extern void plist_bin_deinit(void);
 extern void plist_json_init(void);
 extern void plist_json_deinit(void);
+extern void plist_ostep_init(void);
+extern void plist_ostep_deinit(void);
 
 static void internal_plist_init(void)
 {
     plist_bin_init();
     plist_xml_init();
     plist_json_init();
+    plist_ostep_init();
 }
 
 static void internal_plist_deinit(void)
@@ -64,6 +68,7 @@ static void internal_plist_deinit(void)
     plist_bin_deinit();
     plist_xml_deinit();
     plist_json_deinit();
+    plist_ostep_deinit();
 }
 
 #ifdef WIN32
@@ -186,6 +191,10 @@ PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
     return (memcmp(plist_data, "bplist00", 8) == 0);
 }
 
+#define SKIP_WS(blob, pos, len) \
+    while (pos < len && ((blob[pos] == ' ') || (blob[pos] == '\t') || (blob[pos] == '\r') || (blob[pos] == '\n'))) pos++;
+#define FIND_NEXT(blob, pos, len, chr) \
+    while (pos < len && (blob[pos] != chr)) pos++;
 
 PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist)
 {
@@ -194,19 +203,54 @@ PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length,
         return PLIST_ERR_INVALID_ARG;
     }
     *plist = NULL;
-    if (!plist_data || length < 8) {
+    if (!plist_data || length == 0) {
         return PLIST_ERR_INVALID_ARG;
     }
     if (plist_is_binary(plist_data, length)) {
         res = plist_from_bin(plist_data, length, plist);
     } else {
-        /* skip whitespace before checking */
         uint32_t pos = 0;
-        while (pos < length && ((plist_data[pos] == ' ') || (plist_data[pos] == '\t') || (plist_data[pos] == '\r') || (plist_data[pos] == '\n'))) pos++;
-        if (plist_data[pos] == '[' || plist_data[pos] == '{') {
+        int is_json = 0;
+        int is_xml = 0;
+        /* skip whitespace */
+        SKIP_WS(plist_data, pos, length);
+        if (plist_data[pos] == '<' && (length-pos > 3) && !isxdigit(plist_data[pos+1]) && !isxdigit(plist_data[pos+2]) && !isxdigit(plist_data[pos+3])) {
+            is_xml = 1;
+        } else if (plist_data[pos] == '[') {
+            /* only valid for json */
+            is_json = 1;
+        } else if (plist_data[pos] == '(') {
+            /* only valid for openstep */
+        } else if (plist_data[pos] == '{') {
+            /* this could be json or openstep */
+            pos++;
+            SKIP_WS(plist_data, pos, length);
+            if (plist_data[pos] == '"') {
+                /* still could be both */
+                pos++;
+                do {
+                    FIND_NEXT(plist_data, pos, length, '"');
+                    if (plist_data[pos-1] != '\\') {
+                        break;
+                    }
+                    pos++;
+                } while (pos < length);
+                if (plist_data[pos] == '"') {
+                    pos++;
+                    SKIP_WS(plist_data, pos, length);
+                    if (plist_data[pos] == ':') {
+                        /* this is definitely json */
+                        is_json = 1;
+                    }
+                }
+            }
+        }
+        if (is_xml) {
+            res = plist_from_xml(plist_data, length, plist);
+        } else if (is_json) {
             res = plist_from_json(plist_data, length, plist);
         } else {
-            res = plist_from_xml(plist_data, length, plist);
+            res = plist_from_openstep(plist_data, length, plist);
         }
     }
     return res;

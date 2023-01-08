@@ -1,0 +1,20 @@
+## -*- sh -*-
+
+set -e
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE=o1.ostep
+
+if ! test -d "$DATAOUT"; then
+	mkdir -p $DATAOUT
+fi
+
+export PLIST_OSTEP_DEBUG=1
+
+echo "Converting"
+$top_builddir/test/plist_otest $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out
+
+echo "Comparing"
+export PLIST_OSTEP_DEBUG=1
+$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out

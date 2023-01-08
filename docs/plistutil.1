@@ -18,13 +18,17 @@ filename, plistutil will read from stdin.
 Output FILE to convert to. If this argument is omitted or - is passed as
 filename, plistutil will write to stdout.
 .TP
-.B \-f, \-\-format [bin|xml|json]
+.B \-f, \-\-format [bin|xml|json|openstep]
 Force output format, regardless of input type. This is useful if the input
 format is not known, but the output format should always be in a specific
 format (like xml or json).
 
 If omitted, XML plist data will be converted to binary and vice-versa. To
-convert to/from JSON the output format needs to specified.
+convert to/from JSON or OpenStep the output format needs to specified.
+.TP
+.B \-c, \-\-compact
+JSON and OpenStep only: Print output in compact form. By default, the output
+will be pretty-printed.
 .TP
 .B \-h, \-\-help
 Prints usage information.

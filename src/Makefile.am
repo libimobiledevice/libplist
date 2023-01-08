@@ -24,6 +24,7 @@ libplist_2_0_la_SOURCES = \
 	bplist.c \
 	jsmn.c jsmn.h \
 	jplist.c \
+	oplist.c \
 	plist.c plist.h
 
 libplist___2_0_la_LIBADD = libplist-2.0.la

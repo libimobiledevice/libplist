@@ -127,19 +127,8 @@ int main(int argc, char *argv[])
     plist_1[size_in1] = '\0';
     plist_2[size_in2] = '\0';
 
-    if (memcmp(plist_1, "bplist00", 8) == 0)
-        plist_from_bin(plist_1, size_in1, &root_node1);
-    else if (plist_1[0] == '[' || plist_1[0] == '{')
-        plist_from_json(plist_1, size_in1, &root_node1);
-    else
-        plist_from_xml(plist_1, size_in1, &root_node1);
-
-    if (memcmp(plist_2, "bplist00", 8) == 0)
-        plist_from_bin(plist_2, size_in2, &root_node2);
-    else if (plist_2[0] == '[' || plist_2[0] == '{')
-        plist_from_json(plist_2, size_in2, &root_node2);
-    else
-        plist_from_xml(plist_2, size_in2, &root_node2);
+    plist_from_memory(plist_1, size_in1, &root_node1);
+    plist_from_memory(plist_2, size_in2, &root_node2);
 
     if (!root_node1 || !root_node2)
     {

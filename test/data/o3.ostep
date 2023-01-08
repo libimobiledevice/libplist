@@ -1,0 +1,16 @@
+(
+	{
+		AFirstKey = "A First Value";
+		ASecondKey = "A Second Value";
+		// this is the last entry
+	},
+	/*{
+		BFirstKey = "B First Value";
+		BSecondKey = "B Second Value";
+	},*/
+	{
+		CFirstKey = "C First Value"; // "C First Unused Value";
+		// now here is another comment
+		CSecondKey = /* "C Second Value";*/ "C Second Corrected Value";
+	}
+)

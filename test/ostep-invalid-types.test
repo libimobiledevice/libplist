@@ -1,0 +1,33 @@
+## -*- sh -*-
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+TESTFILE0=data.bplist
+TESTFILE1=7.plist
+TESTFILE2=uid.bplist
+
+if ! test -d "$DATAOUT"; then
+	mkdir -p $DATAOUT
+fi
+
+export PLIST_OSTEP_DEBUG=1
+
+echo "Converting (failure expected)"
+$top_builddir/tools/plistutil -f openstep -i $DATASRC/$TESTFILE0 -o /dev/null
+if [ $? -neq 2 ]; then
+  exit 1
+fi
+
+echo "Converting (failure expected)"
+$top_builddir/tools/plistutil -f openstepn -i $DATASRC/$TESTFILE1 -o /dev/null
+if [ $? -neq 2 ]; then
+  exit 2
+fi
+
+echo "Converting (failure expected)"
+$top_builddir/tools/plistutil -f openstep -i $DATASRC/$TESTFILE2 -o /dev/null
+if [ $? -neq 2 ]; then
+  exit 3
+fi
+
+exit 0

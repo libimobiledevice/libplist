@@ -1,0 +1,12 @@
+STRINGS_ENTRY = "Whatever";
+FOO = "BAR";
+BAR = Foo;
+ENTRY0 = "àéèçù";
+ENTRY1 = "日本語";
+ENTRY2 = "汉语/漢語";
+ENTRY3 = "한국어/조선말";
+ENTRY4 = "русский язык";
+ENTRY5 = "الْعَرَبيّة";
+ENTRY6 = "עִבְרִית";
+ENTRY7 = "język polski";
+ENTRY8 = "हिन्दी";

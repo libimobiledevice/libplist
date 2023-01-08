@@ -698,6 +698,20 @@ extern "C"
     plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, int prettify);
 
     /**
+     * Export the #plist_t structure to OpenStep format.
+     *
+     * @param plist the root node to export
+     * @param plist_openstep a pointer to a char* buffer. This function allocates the memory,
+     *     caller is responsible for freeing it.
+     * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @param prettify pretty print the output if != 0
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
+     * @note Use plist_mem_free() to free the allocated memory.
+     */
+    plist_err_t plist_to_openstep(plist_t plist, char **plist_openstep, uint32_t* length, int prettify);
+
+
+    /**
      * Import the #plist_t structure from XML format.
      *
      * @param plist_xml a pointer to the xml buffer.
@@ -726,6 +740,16 @@ extern "C"
      * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
     plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist);
+
+    /**
+     * Import the #plist_t structure from OpenStep plist format.
+     *
+     * @param openstep a pointer to the OpenStep plist buffer.
+     * @param length length of the buffer to read.
+     * @param plist a pointer to the imported plist.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
+     */
+    plist_err_t plist_from_openstep(const char *openstep, uint32_t length, plist_t * plist);
 
     /**
      * Import the #plist_t structure from memory data.

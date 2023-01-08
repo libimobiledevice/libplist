@@ -41,7 +41,9 @@
 typedef struct _options
 {
     char *in_file, *out_file;
-    uint8_t debug, in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json
+    uint8_t debug;
+    uint8_t compact;
+    uint8_t in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json, 4 = openstep
 } options_t;
 
 static void print_usage(int argc, char *argv[])
@@ -50,17 +52,19 @@ static void print_usage(int argc, char *argv[])
     name = strrchr(argv[0], '/');
     printf("Usage: %s [OPTIONS] [-i FILE] [-o FILE]\n", (name ? name + 1: argv[0]));
     printf("\n");
-    printf("Convert a plist FILE between binary, XML, and JSON format.\n");
+    printf("Convert a plist FILE between binary, XML, JSON, and OpenStep format.\n");
     printf("If -f is omitted, XML plist data will be converted to binary and vice-versa.\n");
-    printf("To convert to/from JSON the output format needs to be specified.\n");
+    printf("To convert to/from JSON or OpenStep the output format needs to be specified.\n");
     printf("\n");
     printf("OPTIONS:\n");
     printf("  -i, --infile FILE    Optional FILE to convert from or stdin if - or not used\n");
     printf("  -o, --outfile FILE   Optional FILE to convert to or stdout if - or not used\n");
     printf("  -f, --format FORMAT  Force output format, regardless of input type\n");
-    printf("                       FORMAT is one of xml, bin, or json\n");
-    printf("                       If omitted XML will be converted to binary,\n");
+    printf("                       FORMAT is one of xml, bin, json, or openstep\n");
+    printf("                       If omitted, XML will be converted to binary,\n");
     printf("                       and binary to XML.\n");
+    printf("  -c, --compact        JSON and OpenStep only: Print output in compact form.\n");
+    printf("                       By default, the output will be pretty-printed.\n");
     printf("  -d, --debug          Enable extended debug output\n");
     printf("  -v, --version        Print version information\n");
     printf("\n");
@@ -112,6 +116,8 @@ static options_t *parse_arguments(int argc, char *argv[])
                 options->out_fmt = 2;
             } else if (!strncmp(argv[i+1], "json", 4)) {
                 options->out_fmt = 3;
+            } else if (!strncmp(argv[i+1], "openstep", 8) || !strncmp(argv[i+1], "ostep", 5)) {
+                options->out_fmt = 4;
             } else {
                 fprintf(stderr, "ERROR: Unsupported output format\n");
                 free(options);
@@ -119,6 +125,10 @@ static options_t *parse_arguments(int argc, char *argv[])
             }
             i++;
             continue;
+        }
+        else if (!strcmp(argv[i], "--compact") || !strcmp(argv[i], "-c"))
+        {
+            options->compact = 1;
         }
         else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
         {
@@ -216,13 +226,6 @@ int main(int argc, char *argv[])
             free(options);
             return 1;
         }
-
-        if (read_size < 8) {
-            fprintf(stderr, "ERROR: Input file is too small to contain valid plist data.\n");
-            free(plist_entire);
-            free(options);
-            return 1;
-        }
     }
     else
     {
@@ -236,13 +239,6 @@ int main(int argc, char *argv[])
 
         memset(&filestats, '\0', sizeof(struct stat));
         fstat(fileno(iplist), &filestats);
-
-        if (filestats.st_size < 8) {
-            fprintf(stderr, "ERROR: Input file is too small to contain valid plist data.\n");
-            free(options);
-            fclose(iplist);
-            return -1;
-        }
 
         plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
         read_size = fread(plist_entire, sizeof(char), filestats.st_size, iplist);
@@ -276,7 +272,9 @@ int main(int argc, char *argv[])
             } else if (options->out_fmt == 2) {
                 output_res = plist_to_xml(root_node, &plist_out, &size);
             } else if (options->out_fmt == 3) {
-                output_res = plist_to_json(root_node, &plist_out, &size, 0);
+                output_res = plist_to_json(root_node, &plist_out, &size, !options->compact);
+            } else if (options->out_fmt == 4) {
+                output_res = plist_to_openstep(root_node, &plist_out, &size, !options->compact);
             }
         }
     }
@@ -316,8 +314,20 @@ int main(int argc, char *argv[])
                 ret = 1;
         }
     } else {
-        fprintf(stderr, "ERROR: Could not parse plist data (%d)\n", input_res);
-        ret = 1;
+        switch (input_res) {
+            case PLIST_ERR_PARSE:
+                if (options->out_fmt == 0) {
+                    fprintf(stderr, "ERROR: Could not parse plist data, expected XML or binary plist\n");
+                } else {
+                    fprintf(stderr, "ERROR: Could not parse plist data (%d)\n", input_res);
+                }
+                ret = 3;
+                break;
+            default:
+                fprintf(stderr, "ERROR: Could not parse plist data (%d)\n", input_res);
+                ret = 1;
+                break;
+        }
     }
 
     free(options);
