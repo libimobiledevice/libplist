@@ -1,6 +1,6 @@
 /*
- * xplist_fuzzer.cc
- * XML plist fuzz target for libFuzzer
+ * jplist_fuzzer.cc
+ * JSON plist fuzz target for libFuzzer
  *
  * Copyright (c) 2021 Nikias Bassen All Rights Reserved.
  *
