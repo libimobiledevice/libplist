@@ -851,6 +851,7 @@ PLIST_API int plist_from_openstep(const char *plist_ostep, uint32_t length, plis
         } else if (ctx.pos < ctx.end && *ctx.pos == '=') {
             /* attempt to parse this as 'strings' data */
             plist_free(*plist);
+            *plist = NULL;
             plist_t pl = plist_new_dict();
             ctx.pos = plist_ostep;
             parse_dict_data(&ctx, pl);
