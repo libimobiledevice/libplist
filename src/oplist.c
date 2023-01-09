@@ -550,7 +550,7 @@ static void parse_dict_data(parse_ctx ctx, plist_t dict)
         if (ctx->pos >= ctx->end) {
             PLIST_OSTEP_ERR("EOF while parsing dictionary item at offset %ld\n", ctx->pos - ctx->start);
             ctx->err++;
-                    break;
+            break;
         }
         val = NULL;
         ctx->err = node_from_openstep(ctx, &val);
@@ -709,6 +709,11 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                     break;
                 }
                 ctx->pos++;
+            }
+            if (ctx->pos >= ctx->end) {
+                PLIST_OSTEP_ERR("EOF while parsing quoted string at offset %ld\n", ctx->pos - ctx->start);
+                ctx->err++;
+                goto err_out;
             }
             if (*ctx->pos != c) {
                 plist_free_data(data);
