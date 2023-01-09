@@ -677,9 +677,13 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                 ctx->pos++;
             }
             if (ctx->err) {
+                byte_array_free(bytes);
+                plist_free_data(data);
                 goto err_out;
             }
             if (*ctx->pos != '>') {
+                byte_array_free(bytes);
+                plist_free_data(data);
                 PLIST_OSTEP_ERR("Missing terminating '>' at offset %ld\n", ctx->pos - ctx->start);
                 ctx->err++;
                 goto err_out;
@@ -707,6 +711,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                 ctx->pos++;
             }
             if (*ctx->pos != c) {
+                plist_free_data(data);
                 PLIST_OSTEP_ERR("Missing closing quote (%c) at offset %ld\n", c, ctx->pos - ctx->start);
                 ctx->err++;
                 goto err_out;
@@ -807,6 +812,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                 parse_skip_ws(ctx);
                 break;
             } else {
+                plist_free_data(data);
                 PLIST_OSTEP_ERR("Unexpected character when parsing unquoted string at offset %ld\n", ctx->pos - ctx->start);
                 ctx->err++;
                 break;
@@ -817,6 +823,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
 
 err_out:
     if (ctx->err) {
+        plist_free(subnode);
         plist_free(*plist);
         *plist = NULL;
         return PLIST_ERR_PARSE;
