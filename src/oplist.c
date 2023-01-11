@@ -742,6 +742,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                 ctx->pos++;
             }
             if (ctx->pos >= ctx->end) {
+                plist_free_data(data);
                 PLIST_OSTEP_ERR("EOF while parsing quoted string at offset %ld\n", ctx->pos - ctx->start);
                 ctx->err++;
                 goto err_out;
