@@ -560,11 +560,9 @@ static void parse_dict_data(parse_ctx ctx, plist_t dict)
         val = NULL;
         ctx->err = node_from_openstep(ctx, &val);
         if (ctx->err != 0) {
-            plist_free(key);
             break;
         }
         if (!val) {
-            plist_free(key);
             PLIST_OSTEP_ERR("Missing value for dictionary item at offset %ld\n", ctx->pos - ctx->start);
             ctx->err++;
             break;
@@ -576,8 +574,6 @@ static void parse_dict_data(parse_ctx ctx, plist_t dict)
             break;
         }
         if (*ctx->pos != ';') {
-            plist_free(val);
-            plist_free(key);
             PLIST_OSTEP_ERR("Missing terminating ';' while parsing dictionary item at offset %ld\n", ctx->pos - ctx->start);
             ctx->err++;
             break;
@@ -585,10 +581,13 @@ static void parse_dict_data(parse_ctx ctx, plist_t dict)
 
         plist_dict_set_item(dict, plist_get_string_ptr(key, NULL), val);
         plist_free(key);
+        key = NULL;
         val = NULL;
 
         ctx->pos++;
     }
+    plist_free(key);
+    plist_free(val);
 }
 
 static int node_from_openstep(parse_ctx ctx, plist_t *plist)
@@ -654,6 +653,8 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                 }
                 ctx->pos++;
             }
+	    plist_free(tmp);
+	    tmp = NULL;
             if (ctx->err) {
                 goto err_out;
             }
