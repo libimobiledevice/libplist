@@ -16,7 +16,7 @@ jobs:
     - name: prepare environment
       run: |
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: autogen
@@ -36,7 +36,7 @@ jobs:
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libplist.tar usr
     - name: publish artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: libplist-latest_${{env.target_triplet}}
         path: libplist.tar
@@ -52,7 +52,7 @@ jobs:
           fi
           pip3 install cython
       shell: bash
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: autogen
@@ -94,7 +94,7 @@ jobs:
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libplist.tar usr
     - name: publish artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: libplist-latest_macOS
         path: libplist.tar
@@ -131,7 +131,7 @@ jobs:
           echo "dest=$dest" >> $GITHUB_ENV
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
           git config --global core.autocrlf false
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: autogen
@@ -160,7 +160,7 @@ jobs:
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libplist.tar ${{ env.dest }}
     - name: publish artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: libplist-latest_${{ matrix.arch }}-${{ env.dest }}
         path: libplist.tar
