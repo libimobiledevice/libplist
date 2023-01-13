@@ -508,6 +508,9 @@ static void parse_skip_ws(parse_ctx ctx)
                     ctx->pos++;
                 }
             }
+            if (ctx->pos >= ctx->end) {
+                break;
+            }
         }
         // break on any char that's not white space
         if (!(((*(ctx->pos) == ' ') || (*(ctx->pos) == '\t') || (*(ctx->pos) == '\r') || (*(ctx->pos) == '\n')))) {
