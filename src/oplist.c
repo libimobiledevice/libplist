@@ -146,7 +146,7 @@ static int node_to_openstep(node_t* node, bytearray_t **outbuf, uint32_t depth, 
 
     switch (node_data->type)
     {
-    case PLIST_UINT:
+    case PLIST_INT:
         val = (char*)malloc(64);
         if (node_data->length == 16) {
             val_len = snprintf(val, 64, "%"PRIu64, node_data->intval);
@@ -393,7 +393,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int 
             *size += data->length;
             *size += 2;
             break;
-        case PLIST_UINT:
+        case PLIST_INT:
             if (data->length == 16) {
                 *size += num_digits_u(data->intval);
             } else {

@@ -62,7 +62,7 @@ enum
     BPLIST_FALSE = 0x08,
     BPLIST_TRUE = 0x09,
     BPLIST_FILL = 0x0F,			/* will be used for length grabbing */
-    BPLIST_UINT = 0x10,
+    BPLIST_INT = 0x10,
     BPLIST_REAL = 0x20,
     BPLIST_DATE = 0x30,
     BPLIST_DATA = 0x40,
@@ -229,7 +229,7 @@ void plist_bin_deinit(void)
 
 static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index);
 
-static plist_t parse_uint_node(const char **bnode, uint8_t size)
+static plist_t parse_int_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
 
@@ -254,7 +254,7 @@ static plist_t parse_uint_node(const char **bnode, uint8_t size)
     data->intval = UINT_TO_HOST(*bnode, size);
 
     (*bnode) += size;
-    data->type = PLIST_UINT;
+    data->type = PLIST_INT;
 
     return node_create(NULL, data);
 }
@@ -583,8 +583,8 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         case BPLIST_DICT:
         {
             uint16_t next_size = **object & BPLIST_FILL;
-            if ((**object & BPLIST_MASK) != BPLIST_UINT) {
-                PLIST_BIN_ERR("%s: invalid size node type for node type 0x%02x: found 0x%02x, expected 0x%02x\n", __func__, type, **object & BPLIST_MASK, BPLIST_UINT);
+            if ((**object & BPLIST_MASK) != BPLIST_INT) {
+                PLIST_BIN_ERR("%s: invalid size node type for node type 0x%02x: found 0x%02x, expected 0x%02x\n", __func__, type, **object & BPLIST_MASK, BPLIST_INT);
                 return NULL;
             }
             (*object)++;
@@ -641,12 +641,12 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             return NULL;
         }
 
-    case BPLIST_UINT:
+    case BPLIST_INT:
         if (pobject + (uint64_t)(1 << size) > poffset_table) {
-            PLIST_BIN_ERR("%s: BPLIST_UINT data bytes point outside of valid range\n", __func__);
+            PLIST_BIN_ERR("%s: BPLIST_INT data bytes point outside of valid range\n", __func__);
             return NULL;
         }
-        return parse_uint_node(object, size);
+        return parse_int_node(object, size);
 
     case BPLIST_REAL:
         if (pobject + (uint64_t)(1 << size) > poffset_table) {
@@ -896,7 +896,7 @@ static unsigned int plist_data_hash(const void* key)
     switch (data->type)
     {
     case PLIST_BOOLEAN:
-    case PLIST_UINT:
+    case PLIST_INT:
     case PLIST_REAL:
     case PLIST_DATE:
     case PLIST_UID:
@@ -973,7 +973,7 @@ static void write_int(bytearray_t * bplist, uint64_t val)
     //do not write 3bytes int node
     if (size == 3)
         size++;
-    sz = BPLIST_UINT | Log2(size);
+    sz = BPLIST_INT | Log2(size);
 
     val = be64toh(val);
     byte_array_append(bplist, &sz, 1);
@@ -982,7 +982,7 @@ static void write_int(bytearray_t * bplist, uint64_t val)
 
 static void write_uint(bytearray_t * bplist, uint64_t val)
 {
-    uint8_t sz = BPLIST_UINT | 4;
+    uint8_t sz = BPLIST_INT | 4;
     uint64_t zero = 0;
 
     val = be64toh(val);
@@ -1346,7 +1346,7 @@ PLIST_API plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * l
             byte_array_append(bplist_buff, &b, 1);
             break;
         }
-        case PLIST_UINT:
+        case PLIST_INT:
             if (data->length == 16) {
                 write_uint(bplist_buff, data->intval);
             } else {

@@ -35,12 +35,18 @@ public :
     Integer(const Integer& i);
     Integer& operator=(const Integer& i);
     Integer(uint64_t i);
+    Integer(int64_t i);
     virtual ~Integer();
 
     Node* Clone() const;
 
+    void SetValue(int64_t i);
     void SetValue(uint64_t i);
-    uint64_t GetValue() const;
+    void SetUnsignedValue(uint64_t i);
+    int64_t GetValue() const;
+    uint64_t GetUnsignedValue() const;
+
+    bool isNegative() const;
 };
 
 };

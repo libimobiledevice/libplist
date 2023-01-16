@@ -32,7 +32,7 @@ Real::Real(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-Real::Real(const PList::Real& d) : Node(PLIST_UINT)
+Real::Real(const PList::Real& d) : Node(PLIST_INT)
 {
     plist_set_real_val(_node, d.GetValue());
 }

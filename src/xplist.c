@@ -162,7 +162,7 @@ static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
     }
     break;
 
-    case PLIST_UINT:
+    case PLIST_INT:
         tag = XPLIST_INT;
         tag_len = XPLIST_INT_LEN;
         val = (char*)malloc(64);
@@ -479,7 +479,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
             *size += data->length;
             *size += (XPLIST_KEY_LEN << 1) + 6;
             break;
-        case PLIST_UINT:
+        case PLIST_INT:
             if (data->length == 16) {
                 *size += num_digits_u(data->intval);
             } else {
@@ -1194,7 +1194,7 @@ static int node_from_xml(parse_ctx ctx, plist_t *plist)
                     data->intval = 0;
                     data->length = 8;
                 }
-                data->type = PLIST_UINT;
+                data->type = PLIST_INT;
             } else if (!strcmp(tag, XPLIST_REAL)) {
                 if (!is_empty) {
                     text_part_t first_part = { NULL, 0, 0, NULL };

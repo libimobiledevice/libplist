@@ -2,7 +2,7 @@
  * plist.c
  * Builds plist XML structures
  *
- * Copyright (c) 2009-2019 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2009-2023 Nikias Bassen, All Rights Reserved.
  * Copyright (c) 2010-2015 Martin Szulecki, All Rights Reserved.
  * Copyright (c) 2008 Zach C., All Rights Reserved.
  *
@@ -390,7 +390,16 @@ PLIST_API plist_t plist_new_bool(uint8_t val)
 PLIST_API plist_t plist_new_uint(uint64_t val)
 {
     plist_data_t data = plist_new_plist_data();
-    data->type = PLIST_UINT;
+    data->type = PLIST_INT;
+    data->intval = val;
+    data->length = (val > INT_MAX) ? sizeof(uint64_t)*2 : sizeof(uint64_t);
+    return plist_new_node(data);
+}
+
+PLIST_API plist_t plist_new_int(int64_t val)
+{
+    plist_data_t data = plist_new_plist_data();
+    data->type = PLIST_INT;
     data->intval = val;
     data->length = sizeof(uint64_t);
     return plist_new_node(data);
@@ -926,7 +935,7 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
     case PLIST_BOOLEAN:
         *((char *) value) = data->boolval;
         break;
-    case PLIST_UINT:
+    case PLIST_INT:
     case PLIST_UID:
         *((uint64_t *) value) = data->intval;
         break;
@@ -1024,10 +1033,15 @@ PLIST_API void plist_get_uint_val(plist_t node, uint64_t * val)
         return;
     plist_type type = plist_get_node_type(node);
     uint64_t length = 0;
-    if (PLIST_UINT != type)
+    if (PLIST_INT != type)
         return;
     plist_get_type_and_value(node, &type, (void *) val, &length);
     assert(length == sizeof(uint64_t) || length == 16);
+}
+
+PLIST_API void plist_get_int_val(plist_t node, int64_t * val)
+{
+    plist_get_uint_val(node, (uint64_t*)val);
 }
 
 PLIST_API void plist_get_uid_val(plist_t node, uint64_t * val)
@@ -1116,7 +1130,7 @@ int plist_data_compare(const void *a, const void *b)
     switch (val_a->type)
     {
     case PLIST_BOOLEAN:
-    case PLIST_UINT:
+    case PLIST_INT:
     case PLIST_REAL:
     case PLIST_DATE:
     case PLIST_UID:
@@ -1180,7 +1194,7 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     case PLIST_BOOLEAN:
         data->boolval = *((char *) value);
         break;
-    case PLIST_UINT:
+    case PLIST_INT:
     case PLIST_UID:
         data->intval = *((uint64_t *) value);
         break;
@@ -1225,7 +1239,12 @@ PLIST_API void plist_set_bool_val(plist_t node, uint8_t val)
 
 PLIST_API void plist_set_uint_val(plist_t node, uint64_t val)
 {
-    plist_set_element_val(node, PLIST_UINT, &val, sizeof(uint64_t));
+    plist_set_element_val(node, PLIST_INT, &val, (val > INT64_MAX) ? sizeof(uint64_t)*2 : sizeof(uint64_t));
+}
+
+PLIST_API void plist_set_int_val(plist_t node, int64_t val)
+{
+    plist_set_element_val(node, PLIST_INT, &val, sizeof(uint64_t));
 }
 
 PLIST_API void plist_set_uid_val(plist_t node, uint64_t val)
@@ -1259,9 +1278,42 @@ PLIST_API int plist_bool_val_is_true(plist_t boolnode)
     return (bv == 1);
 }
 
+PLIST_API int plist_int_val_is_negative(plist_t intnode)
+{
+    if (!PLIST_IS_INT(intnode)) {
+        return 0;
+    }
+    plist_data_t data = plist_get_data(intnode);
+    if (data->length == 16) {
+        return 0;
+    }
+    if ((int64_t)data->intval < 0) {
+        return 1;
+    }
+    return 0;
+}
+
+PLIST_API int plist_int_val_compare(plist_t uintnode, int64_t cmpval)
+{
+    if (!PLIST_IS_INT(uintnode)) {
+        return -1;
+    }
+    int64_t uintval = 0;
+    plist_get_int_val(uintnode, &uintval);
+    if (uintval == cmpval) {
+        return 0;
+    }
+
+    if (uintval < cmpval) {
+        return -1;
+    }
+
+    return 1;
+}
+
 PLIST_API int plist_uint_val_compare(plist_t uintnode, uint64_t cmpval)
 {
-    if (!PLIST_IS_UINT(uintnode)) {
+    if (!PLIST_IS_INT(uintnode)) {
         return -1;
     }
     uint64_t uintval = 0;

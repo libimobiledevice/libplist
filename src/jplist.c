@@ -131,7 +131,7 @@ static int node_to_json(node_t* node, bytearray_t **outbuf, uint32_t depth, int 
         str_buf_append(*outbuf, "null", 4);
 	break;
 
-    case PLIST_UINT:
+    case PLIST_INT:
         val = (char*)malloc(64);
         if (node_data->length == 16) {
             val_len = snprintf(val, 64, "%"PRIu64, node_data->intval);
@@ -349,7 +349,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int 
             *size += data->length;
             *size += 2;
             break;
-        case PLIST_UINT:
+        case PLIST_INT:
             if (data->length == 16) {
                 *size += num_digits_u(data->intval);
             } else {
@@ -501,10 +501,15 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         val = plist_new_node(data);
     } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_val+1 < str_end && isdigit(str_val[1]))) {
         char* endp = (char*)str_val;
+        int is_neg = (str_val[0] == '-');
         int64_t intpart = parse_decimal(str_val, str_end, &endp);
         if (endp >= str_end) {
             /* integer */
-            val = plist_new_uint((uint64_t)intpart);
+            if (is_neg || intpart <= INT64_MAX) {
+                val = plist_new_int(intpart);
+            } else {
+                val = plist_new_uint((uint64_t)intpart);
+            }
         } else if ((*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) || ((*endp == 'e' || *endp == 'E') && endp+1 < str_end && (isdigit(*(endp+1)) || ((*(endp+1) == '-') && endp+2 < str_end && isdigit(*(endp+2)))))) {
             /* floating point */
             double dval = (double)intpart;
@@ -513,7 +518,6 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
             do {
                 if (*endp == '.') {
                     fendp++;
-                    int is_neg = (str_val[0] == '-');
                     double frac = 0;
                     double p = 0.1;
                     while (fendp < str_end && isdigit(*fendp)) {

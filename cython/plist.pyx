@@ -5,7 +5,7 @@ from libc.stdint cimport *
 cdef extern from *:
     ctypedef enum plist_type:
         PLIST_BOOLEAN,
-        PLIST_UINT,
+        PLIST_INT,
         PLIST_REAL,
         PLIST_STRING,
         PLIST_ARRAY,
@@ -14,6 +14,7 @@ cdef extern from *:
         PLIST_DATA,
         PLIST_KEY,
         PLIST_UID,
+        PLIST_NULL,
         PLIST_NONE
 
     plist_t plist_new_bool(uint8_t val)
@@ -23,6 +24,10 @@ cdef extern from *:
     plist_t plist_new_uint(uint64_t val)
     void plist_get_uint_val(plist_t node, uint64_t *val)
     void plist_set_uint_val(plist_t node, uint64_t val)
+
+    plist_t plist_new_int(int64_t val)
+    void plist_get_int_val(plist_t node, int64_t *val)
+    void plist_set_int_val(plist_t node, int64_t val)
 
     plist_t plist_new_real(double val)
     void plist_get_real_val(plist_t node, double *val)
@@ -46,6 +51,8 @@ cdef extern from *:
     plist_t plist_new_data(char *val, uint64_t length)
     void plist_get_data_val(plist_t node, char **val, uint64_t * length)
     void plist_set_data_val(plist_t node, char *val, uint64_t length)
+
+    plist_t plist_new_null();
 
     plist_t plist_new_dict()
     int plist_dict_get_size(plist_t node)
@@ -76,6 +83,8 @@ cdef extern from *:
 
     void plist_from_xml(char *plist_xml, uint32_t length, plist_t * plist)
     void plist_from_bin(char *plist_bin, uint32_t length, plist_t * plist)
+
+    int plist_int_val_is_negative(plist_t node);
 
 cdef class Node:
     def __init__(self, *args, **kwargs):
@@ -177,13 +186,15 @@ cdef Bool Bool_factory(plist_t c_node, bint managed=True):
 cdef class Integer(Node):
     def __cinit__(self, object value=None, *args, **kwargs):
         if value is None:
-            self._c_node = plist_new_uint(0)
+            self._c_node = plist_new_int(0)
         else:
-            self._c_node = plist_new_uint(int(value))
+            if value < 0 or value <= INT64_MAX:
+                self._c_node = plist_new_int(int(value))
+            else:
+                self._c_node = plist_new_uint(int(value))
 
     def __repr__(self):
-        cdef uint64_t i = self.get_value()
-        return '<Integer: %s>' % i
+        return '<Integer: %s>' % self.get_value()
 
     def __int__(self):
         return self.get_value()
@@ -210,10 +221,18 @@ cdef class Integer(Node):
     cpdef set_value(self, object value):
         plist_set_uint_val(self._c_node, int(value))
 
-    cpdef uint64_t get_value(self):
-        cdef uint64_t value
-        plist_get_uint_val(self._c_node, &value)
-        return value
+    cpdef get_value(self):
+        cdef int64_t ivalue
+        cdef uint64_t uvalue
+        if self.is_negative():
+            plist_get_int_val(self._c_node, &ivalue)
+            return int(ivalue)
+        else:
+            plist_get_uint_val(self._c_node, &uvalue)
+            return int(uvalue)
+
+    cpdef bint is_negative(self):
+        return plist_int_val_is_negative(self._c_node);
 
 cdef Integer Integer_factory(plist_t c_node, bint managed=True):
     cdef Integer instance = Integer.__new__(Integer)
@@ -310,6 +329,20 @@ cdef class Uid(Node):
 
 cdef Uid Uid_factory(plist_t c_node, bint managed=True):
     cdef Uid instance = Uid.__new__(Uid)
+    instance._c_managed = managed
+    instance._c_node = c_node
+    return instance
+
+cdef class Null(Node):
+    def __cinit__(self, object value=None, *args, **kwargs):
+        self._c_node = plist_new_null()
+
+    def __repr__(self):
+        cdef uint64_t i = self.get_value()
+        return '<Null>'
+
+cdef Null Null_factory(plist_t c_node, bint managed=True):
+    cdef Null instance = Null.__new__(Null)
     instance._c_managed = managed
     instance._c_node = c_node
     return instance
@@ -833,7 +866,7 @@ cdef object plist_t_to_node(plist_t c_plist, bint managed=True):
     cdef plist_type t = plist_get_node_type(c_plist)
     if t == PLIST_BOOLEAN:
         return Bool_factory(c_plist, managed)
-    if t == PLIST_UINT:
+    if t == PLIST_INT:
         return Integer_factory(c_plist, managed)
     if t == PLIST_KEY:
         return Key_factory(c_plist, managed)
@@ -851,6 +884,8 @@ cdef object plist_t_to_node(plist_t c_plist, bint managed=True):
         return Data_factory(c_plist, managed)
     if t == PLIST_UID:
         return Uid_factory(c_plist, managed)
+    if t == PLIST_NULL:
+        return Null_factory(c_plist, managed)
     if t == PLIST_NONE:
         return None
 

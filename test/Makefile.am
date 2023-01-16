@@ -8,6 +8,7 @@ AM_LDFLAGS =
 noinst_PROGRAMS = \
 	plist_cmp \
 	plist_test \
+	integer_set_test \
 	plist_btest \
 	plist_jtest \
 	plist_otest
@@ -19,6 +20,9 @@ plist_cmp_LDADD = \
 
 plist_test_SOURCES = plist_test.c
 plist_test_LDADD = $(top_builddir)/src/libplist-2.0.la
+
+integer_set_test_SOURCES = integer_set.c
+integer_set_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 plist_btest_SOURCES = plist_btest.c
 plist_btest_LDADD = $(top_builddir)/src/libplist-2.0.la
@@ -54,6 +58,7 @@ TESTS = \
 	refsize.test \
 	malformed_dict.test \
 	uid.test \
+	integer_set.test \
 	json1.test \
 	json2.test \
 	json3.test \

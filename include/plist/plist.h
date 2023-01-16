@@ -3,7 +3,7 @@
  * @brief Main include of libplist
  * \internal
  *
- * Copyright (c) 2012-2019 Nikias Bassen, All Rights Reserved.
+ * Copyright (c) 2012-2023 Nikias Bassen, All Rights Reserved.
  * Copyright (c) 2008-2009 Jonathan Beck, All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -104,7 +104,7 @@ extern "C"
     typedef enum
     {
         PLIST_BOOLEAN,  /**< Boolean, scalar type */
-        PLIST_UINT,     /**< Unsigned integer, scalar type */
+        PLIST_INT,      /**< Integer, scalar type */
         PLIST_REAL,     /**< Real, scalar type */
         PLIST_STRING,   /**< ASCII string, scalar type */
         PLIST_ARRAY,    /**< Ordered array, structured type */
@@ -116,6 +116,9 @@ extern "C"
         PLIST_NULL,     /**< NULL type */
         PLIST_NONE      /**< No type */
     } plist_type;
+
+    /* for backwards compatibility */
+    #define PLIST_UINT PLIST_INT
 
     /**
      * libplist error values
@@ -171,13 +174,26 @@ extern "C"
     plist_t plist_new_bool(uint8_t val);
 
     /**
-     * Create a new plist_t type #PLIST_UINT
+     * Create a new plist_t type #PLIST_INT with an unsigned integer value
      *
      * @param val the unsigned integer value
      * @return the created item
      * @sa #plist_type
+     * @note The value is always stored as uint64_t internally.
+     *    Use #plist_get_uint_val or #plist_get_int_val to get the unsigned or signed value.
      */
     plist_t plist_new_uint(uint64_t val);
+
+    /**
+     * Create a new plist_t type #PLIST_INT with a signed integer value
+     *
+     * @param val the signed integer value
+     * @return the created item
+     * @sa #plist_type
+     * @note The value is always stored as uint64_t internally.
+     *    Use #plist_get_uint_val or #plist_get_int_val to get the unsigned or signed value.
+     */
+    plist_t plist_new_int(int64_t val);
 
     /**
      * Create a new plist_t type #PLIST_REAL
@@ -509,13 +525,22 @@ extern "C"
     void plist_get_bool_val(plist_t node, uint8_t * val);
 
     /**
-     * Get the value of a #PLIST_UINT node.
-     * This function does nothing if node is not of type #PLIST_UINT
+     * Get the unsigned integer value of a #PLIST_INT node.
+     * This function does nothing if node is not of type #PLIST_INT
      *
      * @param node the node
      * @param val a pointer to a uint64_t variable.
      */
     void plist_get_uint_val(plist_t node, uint64_t * val);
+
+    /**
+     * Get the signed integer value of a #PLIST_INT node.
+     * This function does nothing if node is not of type #PLIST_INT
+     *
+     * @param node the node
+     * @param val a pointer to a int64_t variable.
+     */
+    void plist_get_int_val(plist_t node, int64_t * val);
 
     /**
      * Get the value of a #PLIST_REAL node.
@@ -607,12 +632,21 @@ extern "C"
 
     /**
      * Set the value of a node.
-     * Forces type of node to #PLIST_UINT
+     * Forces type of node to #PLIST_INT
      *
      * @param node the node
      * @param val the unsigned integer value
      */
     void plist_set_uint_val(plist_t node, uint64_t val);
+
+    /**
+     * Set the value of a node.
+     * Forces type of node to #PLIST_INT
+     *
+     * @param node the node
+     * @param val the signed integer value
+     */
+    void plist_set_int_val(plist_t node, int64_t val);
 
     /**
      * Set the value of a node.
@@ -823,7 +857,7 @@ extern "C"
 
     /* Helper macros for the different plist types */
     #define PLIST_IS_BOOLEAN(__plist) _PLIST_IS_TYPE(__plist, BOOLEAN)
-    #define PLIST_IS_UINT(__plist)    _PLIST_IS_TYPE(__plist, UINT)
+    #define PLIST_IS_INT(__plist)     _PLIST_IS_TYPE(__plist, INT)
     #define PLIST_IS_REAL(__plist)    _PLIST_IS_TYPE(__plist, REAL)
     #define PLIST_IS_STRING(__plist)  _PLIST_IS_TYPE(__plist, STRING)
     #define PLIST_IS_ARRAY(__plist)   _PLIST_IS_TYPE(__plist, ARRAY)
@@ -832,21 +866,42 @@ extern "C"
     #define PLIST_IS_DATA(__plist)    _PLIST_IS_TYPE(__plist, DATA)
     #define PLIST_IS_KEY(__plist)     _PLIST_IS_TYPE(__plist, KEY)
     #define PLIST_IS_UID(__plist)     _PLIST_IS_TYPE(__plist, UID)
+    /* for backwards compatibility */
+    #define PLIST_IS_UINT             PLIST_IS_INT
 
     /**
      * Helper function to check the value of a PLIST_BOOL node.
      *
      * @param boolnode node of type PLIST_BOOL
-     * @return 1 if the boolean node has a value of TRUE, 0 if FALSE,
-     *   or -1 if the node is not of type PLIST_BOOL
+     * @return 1 if the boolean node has a value of TRUE or 0 if FALSE.
      */
     int plist_bool_val_is_true(plist_t boolnode);
 
     /**
-     * Helper function to compare the value of a PLIST_UINT node against
-     * a given value.
+     * Helper function to test if a given #PLIST_INT node's value is negative
      *
-     * @param uintnode node of type PLIST_UINT
+     * @param intnode node of type PLIST_INT
+     * @return 1 if the node's value is negative, or 0 if positive.
+     */
+    int plist_int_val_is_negative(plist_t intnode);
+
+    /**
+     * Helper function to compare the value of a PLIST_INT node against
+     * a given signed integer value.
+     *
+     * @param uintnode node of type PLIST_INT
+     * @param cmpval value to compare against
+     * @return 0 if the node's value and cmpval are equal,
+     *         1 if the node's value is greater than cmpval,
+     *         or -1 if the node's value is less than cmpval.
+     */
+    int plist_int_val_compare(plist_t uintnode, int64_t cmpval);
+
+    /**
+     * Helper function to compare the value of a PLIST_INT node against
+     * a given unsigned integer value.
+     *
+     * @param uintnode node of type PLIST_INT
      * @param cmpval value to compare against
      * @return 0 if the node's value and cmpval are equal,
      *         1 if the node's value is greater than cmpval,

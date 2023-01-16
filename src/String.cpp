@@ -32,7 +32,7 @@ String::String(plist_t node, Node* parent) : Node(node, parent)
 {
 }
 
-String::String(const PList::String& s) : Node(PLIST_UINT)
+String::String(const PList::String& s) : Node(PLIST_INT)
 {
     plist_set_string_val(_node, s.GetValue().c_str());
 }
