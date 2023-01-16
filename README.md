@@ -4,6 +4,7 @@
 JSON, or OpenStep format.*
 
 ![](https://github.com/libimobiledevice/libplist/workflows/build/badge.svg)
+![](https://github.com/libimobiledevice/libplist/workflows/CodeQL/badge.svg)
 
 ## Features
 
