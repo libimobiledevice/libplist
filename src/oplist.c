@@ -480,6 +480,7 @@ struct _parse_ctx {
     const char *pos;
     const char *end;
     int err;
+    uint32_t depth;
 };
 typedef struct _parse_ctx* parse_ctx;
 
@@ -597,6 +598,12 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
 {
     plist_t subnode = NULL;
     const char *p = NULL;
+    ctx->depth++;
+    if (ctx->depth > 1000) {
+        PLIST_OSTEP_ERR("Too many levels of recursion (%u) at offset %ld\n", ctx->depth, ctx->pos - ctx->start);
+        ctx->err++;
+        return PLIST_ERR_PARSE;
+    }
     while (ctx->pos < ctx->end && !ctx->err) {
         parse_skip_ws(ctx);
         if (ctx->pos >= ctx->end) {
@@ -867,6 +874,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
         }
         ctx->pos++;
     }
+    ctx->depth--;
 
 err_out:
     if (ctx->err) {
@@ -888,7 +896,7 @@ PLIST_API int plist_from_openstep(const char *plist_ostep, uint32_t length, plis
         return PLIST_ERR_INVALID_ARG;
     }
 
-    struct _parse_ctx ctx = { plist_ostep, plist_ostep, plist_ostep + length, 0 };
+    struct _parse_ctx ctx = { plist_ostep, plist_ostep, plist_ostep + length, 0 , 0 };
 
     int err = node_from_openstep(&ctx, plist);
     if (err == 0) {
