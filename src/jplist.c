@@ -407,7 +407,7 @@ PLIST_API int plist_to_json(plist_t plist, char **json, uint32_t* length, int pr
 
     strbuf_t *outbuf = str_buf_new(size);
     if (!outbuf) {
-        PLIST_JSON_WRITE_ERR("Could not allocate output buffer");
+        PLIST_JSON_WRITE_ERR("Could not allocate output buffer\n");
         return PLIST_ERR_NO_MEM;
     }
 
