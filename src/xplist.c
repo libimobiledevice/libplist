@@ -540,7 +540,7 @@ PLIST_API plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * l
 
     strbuf_t *outbuf = str_buf_new(size);
     if (!outbuf) {
-        PLIST_XML_WRITE_ERR("Could not allocate output buffer");
+        PLIST_XML_WRITE_ERR("Could not allocate output buffer\n");
         return PLIST_ERR_NO_MEM;
     }
 
