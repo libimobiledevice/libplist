@@ -362,6 +362,9 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int 
         case PLIST_BOOLEAN:
             *size += ((data->boolval) ? 4 : 5);
             break;
+        case PLIST_NULL:
+            *size += 4;
+            break;
         case PLIST_DICT:
         case PLIST_ARRAY:
             *size += 2;
