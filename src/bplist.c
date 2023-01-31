@@ -896,6 +896,7 @@ static unsigned int plist_data_hash(const void* key)
     switch (data->type)
     {
     case PLIST_BOOLEAN:
+    case PLIST_NULL:
     case PLIST_INT:
     case PLIST_REAL:
     case PLIST_DATE:

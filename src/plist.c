@@ -1130,6 +1130,7 @@ int plist_data_compare(const void *a, const void *b)
     switch (val_a->type)
     {
     case PLIST_BOOLEAN:
+    case PLIST_NULL:
     case PLIST_INT:
     case PLIST_REAL:
     case PLIST_DATE:
