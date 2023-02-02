@@ -44,9 +44,13 @@ public :
 
     Node* operator[](unsigned int index);
     iterator Begin();
+    iterator begin();
     iterator End();
+    iterator end();
     const_iterator Begin() const;
+    const_iterator begin() const;
     const_iterator End() const;
+    const_iterator end() const;
     void Append(Node* node);
     void Insert(Node* node, unsigned int pos);
     void Remove(Node* node);
