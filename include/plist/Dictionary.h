@@ -45,10 +45,14 @@ public :
 
     Node* operator[](const std::string& key);
     iterator Begin();
+    iterator begin();
     iterator End();
+    iterator end();
     iterator Find(const std::string& key);
     const_iterator Begin() const;
+    const_iterator begin() const;
     const_iterator End() const;
+    const_iterator end() const;
     const_iterator Find(const std::string& key) const;
     iterator Set(const std::string& key, const Node* node);
     iterator Set(const std::string& key, const Node& node);
