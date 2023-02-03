@@ -1495,3 +1495,64 @@ PLIST_API int plist_data_val_contains(plist_t datanode, const uint8_t* cmpval, s
     plist_data_t data = plist_get_data(datanode);
     return (memmem(data->buff, data->length, cmpval, n) != NULL);
 }
+
+PLIST_API void plist_sort(plist_t plist)
+{
+    if (!plist) {
+        return;
+    }
+    if (PLIST_IS_ARRAY(plist)) {
+        uint32_t n = plist_array_get_size(plist);
+        uint32_t i = 0;
+        for (i = 0; i < n; i++) {
+            plist_sort(plist_array_get_item(plist, i));
+        }
+    } else if (PLIST_IS_DICT(plist)) {
+        node_t *node = (node_t*)plist;
+        node_t *ch;
+        for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
+            ch = node_next_sibling(ch);
+            plist_sort((plist_t)ch);
+        }
+        #define KEY_DATA(x) (x->data)
+        #define VAL_DATA(x) (x->next->data)
+        #define VAL_COUNT(x) (x->next->count)
+        #define VAL_CHDN(x) (x->next->children)
+        #define NEXT_KEY(x) (x->next->next)
+        #define NEXT_VAL(x) (NEXT_KEY(x)->next)
+        #define NEXT_KEY_DATA(x) (NEXT_KEY(x)->data)
+        #define NEXT_VAL_DATA(x) (NEXT_VAL(x)->data)
+        #define NEXT_VAL_CHDN(x) (NEXT_VAL(x)->children)
+        #define NEXT_VAL_COUNT(x) (NEXT_VAL(x)->count)
+        #define KEY_STRVAL(x) ((plist_data_t)(KEY_DATA(x)))->strval
+        #define NEXT_KEY_STRVAL(x) ((plist_data_t)(NEXT_KEY_DATA(x)))->strval
+        int swapped = 0;
+        do {
+            swapped = 0;
+            node_t *lptr = NULL;
+            node_t *ptr_key = node_first_child((node_t*)plist);
+            while (NEXT_KEY(ptr_key) != lptr) {
+                if (strcmp(KEY_STRVAL(ptr_key), NEXT_KEY_STRVAL(ptr_key)) > 0) {
+                    // backup old values
+                    void* key_data_tmp = KEY_DATA(ptr_key);
+                    void* val_data_tmp = VAL_DATA(ptr_key);
+                    struct node_list_t *val_chdn_tmp = VAL_CHDN(ptr_key);
+                    unsigned int val_count_tmp = VAL_COUNT(ptr_key);
+                    // replace current with next
+                    KEY_DATA(ptr_key) = NEXT_KEY_DATA(ptr_key);
+                    VAL_DATA(ptr_key) = NEXT_VAL_DATA(ptr_key);
+                    VAL_CHDN(ptr_key) = NEXT_VAL_CHDN(ptr_key);
+                    VAL_COUNT(ptr_key) = NEXT_VAL_COUNT(ptr_key);
+                    // replace next with old
+                    NEXT_KEY_DATA(ptr_key) = key_data_tmp;
+                    NEXT_VAL_DATA(ptr_key) = val_data_tmp;
+                    NEXT_VAL_CHDN(ptr_key) = val_chdn_tmp;
+                    NEXT_VAL_COUNT(ptr_key) = val_count_tmp;
+                    swapped = 1;
+                }
+                ptr_key = NEXT_KEY(ptr_key);
+            }
+            lptr = ptr_key;
+        } while (swapped);
+    }
+}

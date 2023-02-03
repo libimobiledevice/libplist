@@ -1072,6 +1072,14 @@ extern "C"
     int plist_data_val_contains(plist_t datanode, const uint8_t* cmpval, size_t n);
 
     /**
+     * Sort all PLIST_DICT key/value pairs in a property list lexicographically
+     * by key. Recurses into the child nodes if necessary.
+     *
+     * @param plist The property list to perform the sorting operation on.
+     */
+    void plist_sort(plist_t plist);
+
+    /**
      * Free memory allocated by relevant libplist API calls:
      * - plist_to_xml()
      * - plist_to_bin()
