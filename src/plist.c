@@ -43,6 +43,7 @@
 #endif
 
 #include <node.h>
+#include <node_list.h>
 #include <hashtable.h>
 #include <ptrarray.h>
 
@@ -1515,44 +1516,47 @@ PLIST_API void plist_sort(plist_t plist)
             plist_sort((plist_t)ch);
         }
         #define KEY_DATA(x) (x->data)
-        #define VAL_DATA(x) (x->next->data)
-        #define VAL_COUNT(x) (x->next->count)
-        #define VAL_CHDN(x) (x->next->children)
         #define NEXT_KEY(x) (x->next->next)
-        #define NEXT_VAL(x) (NEXT_KEY(x)->next)
-        #define NEXT_KEY_DATA(x) (NEXT_KEY(x)->data)
-        #define NEXT_VAL_DATA(x) (NEXT_VAL(x)->data)
-        #define NEXT_VAL_CHDN(x) (NEXT_VAL(x)->children)
-        #define NEXT_VAL_COUNT(x) (NEXT_VAL(x)->count)
         #define KEY_STRVAL(x) ((plist_data_t)(KEY_DATA(x)))->strval
-        #define NEXT_KEY_STRVAL(x) ((plist_data_t)(NEXT_KEY_DATA(x)))->strval
         int swapped = 0;
         do {
             swapped = 0;
             node_t *lptr = NULL;
-            node_t *ptr_key = node_first_child((node_t*)plist);
-            while (NEXT_KEY(ptr_key) != lptr) {
-                if (strcmp(KEY_STRVAL(ptr_key), NEXT_KEY_STRVAL(ptr_key)) > 0) {
-                    // backup old values
-                    void* key_data_tmp = KEY_DATA(ptr_key);
-                    void* val_data_tmp = VAL_DATA(ptr_key);
-                    struct node_list_t *val_chdn_tmp = VAL_CHDN(ptr_key);
-                    unsigned int val_count_tmp = VAL_COUNT(ptr_key);
-                    // replace current with next
-                    KEY_DATA(ptr_key) = NEXT_KEY_DATA(ptr_key);
-                    VAL_DATA(ptr_key) = NEXT_VAL_DATA(ptr_key);
-                    VAL_CHDN(ptr_key) = NEXT_VAL_CHDN(ptr_key);
-                    VAL_COUNT(ptr_key) = NEXT_VAL_COUNT(ptr_key);
-                    // replace next with old
-                    NEXT_KEY_DATA(ptr_key) = key_data_tmp;
-                    NEXT_VAL_DATA(ptr_key) = val_data_tmp;
-                    NEXT_VAL_CHDN(ptr_key) = val_chdn_tmp;
-                    NEXT_VAL_COUNT(ptr_key) = val_count_tmp;
+            node_t *cur_key = node_first_child((node_t*)plist);
+
+            while (NEXT_KEY(cur_key) != lptr) {
+                node_t *next_key = NEXT_KEY(cur_key);
+                if (strcmp(KEY_STRVAL(cur_key), KEY_STRVAL(next_key)) > 0) {
+                    node_t *cur_val = cur_key->next;
+                    node_t *next_val = next_key->next;
+                    // we need to swap 2 consecutive nodes with the 2 after them
+                    // a -> b -> [c] -> [d] -> [e] -> [f] -> g -> h
+                    //              cur           next
+                    // swapped:
+                    // a -> b -> [e] -> [f] -> [c] -> [d] -> g -> h
+                    //              next           cur
+                    node_t *tmp_prev = cur_key->prev;
+                    node_t *tmp_next = next_val->next;
+                    cur_key->prev = next_val;
+                    cur_val->next = tmp_next;
+                    next_val->next = cur_key;
+                    next_key->prev = tmp_prev;
+                    if (tmp_prev) {
+                        tmp_prev->next = next_key;
+                    } else {
+                        ((node_t*)plist)->children->begin = next_key;
+                    }
+                    if (tmp_next) {
+                        tmp_next->prev = cur_val;
+                    } else {
+                        ((node_t*)plist)->children->end = cur_val;
+                    }
+                    cur_key = next_key;
                     swapped = 1;
                 }
-                ptr_key = NEXT_KEY(ptr_key);
+                cur_key = NEXT_KEY(cur_key);
             }
-            lptr = ptr_key;
+            lptr = cur_key;
         } while (swapped);
     }
 }
