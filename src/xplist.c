@@ -41,7 +41,6 @@
 #include <limits.h>
 
 #include <node.h>
-#include <node_list.h>
 
 #include "plist.h"
 #include "base64.h"
@@ -127,7 +126,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     return len;
 }
 
-static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
+static int node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth)
 {
     plist_data_t node_data = NULL;
 
@@ -358,7 +357,7 @@ static int node_to_xml(node_t* node, bytearray_t **outbuf, uint32_t depth)
         if (node_data->type == PLIST_DICT && node->children) {
             assert((node->children->count % 2) == 0);
         }
-        node_t *ch;
+        node_t ch;
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             int res = node_to_xml(ch, outbuf, depth+1);
             if (res < 0) return res;
@@ -438,7 +437,7 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
+static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth)
 {
     plist_data_t data;
     if (!node) {
@@ -446,7 +445,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth)
     }
     data = plist_get_data(node);
     if (node->children) {
-        node_t *ch;
+        node_t ch;
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             node_estimate_size(ch, size, depth + 1);
         }
@@ -1413,7 +1412,7 @@ static int node_from_xml(parse_ctx ctx, plist_t *plist)
                 node_path = node_path->prev;
                 free(path_item);
 
-                parent = ((node_t*)parent)->parent;
+                parent = ((node_t)parent)->parent;
                 if (!parent) {
                     goto err_out;
                 }

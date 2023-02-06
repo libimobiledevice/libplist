@@ -34,7 +34,6 @@
 #include <limits.h>
 
 #include <node.h>
-#include <node_list.h>
 
 #include "plist.h"
 #include "strbuf.h"
@@ -101,7 +100,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     return len;
 }
 
-static int node_to_json(node_t* node, bytearray_t **outbuf, uint32_t depth, int prettify)
+static int node_to_json(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify)
 {
     plist_data_t node_data = NULL;
 
@@ -185,7 +184,7 @@ static int node_to_json(node_t* node, bytearray_t **outbuf, uint32_t depth, int 
 
     case PLIST_ARRAY: {
         str_buf_append(*outbuf, "[", 1);
-        node_t *ch;
+        node_t ch;
         uint32_t cnt = 0;
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             if (cnt > 0) {
@@ -213,7 +212,7 @@ static int node_to_json(node_t* node, bytearray_t **outbuf, uint32_t depth, int 
         } break;
     case PLIST_DICT: {
         str_buf_append(*outbuf, "{", 1);
-        node_t *ch;
+        node_t ch;
         uint32_t cnt = 0;
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             if (cnt > 0 && cnt % 2 == 0) {
@@ -302,7 +301,7 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int prettify)
+static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
 {
     plist_data_t data;
     if (!node) {
@@ -310,7 +309,7 @@ static int node_estimate_size(node_t *node, uint64_t *size, uint32_t depth, int 
     }
     data = plist_get_data(node);
     if (node->children) {
-        node_t *ch;
+        node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             int res = node_estimate_size(ch, size, depth + 1, prettify);

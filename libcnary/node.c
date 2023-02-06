@@ -27,11 +27,12 @@
 #include "node.h"
 #include "node_list.h"
 
-void node_destroy(node_t* node) {
+void node_destroy(node_t node)
+{
 	if(!node) return;
 
 	if (node->children && node->children->count > 0) {
-		node_t* ch;
+		node_t ch;
 		while ((ch = node->children->begin)) {
 			node_list_remove(node->children, ch);
 			node_destroy(ch);
@@ -43,10 +44,11 @@ void node_destroy(node_t* node) {
 	free(node);
 }
 
-node_t* node_create(node_t* parent, void* data) {
+node_t node_create(node_t parent, void* data)
+{
 	int error = 0;
 
-	node_t* node = (node_t*)calloc(1, sizeof(node_t));
+	node_t node = (node_t)calloc(1, sizeof(struct node));
 	if (node == NULL) {
 		return NULL;
 	}
@@ -73,7 +75,8 @@ node_t* node_create(node_t* parent, void* data) {
 	return node;
 }
 
-int node_attach(node_t* parent, node_t* child) {
+int node_attach(node_t parent, node_t child)
+{
 	if (!parent || !child) return -1;
 	child->parent = parent;
 	if(!parent->children) {
@@ -86,7 +89,8 @@ int node_attach(node_t* parent, node_t* child) {
 	return res;
 }
 
-int node_detach(node_t* parent, node_t* child) {
+int node_detach(node_t parent, node_t child)
+{
 	if (!parent || !child) return -1;
 	int node_index = node_list_remove(parent->children, child);
 	if (node_index >= 0) {
@@ -95,7 +99,7 @@ int node_detach(node_t* parent, node_t* child) {
 	return node_index;
 }
 
-int node_insert(node_t* parent, unsigned int node_index, node_t* child)
+int node_insert(node_t parent, unsigned int node_index, node_t child)
 {
 	if (!parent || !child) return -1;
 	child->parent = parent;
@@ -109,9 +113,10 @@ int node_insert(node_t* parent, unsigned int node_index, node_t* child)
 	return res;
 }
 
-static void _node_debug(node_t* node, unsigned int depth) {
+static void _node_debug(node_t node, unsigned int depth)
+{
 	unsigned int i = 0;
-	node_t* current = NULL;
+	node_t current = NULL;
 	for(i = 0; i < depth; i++) {
 		printf("\t");
 	}
@@ -132,23 +137,23 @@ static void _node_debug(node_t* node, unsigned int depth) {
 
 }
 
-void node_debug(node_t* node)
+void node_debug(node_t node)
 {
 	_node_debug(node, 0);
 }
 
-unsigned int node_n_children(struct node_t* node)
+unsigned int node_n_children(node_t node)
 {
 	if (!node) return 0;
 	return node->count;
 }
 
-node_t* node_nth_child(struct node_t* node, unsigned int n)
+node_t node_nth_child(node_t node, unsigned int n)
 {
 	if (!node || !node->children || !node->children->begin) return NULL;
 	unsigned int node_index = 0;
 	int found = 0;
-	node_t *ch;
+	node_t ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
 		if (node_index++ == n) {
 			found = 1;
@@ -161,30 +166,30 @@ node_t* node_nth_child(struct node_t* node, unsigned int n)
 	return ch;
 }
 
-node_t* node_first_child(struct node_t* node)
+node_t node_first_child(node_t node)
 {
 	if (!node || !node->children) return NULL;
 	return node->children->begin;
 }
 
-node_t* node_prev_sibling(struct node_t* node)
+node_t node_prev_sibling(node_t node)
 {
 	if (!node) return NULL;
 	return node->prev;
 }
 
-node_t* node_next_sibling(struct node_t* node)
+node_t node_next_sibling(node_t node)
 {
 	if (!node) return NULL;
 	return node->next;
 }
 
-int node_child_position(struct node_t* parent, node_t* child)
+int node_child_position(node_t parent, node_t child)
 {
 	if (!parent || !parent->children || !parent->children->begin || !child) return -1;
 	int node_index = 0;
 	int found = 0;
-	node_t *ch;
+	node_t ch;
 	for (ch = node_first_child(parent); ch; ch = node_next_sibling(ch)) {
 		if (ch == child) {
 			found = 1;
@@ -198,17 +203,17 @@ int node_child_position(struct node_t* parent, node_t* child)
 	return node_index;
 }
 
-node_t* node_copy_deep(node_t* node, copy_func_t copy_func)
+node_t node_copy_deep(node_t node, copy_func_t copy_func)
 {
 	if (!node) return NULL;
 	void *data = NULL;
 	if (copy_func) {
 		data = copy_func(node->data);
 	}
-	node_t* copy = node_create(NULL, data);
-	node_t* ch;
+	node_t copy = node_create(NULL, data);
+	node_t ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-		node_t* cc = node_copy_deep(ch, copy_func);
+		node_t cc = node_copy_deep(ch, copy_func);
 		node_attach(copy, cc);
 	}
 	return copy;

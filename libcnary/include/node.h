@@ -24,42 +24,42 @@
 #ifndef NODE_H_
 #define NODE_H_
 
+#include "node_list.h"
 #include "object.h"
 
 #define NODE_TYPE 1;
 
-struct node_list_t;
-
 // This class implements the abstract iterator class
-typedef struct node_t {
+typedef struct node* node_t;
+struct node {
 	// Super class
-	struct node_t* next;
-	struct node_t* prev;
+	node_t next;
+	node_t prev;
 	unsigned int count;
 
 	// Local Members
 	void *data;
-	struct node_t* parent;
-	struct node_list_t* children;
-} node_t;
+	node_t parent;
+	node_list_t children;
+};
 
-void node_destroy(struct node_t* node);
-struct node_t* node_create(struct node_t* parent, void* data);
+void node_destroy(node_t node);
+node_t node_create(node_t parent, void* data);
 
-int node_attach(struct node_t* parent, struct node_t* child);
-int node_detach(struct node_t* parent, struct node_t* child);
-int node_insert(struct node_t* parent, unsigned int index, struct node_t* child);
+int node_attach(node_t parent, node_t child);
+int node_detach(node_t parent, node_t child);
+int node_insert(node_t parent, unsigned int index, node_t child);
 
-unsigned int node_n_children(struct node_t* node);
-node_t* node_nth_child(struct node_t* node, unsigned int n);
-node_t* node_first_child(struct node_t* node);
-node_t* node_prev_sibling(struct node_t* node);
-node_t* node_next_sibling(struct node_t* node);
-int node_child_position(struct node_t* parent, node_t* child);
+unsigned int node_n_children(node_t node);
+node_t node_nth_child(node_t node, unsigned int n);
+node_t node_first_child(node_t node);
+node_t node_prev_sibling(node_t node);
+node_t node_next_sibling(node_t node);
+int node_child_position(node_t parent, node_t child);
 
 typedef void* (*copy_func_t)(const void *src);
-node_t* node_copy_deep(node_t* node, copy_func_t copy_func);
+node_t node_copy_deep(node_t node, copy_func_t copy_func);
 
-void node_debug(struct node_t* node);
+void node_debug(node_t node);
 
 #endif /* NODE_H_ */

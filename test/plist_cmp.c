@@ -35,12 +35,12 @@
 
 static plist_t plist_get_first_child(plist_t node)
 {
-    return (plist_t) node_first_child((node_t*) node);
+    return (plist_t) node_first_child((node_t) node);
 }
 
 static plist_t plist_get_next_sibling(plist_t node)
 {
-    return (plist_t) node_next_sibling((node_t*) node);
+    return (plist_t) node_next_sibling((node_t) node);
 }
 
 static char compare_plist(plist_t node_l, plist_t node_r)

@@ -191,7 +191,7 @@ static int uint64_mul_overflow(uint64_t a, uint64_t b, uint64_t *res)
 }
 #endif
 
-#define NODE_IS_ROOT(x) (((node_t*)(x))->isRoot)
+#define NODE_IS_ROOT(x) (((node_t)(x))->isRoot)
 
 struct bplist_data {
     const char* data;
@@ -936,7 +936,7 @@ struct serialize_s
     hashtable_t* ref_table;
 };
 
-static void serialize_plist(node_t* node, void* data)
+static void serialize_plist(node_t node, void* data)
 {
     uint64_t *index_val = NULL;
     struct serialize_s *ser = (struct serialize_s *) data;
@@ -959,7 +959,7 @@ static void serialize_plist(node_t* node, void* data)
     ptr_array_add(ser->objects, node);
 
     //now recurse on children
-    node_t *ch;
+    node_t ch;
     for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
         serialize_plist(ch, data);
     }
@@ -1111,9 +1111,9 @@ static void write_unicode(bytearray_t * bplist, char *val, uint64_t size)
     free(unicodestr);
 }
 
-static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
+static void write_array(bytearray_t * bplist, node_t node, hashtable_t* ref_table, uint8_t ref_size)
 {
-    node_t* cur = NULL;
+    node_t cur = NULL;
     uint64_t i = 0;
 
     uint64_t size = node_n_children(node);
@@ -1130,9 +1130,9 @@ static void write_array(bytearray_t * bplist, node_t* node, hashtable_t* ref_tab
     }
 }
 
-static void write_dict(bytearray_t * bplist, node_t* node, hashtable_t* ref_table, uint8_t ref_size)
+static void write_dict(bytearray_t * bplist, node_t node, hashtable_t* ref_table, uint8_t ref_size)
 {
-    node_t* cur = NULL;
+    node_t cur = NULL;
     uint64_t i = 0;
 
     uint64_t size = node_n_children(node) / 2;
@@ -1235,7 +1235,7 @@ PLIST_API plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * l
     uint64_t req = 0;
     for (i = 0; i < num_objects; i++)
     {
-        node_t* node = ptr_array_index(objects, i);
+        node_t node = ptr_array_index(objects, i);
         plist_data_t data = plist_get_data(node);
         uint64_t size;
         uint8_t bsize;
