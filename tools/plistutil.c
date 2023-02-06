@@ -41,10 +41,12 @@
 typedef struct _options
 {
     char *in_file, *out_file;
-    uint8_t debug;
-    uint8_t compact;
     uint8_t in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json, 4 = openstep
+    uint8_t flags;
 } options_t;
+#define OPT_DEBUG   (1 << 0)
+#define OPT_COMPACT (1 << 1)
+#define OPT_SORT    (1 << 2)
 
 static void print_usage(int argc, char *argv[])
 {
@@ -65,6 +67,8 @@ static void print_usage(int argc, char *argv[])
     printf("                       and binary to XML.\n");
     printf("  -c, --compact        JSON and OpenStep only: Print output in compact form.\n");
     printf("                       By default, the output will be pretty-printed.\n");
+    printf("  -s, --sort           Sort all dictionary nodes lexicographically by key\n");
+    printf("                       before converting to the output format.\n");
     printf("  -d, --debug          Enable extended debug output\n");
     printf("  -v, --version        Print version information\n");
     printf("\n");
@@ -128,11 +132,15 @@ static options_t *parse_arguments(int argc, char *argv[])
         }
         else if (!strcmp(argv[i], "--compact") || !strcmp(argv[i], "-c"))
         {
-            options->compact = 1;
+            options->flags |= OPT_COMPACT;
+        }
+        else if (!strcmp(argv[i], "--sort") || !strcmp(argv[i], "-s"))
+        {
+            options->flags |= OPT_SORT;
         }
         else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
         {
-            options->debug = 1;
+            options->flags |= OPT_DEBUG;
         }
         else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
         {
@@ -252,6 +260,9 @@ int main(int argc, char *argv[])
         {
             input_res = plist_from_bin(plist_entire, read_size, &root_node);
             if (input_res == PLIST_ERR_SUCCESS) {
+                if (options->flags & OPT_SORT) {
+                    plist_sort(root_node);
+                }
                 output_res = plist_to_xml(root_node, &plist_out, &size);
             }
         }
@@ -259,6 +270,9 @@ int main(int argc, char *argv[])
         {
             input_res = plist_from_xml(plist_entire, read_size, &root_node);
             if (input_res == PLIST_ERR_SUCCESS) {
+                if (options->flags & OPT_SORT) {
+                    plist_sort(root_node);
+                }
                 output_res = plist_to_bin(root_node, &plist_out, &size);
             }
         }
@@ -267,14 +281,17 @@ int main(int argc, char *argv[])
     {
         input_res = plist_from_memory(plist_entire, read_size, &root_node);
         if (input_res == PLIST_ERR_SUCCESS) {
+            if (options->flags & OPT_SORT) {
+                plist_sort(root_node);
+            }
             if (options->out_fmt == 1) {
                 output_res = plist_to_bin(root_node, &plist_out, &size);
             } else if (options->out_fmt == 2) {
                 output_res = plist_to_xml(root_node, &plist_out, &size);
             } else if (options->out_fmt == 3) {
-                output_res = plist_to_json(root_node, &plist_out, &size, !options->compact);
+                output_res = plist_to_json(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
             } else if (options->out_fmt == 4) {
-                output_res = plist_to_openstep(root_node, &plist_out, &size, !options->compact);
+                output_res = plist_to_openstep(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
             }
         }
     }
