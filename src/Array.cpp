@@ -128,6 +128,10 @@ Array::const_iterator Array::end() const
     return _array.end();
 }
 
+const size_t Array::size() const {
+    return _array.size();
+}
+
 void Array::Append(Node* node)
 {
     if (node)
