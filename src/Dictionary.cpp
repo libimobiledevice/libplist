@@ -134,6 +134,10 @@ Dictionary::const_iterator Dictionary::end() const
     return _map.end();
 }
 
+const size_t Dictionary::size() const {
+    return _map.size();
+}
+
 Dictionary::iterator Dictionary::Find(const std::string& key)
 {
     return _map.find(key);

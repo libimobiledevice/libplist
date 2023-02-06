@@ -51,6 +51,7 @@ public :
     const_iterator begin() const;
     const_iterator End() const;
     const_iterator end() const;
+    const size_t size() const;
     void Append(Node* node);
     void Insert(Node* node, unsigned int pos);
     void Remove(Node* node);
