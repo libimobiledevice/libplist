@@ -229,7 +229,9 @@ void plist_bin_deinit(void)
 
 void plist_bin_set_debug(int debug)
 {
+#if DEBUG
     plist_bin_debug = debug;
+#endif
 }
 
 static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index);

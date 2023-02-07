@@ -1096,6 +1096,7 @@ extern "C"
 
     /**
      * Set debug level for the format parsers.
+     * @note This function does nothing if libplist was not configured with --enable-debug .
      *
      * @param debug Debug level. Currently, only 0 (off) and 1 (enabled) are supported.
      */

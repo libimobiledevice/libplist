@@ -66,7 +66,9 @@ void plist_json_deinit(void)
 
 void plist_json_set_debug(int debug)
 {
+#ifdef DEBUG
     plist_json_debug = debug;
+#endif
 }
 
 #ifndef HAVE_STRNDUP

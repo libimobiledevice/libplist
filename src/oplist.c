@@ -65,7 +65,9 @@ void plist_ostep_deinit(void)
 
 void plist_ostep_set_debug(int debug)
 {
+#if DEBUG
     plist_ostep_debug = debug;
+#endif
 }
 
 #ifndef HAVE_STRNDUP
