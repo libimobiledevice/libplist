@@ -184,6 +184,11 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    if (options->flags & OPT_DEBUG)
+    {
+        plist_set_debug(1);
+    }
+
     if (!options->in_file || !strcmp(options->in_file, "-"))
     {
         read_size = 0;

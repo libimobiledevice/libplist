@@ -64,6 +64,11 @@ void plist_json_deinit(void)
     /* deinit JSON stuff */
 }
 
+void plist_json_set_debug(int debug)
+{
+    plist_json_debug = debug;
+}
+
 #ifndef HAVE_STRNDUP
 static char* strndup(const char* str, size_t len)
 {

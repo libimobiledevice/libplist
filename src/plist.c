@@ -1497,6 +1497,19 @@ PLIST_API int plist_data_val_contains(plist_t datanode, const uint8_t* cmpval, s
     return (memmem(data->buff, data->length, cmpval, n) != NULL);
 }
 
+extern void plist_xml_set_debug(int debug);
+extern void plist_bin_set_debug(int debug);
+extern void plist_json_set_debug(int debug);
+extern void plist_ostep_set_debug(int debug);
+
+PLIST_API void plist_set_debug(int debug)
+{
+    plist_xml_set_debug(debug);
+    plist_bin_set_debug(debug);
+    plist_json_set_debug(debug);
+    plist_ostep_set_debug(debug);
+}
+
 PLIST_API void plist_sort(plist_t plist)
 {
     if (!plist) {

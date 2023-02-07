@@ -63,6 +63,11 @@ void plist_ostep_deinit(void)
     /* deinit OpenStep plist stuff */
 }
 
+void plist_ostep_set_debug(int debug)
+{
+    plist_ostep_debug = debug;
+}
+
 #ifndef HAVE_STRNDUP
 static char* strndup(const char* str, size_t len)
 {

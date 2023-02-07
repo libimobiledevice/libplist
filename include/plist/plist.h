@@ -1094,6 +1094,13 @@ extern "C"
      */
     void plist_mem_free(void* ptr);
 
+    /**
+     * Set debug level for the format parsers.
+     *
+     * @param debug Debug level. Currently, only 0 (off) and 1 (enabled) are supported.
+     */
+    void plist_set_debug(int debug);
+
     /*@}*/
 
 #ifdef __cplusplus

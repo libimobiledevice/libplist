@@ -102,6 +102,11 @@ void plist_xml_deinit(void)
     /* deinit XML stuff */
 }
 
+void plist_xml_set_debug(int debug)
+{
+    plist_xml_debug = debug;
+}
+
 static size_t dtostr(char *buf, size_t bufsize, double realval)
 {
     size_t len = 0;

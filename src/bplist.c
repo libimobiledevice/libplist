@@ -227,6 +227,11 @@ void plist_bin_deinit(void)
     /* deinit binary plist stuff */
 }
 
+void plist_bin_set_debug(int debug)
+{
+    plist_bin_debug = debug;
+}
+
 static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index);
 
 static plist_t parse_int_node(const char **bnode, uint8_t size)
