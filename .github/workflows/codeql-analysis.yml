@@ -46,7 +46,7 @@ jobs:
 
     - name: Build
       run: |
-          ./autogen.sh --without-cython
+          ./autogen.sh --enable-debug --without-cython
           make
 
     - name: Perform CodeQL Analysis
