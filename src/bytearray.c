@@ -29,6 +29,17 @@ bytearray_t *byte_array_new(size_t initial)
 	a->capacity = (initial > PAGE_SIZE) ? (initial+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
 	a->data = malloc(a->capacity);
 	a->len = 0;
+	a->stream = NULL;
+	return a;
+}
+
+bytearray_t *byte_array_new_for_stream(FILE *stream)
+{
+	bytearray_t *a = (bytearray_t*)malloc(sizeof(bytearray_t));
+	a->capacity = (size_t)-1;
+	a->data = NULL;
+	a->len = 0;
+	a->stream = stream;
 	return a;
 }
 
@@ -43,6 +54,9 @@ void byte_array_free(bytearray_t *ba)
 
 void byte_array_grow(bytearray_t *ba, size_t amount)
 {
+	if (ba->stream) {
+		return;
+	}
 	size_t increase = (amount > PAGE_SIZE) ? (amount+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
 	ba->data = realloc(ba->data, ba->capacity + increase);
 	ba->capacity += increase;
@@ -50,12 +64,20 @@ void byte_array_grow(bytearray_t *ba, size_t amount)
 
 void byte_array_append(bytearray_t *ba, void *buf, size_t len)
 {
-	if (!ba || !ba->data || (len <= 0)) return;
-	size_t remaining = ba->capacity-ba->len;
-	if (len > remaining) {
-		size_t needed = len - remaining;
-		byte_array_grow(ba, needed);
+	if (!ba || (!ba->stream && !ba->data) || (len <= 0)) return;
+	if (ba->stream) {
+		if (fwrite(buf, 1, len, ba->stream) < len) {
+#if DEBUG
+			fprintf(stderr, "ERROR: Failed to write to stream.\n");
+#endif
+		}
+	} else {
+		size_t remaining = ba->capacity-ba->len;
+		if (len > remaining) {
+			size_t needed = len - remaining;
+			byte_array_grow(ba, needed);
+		}
+		memcpy(((char*)ba->data) + ba->len, buf, len);
 	}
-	memcpy(((char*)ba->data) + ba->len, buf, len);
 	ba->len += len;
 }

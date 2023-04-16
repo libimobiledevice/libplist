@@ -21,14 +21,17 @@
 #ifndef BYTEARRAY_H
 #define BYTEARRAY_H
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef struct bytearray_t {
 	void *data;
 	size_t len;
 	size_t capacity;
+	FILE *stream;
 } bytearray_t;
 
 bytearray_t *byte_array_new(size_t initial);
+bytearray_t *byte_array_new_for_stream(FILE *stream);
 void byte_array_free(bytearray_t *ba);
 void byte_array_grow(bytearray_t *ba, size_t amount);
 void byte_array_append(bytearray_t *ba, void *buf, size_t len);

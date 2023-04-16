@@ -115,13 +115,13 @@ static options_t *parse_arguments(int argc, char *argv[])
                 return NULL;
             }
             if (!strncmp(argv[i+1], "bin", 3)) {
-                options->out_fmt = 1;
+                options->out_fmt = PLIST_FORMAT_BINARY;
             } else if (!strncmp(argv[i+1], "xml", 3)) {
-                options->out_fmt = 2;
+                options->out_fmt = PLIST_FORMAT_XML;
             } else if (!strncmp(argv[i+1], "json", 4)) {
-                options->out_fmt = 3;
+                options->out_fmt = PLIST_FORMAT_JSON;
             } else if (!strncmp(argv[i+1], "openstep", 8) || !strncmp(argv[i+1], "ostep", 5)) {
-                options->out_fmt = 4;
+                options->out_fmt = PLIST_FORMAT_OSTEP;
             } else {
                 fprintf(stderr, "ERROR: Unsupported output format\n");
                 free(options);
@@ -289,13 +289,13 @@ int main(int argc, char *argv[])
             if (options->flags & OPT_SORT) {
                 plist_sort(root_node);
             }
-            if (options->out_fmt == 1) {
+            if (options->out_fmt == PLIST_FORMAT_BINARY) {
                 output_res = plist_to_bin(root_node, &plist_out, &size);
-            } else if (options->out_fmt == 2) {
+            } else if (options->out_fmt == PLIST_FORMAT_XML) {
                 output_res = plist_to_xml(root_node, &plist_out, &size);
-            } else if (options->out_fmt == 3) {
+            } else if (options->out_fmt == PLIST_FORMAT_JSON) {
                 output_res = plist_to_json(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
-            } else if (options->out_fmt == 4) {
+            } else if (options->out_fmt == PLIST_FORMAT_OSTEP) {
                 output_res = plist_to_openstep(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
             }
         }

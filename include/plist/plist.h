@@ -75,6 +75,7 @@ extern "C"
 
 #include <sys/types.h>
 #include <stdarg.h>
+#include <stdio.h>
 
     /**
      * \mainpage libplist : A library to handle Apple Property Lists
@@ -103,6 +104,7 @@ extern "C"
      */
     typedef enum
     {
+        PLIST_NONE =-1, /**< No type */
         PLIST_BOOLEAN,  /**< Boolean, scalar type */
         PLIST_INT,      /**< Integer, scalar type */
         PLIST_REAL,     /**< Real, scalar type */
@@ -114,7 +116,6 @@ extern "C"
         PLIST_KEY,      /**< Key in dictionaries (ASCII String), scalar type */
         PLIST_UID,      /**< Special type used for 'keyed encoding' */
         PLIST_NULL,     /**< NULL type */
-        PLIST_NONE      /**< No type */
     } plist_type;
 
     /* for backwards compatibility */
@@ -130,8 +131,39 @@ extern "C"
         PLIST_ERR_FORMAT       = -2,  /**< the plist contains nodes not compatible with the output format */
         PLIST_ERR_PARSE        = -3,  /**< parsing of the input format failed */
         PLIST_ERR_NO_MEM       = -4,  /**< not enough memory to handle the operation */
+        PLIST_ERR_IO           = -5,  /**< I/O error */
         PLIST_ERR_UNKNOWN      = -255 /**< an unspecified error occurred */
     } plist_err_t;
+
+    /**
+     * libplist format types
+     */
+    typedef enum
+    {
+        PLIST_FORMAT_XML     = 1,  /**< XML format */
+        PLIST_FORMAT_BINARY  = 2,  /**< bplist00 format */
+        PLIST_FORMAT_JSON    = 3,  /**< JSON format */
+        PLIST_FORMAT_OSTEP   = 4,  /**< OpenStep "old-style" plist format */
+        /* 5-9 are reserved for possible future use */
+        PLIST_FORMAT_PRINT   = 10, /**< human-readable output-only format */
+        PLIST_FORMAT_LIMD    = 11, /**< "libimobiledevice" output-only format (ideviceinfo) */
+        PLIST_FORMAT_PLUTIL  = 12, /**< plutil-style output-only format */
+    } plist_format_t;
+
+    /**
+     * libplist write options
+     */
+    typedef enum
+    {
+        PLIST_OPT_COMPACT   = 1 << 0, /**< Use a compact representation (non-prettified). Only valid for #PLIST_FORMAT_JSON and #PLIST_FORMAT_OSTEP. */
+        PLIST_OPT_PARTIAL_DATA = 1 << 1, /**< Print 24 bytes maximum of #PLIST_DATA values. If the data is longer than 24 bytes,  the first 16 and last 8 bytes will be written. Only valid for #PLIST_FORMAT_PRINT. */
+        PLIST_OPT_NO_NEWLINE = 1 << 2, /**< Do not print a final newline character. Only valid for #PLIST_FORMAT_PRINT, #PLIST_FORMAT_LIMD, and #PLIST_FORMAT_PLUTIL. */
+        PLIST_OPT_INDENT = 1 << 3, /**< Indent each line of output. Currently only #PLIST_FORMAT_PRINT and #PLIST_FORMAT_LIMD are supported. Use #PLIST_OPT_INDENT_BY() macro to specify the level of indentation. */
+    } plist_write_options_t;
+
+    /** To be used with #PLIST_OPT_INDENT. Encodes the level of indentation for OR'ing it into the #plist_write_options_t bitfield. */
+    #define PLIST_OPT_INDENT_BY(x) ((x & 0xFF) << 24)
+
 
     /********************************************
      *                                          *
@@ -788,20 +820,71 @@ extern "C"
     /**
      * Import the #plist_t structure from memory data.
      * This method will look at the first bytes of plist_data
-     * to determine if plist_data contains a binary, JSON, or XML plist
+     * to determine if plist_data contains a binary, JSON, OpenStep, or XML plist
      * and tries to parse the data in the appropriate format.
      * @note This is just a convenience function and the format detection is
      *     very basic. It checks with plist_is_binary() if the data supposedly
-     *     contains binary plist data, if not it checks if the first byte is
-     *     either '{' or '[' and assumes JSON format, otherwise it will try
-     *     to parse the data as XML.
+     *     contains binary plist data, if not it checks if the first bytes have
+     *     either '{' or '[' and assumes JSON format, and XML tags will result
+     *     in parsing as XML, otherwise it will try to parse as OpenStep.
      *
-     * @param plist_data a pointer to the memory buffer containing plist data.
-     * @param length length of the buffer to read.
-     * @param plist a pointer to the imported plist.
+     * @param plist_data A pointer to the memory buffer containing plist data.
+     * @param length Length of the buffer to read.
+     * @param plist A pointer to the imported plist.
      * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
     plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
+
+    /**
+     * Write the #plist_t structure to a NULL-terminated string using the given format and options.
+     *
+     * @param plist The input plist structure
+     * @param output Pointer to a char* buffer. This function allocates the memory,
+     *     caller is responsible for freeing it.
+     * @param length A pointer to a uint32_t value that will receive the lenght of the allocated buffer.
+     * @param format A #plist_format_t value that specifies the output format to use.
+     * @param options One or more bitwise ORed values of #plist_write_options_t.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure.
+     * @note Use plist_mem_free() to free the allocated memory.
+     * @note #PLIST_FORMAT_BINARY is not supported by this function.
+     */
+    plist_err_t plist_write_to_string(plist_t plist, char **output, uint32_t* length, plist_format_t format, plist_write_options_t options);
+
+    /**
+     * Write the #plist_t structure to a FILE* stream using the given format and options.
+     *
+     * @param plist The input plist structure
+     * @param stream A writeable FILE* stream that the data will be written to.
+     * @param format A #plist_format_t value that specifies the output format to use.
+     * @param options One or more bitwise ORed values of #plist_write_options_t.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure.
+     * @note While this function allows all formats to be written to the given stream,
+     *     only the formats #PLIST_FORMAT_PRINT, #PLIST_FORMAT_LIMD, and #PLIST_FORMAT_PLUTIL
+     *     (basically all output-only formats) are directly and efficiently written to the stream;
+     *     the other formats are written to a memory buffer first.
+     */
+    plist_err_t plist_write_to_stream(plist_t plist, FILE* stream, plist_format_t format, plist_write_options_t options);
+
+    /**
+     * Write the #plist_t structure to a file at given path using the given format and options.
+     *
+     * @param plist The input plist structure
+     * @param filename The file name of the file to write to. Existing files will be overwritten.
+     * @param format A #plist_format_t value that specifies the output format to use.
+     * @param options One or more bitwise ORed values of #plist_write_options_t.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure.
+     * @note Use plist_mem_free() to free the allocated memory.
+     */
+    plist_err_t plist_write_to_file(plist_t plist, const char *filename, plist_format_t format, plist_write_options_t options);
+
+    /**
+     * Print the given plist in human-readable format to standard output.
+     * This is equivalent to
+     * <code>plist_write_to_stream(plist, stdout, PLIST_FORMAT_PRINT, PLIST_OPT_PARTIAL_DATA);</code>
+     * @param plist The #plist_t structure to print
+     * @note For #PLIST_DATA nodes, only a maximum of 24 bytes (first 16 and last 8) are written.
+     */
+    void plist_print(plist_t plist);
 
     /**
      * Test if in-memory plist data is in binary format.

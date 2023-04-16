@@ -1573,3 +1573,95 @@ PLIST_API void plist_sort(plist_t plist)
         } while (swapped);
     }
 }
+
+PLIST_API plist_err_t plist_write_to_string(plist_t plist, char **output, uint32_t* length, plist_format_t format, plist_write_options_t options)
+{
+    plist_err_t err = PLIST_ERR_UNKNOWN;
+    switch (format) {
+        case PLIST_FORMAT_XML:
+            err = plist_to_xml(plist, output, length);
+            break;
+        case PLIST_FORMAT_JSON:
+            err = plist_to_json(plist, output, length, ((options & PLIST_OPT_COMPACT) == 0));
+            break;
+        case PLIST_FORMAT_OSTEP:
+            err = plist_to_openstep(plist, output, length, ((options & PLIST_OPT_COMPACT) == 0));
+            break;
+        case PLIST_FORMAT_PRINT:
+            err = plist_write_to_string_default(plist, output, length, options);
+            break;
+        case PLIST_FORMAT_LIMD:
+            err = plist_write_to_string_limd(plist, output, length, options);
+            break;
+        case PLIST_FORMAT_PLUTIL:
+            err = plist_write_to_string_plutil(plist, output, length, options);
+            break;
+        default:
+            // unsupported output format
+            err = PLIST_ERR_FORMAT;
+            break;
+    }
+    return err;
+}
+
+PLIST_API plist_err_t plist_write_to_stream(plist_t plist, FILE *stream, plist_format_t format, plist_write_options_t options)
+{
+    if (!plist || !stream) {
+        return PLIST_ERR_INVALID_ARG;
+    }
+    plist_err_t err = PLIST_ERR_UNKNOWN;
+    char *output = NULL;
+    uint32_t length = 0;
+    switch (format) {
+        case PLIST_FORMAT_BINARY:
+            err = plist_to_bin(plist, &output, &length);
+            break;
+        case PLIST_FORMAT_XML:
+            err = plist_to_xml(plist, &output, &length);
+            break;
+        case PLIST_FORMAT_JSON:
+            err = plist_to_json(plist, &output, &length, ((options & PLIST_OPT_COMPACT) == 0));
+            break;
+        case PLIST_FORMAT_OSTEP:
+            err = plist_to_openstep(plist, &output, &length, ((options & PLIST_OPT_COMPACT) == 0));
+            break;
+        case PLIST_FORMAT_PRINT:
+            err = plist_write_to_stream_default(plist, stream, options);
+            break;
+        case PLIST_FORMAT_LIMD:
+            err = plist_write_to_stream_limd(plist, stream, options);
+            break;
+        case PLIST_FORMAT_PLUTIL:
+            err = plist_write_to_stream_plutil(plist, stream, options);
+            break;
+        default:
+            // unsupported output format
+            err = PLIST_ERR_FORMAT;
+            break;
+    }
+    if (output && err == PLIST_ERR_SUCCESS) {
+        if (fwrite(output, 1, length, stream) < length) {
+            err = PLIST_ERR_IO;
+        }
+    }
+    return err;
+}
+
+PLIST_API plist_err_t plist_write_to_file(plist_t plist, const char* filename, plist_format_t format, plist_write_options_t options)
+{
+    if (!plist || !filename) {
+        return PLIST_ERR_INVALID_ARG;
+    }
+    FILE* f = fopen(filename, "wb");
+    if (!f) {
+        return PLIST_ERR_IO;
+    }
+    plist_err_t err = plist_write_to_stream(plist, f, format, options);
+    fclose(f);
+    return err;
+}
+
+PLIST_API void plist_print(plist_t plist)
+{
+     plist_write_to_stream(plist, stdout, PLIST_FORMAT_PRINT, PLIST_OPT_PARTIAL_DATA);
+}
