@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        input_res = plist_from_memory(plist_entire, read_size, &root_node);
+        input_res = plist_from_memory(plist_entire, read_size, &root_node, NULL);
         if (input_res == PLIST_ERR_SUCCESS) {
             if (options->flags & OPT_SORT) {
                 plist_sort(root_node);

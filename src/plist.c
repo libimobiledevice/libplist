@@ -197,7 +197,7 @@ PLIST_API int plist_is_binary(const char *plist_data, uint32_t length)
 #define FIND_NEXT(blob, pos, len, chr) \
     while (pos < len && (blob[pos] != chr)) pos++;
 
-PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist)
+PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t *plist, plist_format_t *format)
 {
     int res = -1;
     if (!plist) {
@@ -207,8 +207,11 @@ PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length,
     if (!plist_data || length == 0) {
         return PLIST_ERR_INVALID_ARG;
     }
+    plist_format_t fmt = 0;
+    if (format) *format = 0;
     if (plist_is_binary(plist_data, length)) {
         res = plist_from_bin(plist_data, length, plist);
+        fmt = PLIST_FORMAT_BINARY;
     } else {
         uint32_t pos = 0;
         int is_json = 0;
@@ -248,12 +251,59 @@ PLIST_API plist_err_t plist_from_memory(const char *plist_data, uint32_t length,
         }
         if (is_xml) {
             res = plist_from_xml(plist_data, length, plist);
+            fmt = PLIST_FORMAT_XML;
         } else if (is_json) {
             res = plist_from_json(plist_data, length, plist);
+            fmt = PLIST_FORMAT_JSON;
         } else {
             res = plist_from_openstep(plist_data, length, plist);
+            fmt = PLIST_FORMAT_OSTEP;
         }
     }
+    if (format && res == PLIST_ERR_SUCCESS) {
+        *format = fmt;
+    }
+    return res;
+}
+
+PLIST_API plist_err_t plist_read_from_file(const char *filename, plist_t *plist, plist_format_t *format)
+{
+    if (!filename || !plist) {
+        return PLIST_ERR_INVALID_ARG;
+    }
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        return PLIST_ERR_IO;
+    }
+    struct stat fst;
+    fstat(fileno(f), &fst);
+    if (fst.st_size > UINT32_MAX) {
+        return PLIST_ERR_NO_MEM;
+    }
+    uint32_t total = (uint32_t)fst.st_size;
+    if (total == 0) {
+        return PLIST_ERR_PARSE;
+    }
+    char *buf = malloc(total);
+    if (!buf) {
+        fclose(f);
+        return PLIST_ERR_NO_MEM;
+    }
+    uint32_t done = 0;
+    while (done < total) {
+        ssize_t r = fread(buf + done, 1, total - done, f);
+        if (r <= 0) {
+            break;
+        }
+        done += r;
+    }
+    fclose(f);
+    if (done < total) {
+        free(buf);
+        return PLIST_ERR_IO;
+    }
+    plist_err_t res = plist_from_memory(buf, total, plist, format);
+    free(buf);
     return res;
 }
 

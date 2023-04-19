@@ -44,6 +44,7 @@ extern "C"
 #include <stdint.h>
 #endif
 
+/*{{{ deprecation macros */
 #ifdef __llvm__
   #if defined(__has_extension)
     #if (__has_extension(attribute_deprecated_with_message))
@@ -72,6 +73,7 @@ extern "C"
   #define PLIST_WARN_DEPRECATED(x)
   #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #endif
+/*}}}*/
 
 #include <sys/types.h>
 #include <stdarg.h>
@@ -819,7 +821,8 @@ extern "C"
 
     /**
      * Import the #plist_t structure from memory data.
-     * This method will look at the first bytes of plist_data
+     *
+     * This function will look at the first bytes of plist_data
      * to determine if plist_data contains a binary, JSON, OpenStep, or XML plist
      * and tries to parse the data in the appropriate format.
      * @note This is just a convenience function and the format detection is
@@ -831,9 +834,25 @@ extern "C"
      * @param plist_data A pointer to the memory buffer containing plist data.
      * @param length Length of the buffer to read.
      * @param plist A pointer to the imported plist.
+     * @param format If non-NULL, the #plist_format_t value pointed to will be set to the parsed format.
      * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
      */
-    plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t * plist);
+    plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t *plist, plist_format_t *format);
+
+    /**
+     * Import the #plist_t structure directly from file.
+     *
+     * This function will look at the first bytes of the file data
+     * to determine if it contains a binary, JSON, OpenStep, or XML plist
+     * and tries to parse the data in the appropriate format.
+     * Uses #plist_read_from_data() internally.
+     *
+     * @param filename The name of the file to parse.
+     * @param plist A pointer to the imported plist.
+     * @param format If non-NULL, the #plist_format_t value pointed to will be set to the parsed format.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
+     */
+    plist_err_t plist_read_from_file(const char *filename, plist_t *plist, plist_format_t *format);
 
     /**
      * Write the #plist_t structure to a NULL-terminated string using the given format and options.
