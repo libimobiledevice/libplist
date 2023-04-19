@@ -887,11 +887,6 @@ PLIST_API void plist_dict_set_item(plist_t node, const char* key, plist_t item)
     }
 }
 
-PLIST_API void plist_dict_insert_item(plist_t node, const char* key, plist_t item)
-{
-    plist_dict_set_item(node, key, item);
-}
-
 PLIST_API void plist_dict_remove_item(plist_t node, const char* key)
 {
     if (node && PLIST_DICT == plist_get_node_type(node))
