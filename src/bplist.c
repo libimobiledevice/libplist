@@ -748,7 +748,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
 
     ptr = bplist->data + UINT_TO_HOST(idx_ptr, bplist->offset_size);
     /* make sure the node offset is in a sane range */
-    if ((ptr < bplist->data) || (ptr >= bplist->offset_table)) {
+    if ((ptr < bplist->data+BPLIST_MAGIC_SIZE+BPLIST_VERSION_SIZE) || (ptr >= bplist->offset_table)) {
         PLIST_BIN_ERR("offset for node index %u points outside of valid range\n", node_index);
         return NULL;
     }
