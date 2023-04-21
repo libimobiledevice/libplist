@@ -167,11 +167,6 @@ Dictionary::iterator Dictionary::Set(const std::string& key, const Node& node)
     return Set(key, &node);
 }
 
-Dictionary::iterator Dictionary::Insert(const std::string& key, Node* node)
-{
-    return this->Set(key, node);
-}
-
 void Dictionary::Remove(Node* node)
 {
     if (node)

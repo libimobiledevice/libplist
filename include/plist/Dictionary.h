@@ -57,7 +57,6 @@ public :
     const_iterator Find(const std::string& key) const;
     iterator Set(const std::string& key, const Node* node);
     iterator Set(const std::string& key, const Node& node);
-    iterator Insert(const std::string& key, Node* node) PLIST_WARN_DEPRECATED("use Set() instead");
     void Remove(Node* node);
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* node);
