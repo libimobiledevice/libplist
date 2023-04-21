@@ -130,6 +130,7 @@ EXTRA_DIST = \
 	data/int64_min_max.json \
 	data/o1.ostep \
 	data/o2.ostep \
+	data/o3.ostep \
 	data/test.strings
 
 TESTS_ENVIRONMENT = \
