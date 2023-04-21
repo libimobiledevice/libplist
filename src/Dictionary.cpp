@@ -134,7 +134,7 @@ Dictionary::const_iterator Dictionary::end() const
     return _map.end();
 }
 
-const size_t Dictionary::size() const {
+size_t Dictionary::size() const {
     return _map.size();
 }
 
