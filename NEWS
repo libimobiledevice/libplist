@@ -1,3 +1,28 @@
+Version 2.3.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * Rename PLIST_UINT to PLIST_INT and add plist_new_int() and plist_get_int_val()
+  * Add support for JSON format
+  * Add support for OpenStep format
+  * Introduce error codes and format constants
+  * Add return value to import/export functions to allow returning error codes
+  * Add new plist_sort function
+  * Add several human-readable output-only formats
+  * Add new plist_write_to_string/_stream/_file functions
+  * Add new plist_print function
+  * Add new plist_read_from_file function
+  * Add new plist_mem_free() function
+  * Add a few C++ methods
+  * Add C++ interface test
+  * Add PLIST_NULL type
+  * Some code housekeeping (mostly clang-tidy)
+- Breaking:
+  * plist_from_memory() gets additional parameter
+- Bugfixes:
+  * Fix multiple bugs in all of the parsers
+  * Fix handling of PLIST_UID nodes
+
 Version 2.2.0
 ~~~~~~~~~~~~~
 
