@@ -65,6 +65,7 @@ static void print_usage(int argc, char *argv[])
     printf("                       FORMAT is one of xml, bin, json, or openstep\n");
     printf("                       If omitted, XML will be converted to binary,\n");
     printf("                       and binary to XML.\n");
+    printf("  -p, --print FILE     Print the PList in human-readable format.\n");
     printf("  -c, --compact        JSON and OpenStep only: Print output in compact form.\n");
     printf("                       By default, the output will be pretty-printed.\n");
     printf("  -s, --sort           Sort all dictionary nodes lexicographically by key\n");
@@ -137,6 +138,26 @@ static options_t *parse_arguments(int argc, char *argv[])
         else if (!strcmp(argv[i], "--sort") || !strcmp(argv[i], "-s"))
         {
             options->flags |= OPT_SORT;
+        }
+        else if (!strcmp(argv[i], "--print") || !strcmp(argv[i], "-p"))
+        {
+            if ((i + 1) == argc)
+            {
+                free(options);
+                return NULL;
+            }
+            options->in_file = argv[i + 1];
+            options->out_fmt = PLIST_FORMAT_PRINT;
+            char *env_fmt = getenv("PLIST_OUTPUT_FORMAT");
+            if (env_fmt) {
+                if (!strcmp(env_fmt, "plutil")) {
+                    options->out_fmt = PLIST_FORMAT_PLUTIL;
+                } else if (!strcmp(env_fmt, "limd")) {
+                    options->out_fmt = PLIST_FORMAT_LIMD;
+                }
+            }
+            i++;
+            continue;
         }
         else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
         {
@@ -297,6 +318,12 @@ int main(int argc, char *argv[])
                 output_res = plist_to_json(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
             } else if (options->out_fmt == PLIST_FORMAT_OSTEP) {
                 output_res = plist_to_openstep(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
+            } else {
+                plist_write_to_stream(root_node, stdout, options->out_fmt, PLIST_OPT_PARTIAL_DATA);
+                plist_free(root_node);
+                free(plist_entire);
+                free(options);
+                return 0;
             }
         }
     }
