@@ -49,8 +49,11 @@ test/.libs
 test/.deps
 test/plist_cmp
 test/plist_test
+test/plist_test++
 test/plist_btest
 test/plist_jtest
+test/plist_otest
+test/integer_set_test
 test/data/*.out
 test/*.trs
 cython/Makefile
