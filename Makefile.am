@@ -1,9 +1,13 @@
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = libcnary src include tools test docs
+SUBDIRS = libcnary src include tools docs
 
 if HAVE_CYTHON
 SUBDIRS += cython
+endif
+
+if BUILD_TESTS
+SUBDIRS += test
 endif
 
 if BUILD_FUZZERS

@@ -202,6 +202,12 @@ AC_ARG_WITH([fuzzers],
             [build_fuzzers=${withval}],
             [build_fuzzers=no])
 
+AC_ARG_WITH([tests],
+            [AS_HELP_STRING([--without-tests],
+            [Do not build libplist test suite (default is yes)])],
+            [build_tests=${withval}],
+            [build_tests=yes])
+
 if test "x$build_fuzzers" = "xyes"; then
     if test "x$build_sanitizers" = "xno"; then
         AC_MSG_ERROR([--with-fuzzers implies --with-sanitizers, but --without-sanitizers was given. This does not work.])
@@ -288,6 +294,7 @@ if test "x$build_fuzzers" = "xyes"; then
 fi
 
 AM_CONDITIONAL([BUILD_FUZZERS],[test "x$build_fuzzers" = "xyes"])
+AM_CONDITIONAL([BUILD_TESTS],[test "x$build_tests" != "xno"])
 
 if test "x$build_fuzzers" = "xyes" || test "x$build_sanitizers" = "xyes"; then
     AS_COMPILER_FLAGS(TEST_CFLAGS, [$CFLAGS])
