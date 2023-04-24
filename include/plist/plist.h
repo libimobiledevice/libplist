@@ -157,6 +157,7 @@ extern "C"
      */
     typedef enum
     {
+        PLIST_OPT_NONE      = 0, /**< Default value to use when none of the options is needed. */
         PLIST_OPT_COMPACT   = 1 << 0, /**< Use a compact representation (non-prettified). Only valid for #PLIST_FORMAT_JSON and #PLIST_FORMAT_OSTEP. */
         PLIST_OPT_PARTIAL_DATA = 1 << 1, /**< Print 24 bytes maximum of #PLIST_DATA values. If the data is longer than 24 bytes,  the first 16 and last 8 bytes will be written. Only valid for #PLIST_FORMAT_PRINT. */
         PLIST_OPT_NO_NEWLINE = 1 << 2, /**< Do not print a final newline character. Only valid for #PLIST_FORMAT_PRINT, #PLIST_FORMAT_LIMD, and #PLIST_FORMAT_PLUTIL. */
