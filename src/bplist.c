@@ -781,7 +781,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     return plist;
 }
 
-PLIST_API plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
+plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * plist)
 {
     bplist_trailer_t *trailer = NULL;
     uint8_t offset_size = 0;
@@ -1191,7 +1191,7 @@ static int is_ascii_string(char* s, int len)
   return ret;
 }
 
-PLIST_API plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
+plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 {
     ptrarray_t* objects = NULL;
     hashtable_t* ref_table = NULL;
