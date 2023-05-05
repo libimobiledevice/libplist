@@ -164,7 +164,7 @@ extern "C"
         PLIST_OPT_INDENT = 1 << 3, /**< Indent each line of output. Currently only #PLIST_FORMAT_PRINT and #PLIST_FORMAT_LIMD are supported. Use #PLIST_OPT_INDENT_BY() macro to specify the level of indentation. */
     } plist_write_options_t;
 
-    /** To be used with #PLIST_OPT_INDENT. Encodes the level of indentation for OR'ing it into the #plist_write_options_t bitfield. */
+    /** To be used with #PLIST_OPT_INDENT - encodes the level of indentation for OR'ing it into the #plist_write_options_t bitfield. */
     #define PLIST_OPT_INDENT_BY(x) ((x & 0xFF) << 24)
 
 
@@ -834,7 +834,7 @@ extern "C"
      * This function will look at the first bytes of the file data
      * to determine if it contains a binary, JSON, OpenStep, or XML plist
      * and tries to parse the data in the appropriate format.
-     * Uses #plist_read_from_data() internally.
+     * Uses plist_from_memory() internally.
      *
      * @param filename The name of the file to parse.
      * @param plist A pointer to the imported plist.
@@ -944,18 +944,29 @@ extern "C"
      */
     char plist_compare_node_value(plist_t node_l, plist_t node_r);
 
+    /** Helper macro used by PLIST_IS_* macros that will evaluate the type of a plist node. */
     #define _PLIST_IS_TYPE(__plist, __plist_type) (__plist && (plist_get_node_type(__plist) == PLIST_##__plist_type))
 
     /* Helper macros for the different plist types */
+    /** Evaluates to true if the given plist node is of type PLIST_BOOLEAN */
     #define PLIST_IS_BOOLEAN(__plist) _PLIST_IS_TYPE(__plist, BOOLEAN)
+    /** Evaluates to true if the given plist node is of type PLIST_INT */
     #define PLIST_IS_INT(__plist)     _PLIST_IS_TYPE(__plist, INT)
+    /** Evaluates to true if the given plist node is of type PLIST_REAL */
     #define PLIST_IS_REAL(__plist)    _PLIST_IS_TYPE(__plist, REAL)
+    /** Evaluates to true if the given plist node is of type PLIST_STRING */
     #define PLIST_IS_STRING(__plist)  _PLIST_IS_TYPE(__plist, STRING)
+    /** Evaluates to true if the given plist node is of type PLIST_ARRAY */
     #define PLIST_IS_ARRAY(__plist)   _PLIST_IS_TYPE(__plist, ARRAY)
+    /** Evaluates to true if the given plist node is of type PLIST_DICT */
     #define PLIST_IS_DICT(__plist)    _PLIST_IS_TYPE(__plist, DICT)
+    /** Evaluates to true if the given plist node is of type PLIST_DATE */
     #define PLIST_IS_DATE(__plist)    _PLIST_IS_TYPE(__plist, DATE)
+    /** Evaluates to true if the given plist node is of type PLIST_DATA */
     #define PLIST_IS_DATA(__plist)    _PLIST_IS_TYPE(__plist, DATA)
+    /** Evaluates to true if the given plist node is of type PLIST_KEY */
     #define PLIST_IS_KEY(__plist)     _PLIST_IS_TYPE(__plist, KEY)
+    /** Evaluates to true if the given plist node is of type PLIST_UID */
     #define PLIST_IS_UID(__plist)     _PLIST_IS_TYPE(__plist, UID)
     /* for backwards compatibility */
     #define PLIST_IS_UINT             PLIST_IS_INT

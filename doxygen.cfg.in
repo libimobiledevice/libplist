@@ -155,13 +155,6 @@ QT_AUTOBRIEF           = NO
 
 MULTILINE_CPP_IS_BRIEF = NO
 
-# If the DETAILS_AT_TOP tag is set to YES then Doxygen 
-# will output the detailed description near the top, like JavaDoc.
-# If set to NO, the detailed description appears after the member 
-# documentation.
-
-DETAILS_AT_TOP         = NO
-
 # If the INHERIT_DOCS tag is set to YES (the default) then an undocumented 
 # member inherits the documentation from any documented member that it 
 # re-implements.
@@ -446,12 +439,6 @@ MAX_INITIALIZER_LINES  = 30
 
 SHOW_USED_FILES        = YES
 
-# If the sources in your project are distributed over multiple directories 
-# then setting the SHOW_DIRECTORIES tag to YES will show the directory hierarchy 
-# in the documentation. The default is NO.
-
-SHOW_DIRECTORIES       = NO
-
 # Set the SHOW_FILES tag to NO to disable the generation of the Files page.
 # This will remove the Files entry from the Quick Index and from the 
 # Folder Tree View (if specified). The default is YES.
@@ -585,7 +572,7 @@ EXCLUDE_PATTERNS       =
 # wildcard * is used, a substring. Examples: ANamespace, AClass, 
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = 
+EXCLUDE_SYMBOLS        = PLIST_WARN_DEPRECATED PLIST_API PLIST_UINT PLIST_IS_UINT
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or 
 # directories that contain example code fragments that are included (see 
@@ -703,12 +690,6 @@ VERBATIM_HEADERS       = NO
 
 ALPHABETICAL_INDEX     = NO
 
-# If the alphabetical index is enabled (see ALPHABETICAL_INDEX) then 
-# the COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns 
-# in which this list will be split (can be a number in the range [1..20])
-
-COLS_IN_ALPHA_INDEX    = 5
-
 # In case all classes in a project start with a common prefix, all 
 # classes will be put under the same header in the alphabetical index. 
 # The IGNORE_PREFIX tag can be used to specify one or more prefixes that 
@@ -757,12 +738,6 @@ HTML_FOOTER            =
 # stylesheet in the HTML output directory as well, or it will be erased!
 
 HTML_STYLESHEET        = 
-
-# If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes, 
-# files or namespaces will be aligned in HTML using tables. If set to 
-# NO a bullet list will be used.
-
-HTML_ALIGN_MEMBERS     = YES
 
 # If the GENERATE_HTMLHELP tag is set to YES, additional index files 
 # will be generated that can be used as input for tools like the 
@@ -916,10 +891,10 @@ MAKEINDEX_CMD_NAME     = makeindex
 COMPACT_LATEX          = NO
 
 # The PAPER_TYPE tag can be used to set the paper type that is used 
-# by the printer. Possible values are: a4, a4wide, letter, legal and 
-# executive. If left blank a4wide will be used.
+# by the printer. Possible values are: a4, letter, legal and executive.
+# If left blank a4 will be used.
 
-PAPER_TYPE             = a4wide
+PAPER_TYPE             = a4
 
 # The EXTRA_PACKAGES tag can be to specify one or more names of LaTeX 
 # packages that should be included in the LaTeX output.
@@ -1045,18 +1020,6 @@ GENERATE_XML           = NO
 
 XML_OUTPUT             = xml
 
-# The XML_SCHEMA tag can be used to specify an XML schema, 
-# which can be used by a validating XML parser to check the 
-# syntax of the XML files.
-
-XML_SCHEMA             = 
-
-# The XML_DTD tag can be used to specify an XML DTD, 
-# which can be used by a validating XML parser to check the 
-# syntax of the XML files.
-
-XML_DTD                = 
-
 # If the XML_PROGRAMLISTING tag is set to YES Doxygen will 
 # dump the program listings (including syntax highlighting 
 # and cross-referencing information) to the XML output. Note that 
@@ -1124,13 +1087,13 @@ ENABLE_PREPROCESSING   = YES
 # compilation will be performed. Macro expansion can be done in a controlled 
 # way by setting EXPAND_ONLY_PREDEF to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES 
 # then the macro expansion is limited to the macros specified with the 
 # PREDEFINED and EXPAND_AS_DEFINED tags.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES (the default) the includes files 
 # in the INCLUDE_PATH (see below) will be search if a #include is found.
@@ -1165,7 +1128,7 @@ PREDEFINED             =
 # The macro definition that is found in the sources will be used. 
 # Use the PREDEFINED tag if you want to use a different macro definition.
 
-EXPAND_AS_DEFINED      = 
+EXPAND_AS_DEFINED      = PLIST_API
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then 
 # doxygen's preprocessor will remove all function-like macros that are alone 
@@ -1213,32 +1176,9 @@ ALLEXTERNALS           = NO
 
 EXTERNAL_GROUPS        = YES
 
-# The PERL_PATH should be the absolute path and name of the perl script 
-# interpreter (i.e. the result of `which perl').
-
-PERL_PATH              = /usr/bin/perl
-
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool   
 #---------------------------------------------------------------------------
-
-# If the CLASS_DIAGRAMS tag is set to YES (the default) Doxygen will 
-# generate a inheritance diagram (in HTML, RTF and LaTeX) for classes with base 
-# or super classes. Setting the tag to NO turns the diagrams off. Note that 
-# this option is superseded by the HAVE_DOT option below. This is only a 
-# fallback. It is recommended to install and use dot, since it yields more 
-# powerful graphs.
-
-CLASS_DIAGRAMS         = YES
-
-# You can define message sequence charts within doxygen comments using the \msc 
-# command. Doxygen will then run the mscgen tool (see 
-# http://www.mcternan.me.uk/mscgen/) to produce the chart and insert it in the 
-# documentation. The MSCGEN_PATH tag allows you to specify the directory where 
-# the mscgen tool resides. If left empty the tool is assumed to be found in the 
-# default search path.
-
-MSCGEN_PATH            = 
 
 # If set to YES, the inheritance and collaboration graphs will hide 
 # inheritance and usage relations if the target is undocumented 
@@ -1253,21 +1193,8 @@ HIDE_UNDOC_RELATIONS   = YES
 
 HAVE_DOT               = NO
 
-# By default doxygen will write a font called FreeSans.ttf to the output 
-# directory and reference it in all dot files that doxygen generates. This 
-# font does not include all possible unicode characters however, so when you need 
-# these (or just want a differently looking font) you can specify the font name 
-# using DOT_FONTNAME. You need need to make sure dot is able to find the font, 
-# which can be done by putting it in a standard location or by setting the 
-# DOTFONTPATH environment variable or by setting DOT_FONTPATH to the directory 
-# containing the font.
-
-DOT_FONTNAME           = FreeSans
-
-# By default doxygen will tell dot to use the output directory to look for the 
-# FreeSans.ttf font (which doxygen will put there itself). If you specify a 
-# different font using DOT_FONTNAME you can set the path where dot 
-# can find it using this tag.
+# You can set the path where dot can find font specified with fontname in DOT_COMMON_ATTR and others dot attributes.
+# This tag requires that the tag HAVE_DOT is set to YES.
 
 DOT_FONTPATH           = 
 
