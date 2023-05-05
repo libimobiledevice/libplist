@@ -277,7 +277,7 @@ PLIST_API plist_err_t plist_read_from_file(const char *filename, plist_t *plist,
     }
     struct stat fst;
     fstat(fileno(f), &fst);
-    if (fst.st_size > UINT32_MAX) {
+    if ((uint64_t)fst.st_size > UINT32_MAX) {
         return PLIST_ERR_NO_MEM;
     }
     uint32_t total = (uint32_t)fst.st_size;
