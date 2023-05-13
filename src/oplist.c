@@ -442,7 +442,7 @@ static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int p
     return PLIST_ERR_SUCCESS;
 }
 
-int plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, int prettify)
+plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, int prettify)
 {
     uint64_t size = 0;
     int res;
@@ -895,7 +895,7 @@ err_out:
     return PLIST_ERR_SUCCESS;
 }
 
-int plist_from_openstep(const char *plist_ostep, uint32_t length, plist_t * plist)
+plist_err_t plist_from_openstep(const char *plist_ostep, uint32_t length, plist_t * plist)
 {
     if (!plist) {
         return PLIST_ERR_INVALID_ARG;
