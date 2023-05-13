@@ -98,9 +98,9 @@ static int node_to_string(node_t node, bytearray_t **outbuf, uint32_t depth, uin
     case PLIST_INT:
         val = (char*)malloc(64);
         if (node_data->length == 16) {
-            val_len = snprintf(val, 64, "%"PRIu64, node_data->intval);
+            val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
         } else {
-            val_len = snprintf(val, 64, "%"PRIi64, node_data->intval);
+            val_len = snprintf(val, 64, "%" PRIi64, node_data->intval);
         }
         str_buf_append(*outbuf, val, val_len);
         free(val);
@@ -257,9 +257,9 @@ static int node_to_string(node_t node, bytearray_t **outbuf, uint32_t depth, uin
             str_buf_append(*outbuf, "CF$UID:", 7);
             val = (char*)malloc(64);
             if (node_data->length == 16) {
-                val_len = snprintf(val, 64, "%"PRIu64, node_data->intval);
+                val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
             } else {
-                val_len = snprintf(val, 64, "%"PRIi64, node_data->intval);
+                val_len = snprintf(val, 64, "%" PRIi64, node_data->intval);
             }
             str_buf_append(*outbuf, val, val_len);
             free(val);
