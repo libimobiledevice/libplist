@@ -398,7 +398,7 @@ static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int p
     return PLIST_ERR_SUCCESS;
 }
 
-PLIST_API int plist_to_json(plist_t plist, char **json, uint32_t* length, int prettify)
+int plist_to_json(plist_t plist, char **json, uint32_t* length, int prettify)
 {
     uint64_t size = 0;
     int res;
@@ -782,7 +782,7 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
     return obj;
 }
 
-PLIST_API int plist_from_json(const char *json, uint32_t length, plist_t * plist)
+int plist_from_json(const char *json, uint32_t length, plist_t * plist)
 {
     if (!plist) {
         return PLIST_ERR_INVALID_ARG;

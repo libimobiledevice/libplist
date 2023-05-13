@@ -529,7 +529,7 @@ static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth)
     return PLIST_ERR_SUCCESS;
 }
 
-PLIST_API plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
+plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 {
     uint64_t size = 0;
     int res;
@@ -1471,7 +1471,7 @@ err_out:
     return PLIST_ERR_SUCCESS;
 }
 
-PLIST_API plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
+plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * plist)
 {
     if (!plist) {
         return PLIST_ERR_INVALID_ARG;

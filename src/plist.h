@@ -37,16 +37,6 @@
 #pragma warning(disable:4244)
 #endif
 
-#ifdef WIN32
-  #define PLIST_API __declspec( dllexport )
-#else
-  #ifdef HAVE_FVISIBILITY
-    #define PLIST_API __attribute__((visibility("default")))
-  #else
-    #define PLIST_API
-  #endif
-#endif
-
 struct plist_data_s
 {
     union
