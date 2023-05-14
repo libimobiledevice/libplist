@@ -324,7 +324,8 @@ static plist_t parse_string_node(const char **bnode, uint64_t size)
 static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read, long *items_written)
 {
 	if (!unistr || (len <= 0)) return NULL;
-	char *outbuf;
+	char* outbuf;
+	char* outbuf_new;
 	int p = 0;
 	long i = 0;
 
@@ -332,6 +333,7 @@ static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read,
 	uint32_t w;
 	int read_lead_surrogate = 0;
 
+	/* allocate with enough space */
 	outbuf = (char*)malloc(4*(len+1));
 	if (!outbuf) {
 		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)(4*(len+1)));
@@ -381,30 +383,29 @@ static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read,
 	}
 	outbuf[p] = 0;
 
+	/* reduce the size to the actual size */
+	outbuf_new = realloc(outbuf, p+1);
+	if (outbuf_new) {
+		outbuf = outbuf_new;
+	}
+
 	return outbuf;
 }
 
 static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
-    char *tmpstr = NULL;
     long items_read = 0;
     long items_written = 0;
 
     data->type = PLIST_STRING;
-
-    tmpstr = plist_utf16be_to_utf8((uint16_t*)(*bnode), size, &items_read, &items_written);
-    if (!tmpstr) {
+    data->strval = plist_utf16be_to_utf8((uint16_t*)(*bnode), size, &items_read, &items_written);
+    if (!data->strval) {
         plist_free_data(data);
         return NULL;
     }
-    tmpstr[items_written] = '\0';
-
-    data->type = PLIST_STRING;
-    data->strval = realloc(tmpstr, items_written+1);
-    if (!data->strval)
-        data->strval = tmpstr;
     data->length = items_written;
+
     return node_create(NULL, data);
 }
 
