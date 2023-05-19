@@ -52,7 +52,7 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([asprintf strcasecmp strdup strerror strndup stpcpy vasprintf gmtime_r localtime_r timegm strptime memmem])
+AC_CHECK_FUNCS([strdup strndup strerror gmtime_r localtime_r timegm strptime memmem])
 
 # Checking endianness
 AC_C_BIGENDIAN([AC_DEFINE([__BIG_ENDIAN__], [1], [big endian])],
@@ -85,6 +85,15 @@ AC_CACHE_CHECK([wether the C compiler supports constructor/destructor attributes
   ac_cv_attribute_constructor=no
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[
+      #ifndef __has_attribute
+        #define __has_attribute(x) 0
+      #endif
+      #if !__has_attribute(constructor)
+        #error No constructor attribute
+      #endif
+      #if !__has_attribute(destructor)
+        #error No destructor attribute
+      #endif
       static void __attribute__((constructor)) test_constructor(void) {
       }
       static void __attribute__((destructor)) test_destructor(void) {
