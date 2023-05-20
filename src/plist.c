@@ -207,8 +207,8 @@ plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t *
     if (!plist_data || length == 0) {
         return PLIST_ERR_INVALID_ARG;
     }
-    plist_format_t fmt = 0;
-    if (format) *format = 0;
+    plist_format_t fmt = PLIST_FORMAT_NONE;
+    if (format) *format = PLIST_FORMAT_NONE;
     if (plist_is_binary(plist_data, length)) {
         res = plist_from_bin(plist_data, length, plist);
         fmt = PLIST_FORMAT_BINARY;

@@ -158,6 +158,7 @@ extern "C"
      */
     typedef enum
     {
+        PLIST_FORMAT_NONE    = 0,  /**< No format */
         PLIST_FORMAT_XML     = 1,  /**< XML format */
         PLIST_FORMAT_BINARY  = 2,  /**< bplist00 format */
         PLIST_FORMAT_JSON    = 3,  /**< JSON format */
