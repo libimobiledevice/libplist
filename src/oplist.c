@@ -139,7 +139,7 @@ static int str_needs_quotes(const char* str, size_t len)
     return 0;
 }
 
-static int node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify)
+static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify)
 {
     plist_data_t node_data = NULL;
 
@@ -230,7 +230,7 @@ static int node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t depth, i
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            int res = node_to_openstep(ch, outbuf, depth+1, prettify);
+            plist_err_t res = node_to_openstep(ch, outbuf, depth+1, prettify);
             if (res < 0) {
                 return res;
             }
@@ -258,7 +258,7 @@ static int node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t depth, i
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            int res = node_to_openstep(ch, outbuf, depth+1, prettify);
+            plist_err_t res = node_to_openstep(ch, outbuf, depth+1, prettify);
             if (res < 0) {
                 return res;
             }
@@ -355,7 +355,7 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
 {
     plist_data_t data;
     if (!node) {
@@ -366,7 +366,7 @@ static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int p
         node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            int res = node_estimate_size(ch, size, depth + 1, prettify);
+            plist_err_t res = node_estimate_size(ch, size, depth + 1, prettify);
             if (res < 0) {
                 return res;
             }
@@ -445,13 +445,13 @@ static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int p
 plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, int prettify)
 {
     uint64_t size = 0;
-    int res;
+    plist_err_t res;
 
     if (!plist || !openstep || !length) {
         return PLIST_ERR_INVALID_ARG;
     }
 
-    res = node_estimate_size(plist, &size, 0, prettify);
+    res = node_estimate_size((node_t)plist, &size, 0, prettify);
     if (res < 0) {
         return res;
     }
@@ -462,7 +462,7 @@ plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, 
         return PLIST_ERR_NO_MEM;
     }
 
-    res = node_to_openstep(plist, &outbuf, 0, prettify);
+    res = node_to_openstep((node_t)plist, &outbuf, 0, prettify);
     if (res < 0) {
         str_buf_free(outbuf);
         *openstep = NULL;
@@ -475,7 +475,7 @@ plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, 
 
     str_buf_append(outbuf, "\0", 1);
 
-    *openstep = outbuf->data;
+    *openstep = (char*)outbuf->data;
     *length = outbuf->len - 1;
 
     outbuf->data = NULL;
@@ -532,7 +532,7 @@ static void parse_skip_ws(parse_ctx ctx)
 
 #define HEX_DIGIT(x) ((x <= '9') ? (x - '0') : ((x <= 'F') ? (x - 'A' + 10) : (x - 'a' + 10)))
 
-static int node_from_openstep(parse_ctx ctx, plist_t *plist);
+static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist);
 
 static void parse_dict_data(parse_ctx ctx, plist_t dict)
 {
@@ -603,7 +603,7 @@ static void parse_dict_data(parse_ctx ctx, plist_t dict)
     plist_free(val);
 }
 
-static int node_from_openstep(parse_ctx ctx, plist_t *plist)
+static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
 {
     plist_t subnode = NULL;
     const char *p = NULL;
@@ -746,7 +746,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
                 goto err_out;
             }
             ctx->pos++;
-            data->buff = bytes->data;
+            data->buff = (uint8_t*)bytes->data;
             data->length = bytes->len;
             bytes->data = NULL;
             byte_array_free(bytes);
@@ -781,7 +781,7 @@ static int node_from_openstep(parse_ctx ctx, plist_t *plist)
             }
             size_t slen = ctx->pos - p;
             ctx->pos++; // skip the closing quote
-            char* strbuf = malloc(slen+1);
+            char* strbuf = (char*)malloc(slen+1);
             if (num_escapes > 0) {
                 size_t i = 0;
                 size_t o = 0;
@@ -907,7 +907,7 @@ plist_err_t plist_from_openstep(const char *plist_ostep, uint32_t length, plist_
 
     struct _parse_ctx ctx = { plist_ostep, plist_ostep, plist_ostep + length, 0 , 0 };
 
-    int err = node_from_openstep(&ctx, plist);
+    plist_err_t err = node_from_openstep(&ctx, plist);
     if (err == 0) {
         if (!*plist) {
             /* whitespace only file is considered an empty dictionary */

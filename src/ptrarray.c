@@ -45,7 +45,7 @@ void ptr_array_insert(ptrarray_t *pa, void *data, long array_index)
 	if (!pa || !pa->pdata) return;
 	long remaining = pa->capacity-pa->len;
 	if (remaining == 0) {
-		pa->pdata = realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
+		pa->pdata = (void**)realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
 		pa->capacity += pa->capacity_step;
 	}
 	if (array_index < 0 || array_index >= pa->len) {

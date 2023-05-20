@@ -65,7 +65,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     return len;
 }
 
-static int node_to_string(node_t node, bytearray_t **outbuf, uint32_t depth, uint32_t indent, int partial_data)
+static plist_err_t node_to_string(node_t node, bytearray_t **outbuf, uint32_t depth, uint32_t indent, int partial_data)
 {
     plist_data_t node_data = NULL;
 
@@ -159,7 +159,7 @@ static int node_to_string(node_t node, bytearray_t **outbuf, uint32_t depth, uin
             for (i = 0; i <= depth+indent; i++) {
                 str_buf_append(*outbuf, "  ", 2);
             }
-            int res = node_to_string(ch, outbuf, depth+1, indent, partial_data);
+            plist_err_t res = node_to_string(ch, outbuf, depth+1, indent, partial_data);
             if (res < 0) {
                 return res;
             }
@@ -187,7 +187,7 @@ static int node_to_string(node_t node, bytearray_t **outbuf, uint32_t depth, uin
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            int res = node_to_string(ch, outbuf, depth+1, indent, partial_data);
+            plist_err_t res = node_to_string(ch, outbuf, depth+1, indent, partial_data);
             if (res < 0) {
                 return res;
             }
@@ -310,7 +310,7 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, uint32_t indent, int partial_data)
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, uint32_t indent, int partial_data)
 {
     plist_data_t data;
     if (!node) {
@@ -321,7 +321,7 @@ static int node_estimate_size(node_t node, uint64_t *size, uint32_t depth, uint3
         node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            int res = node_estimate_size(ch, size, depth + 1, indent, partial_data);
+            plist_err_t res = node_estimate_size(ch, size, depth + 1, indent, partial_data);
             if (res < 0) {
                 return res;
             }
@@ -411,7 +411,7 @@ static plist_err_t _plist_write_to_strbuf(plist_t plist, strbuf_t *outbuf, plist
     for (i = 0; i < indent; i++) {
         str_buf_append(outbuf, "  ", 2);
     }
-    int res = node_to_string(plist, &outbuf, 0, indent, options & PLIST_OPT_PARTIAL_DATA);
+    plist_err_t res = node_to_string((node_t)plist, &outbuf, 0, indent, options & PLIST_OPT_PARTIAL_DATA);
     if (res < 0) {
         return res;
     }
@@ -424,7 +424,7 @@ static plist_err_t _plist_write_to_strbuf(plist_t plist, strbuf_t *outbuf, plist
 plist_err_t plist_write_to_string_default(plist_t plist, char **output, uint32_t* length, plist_write_options_t options)
 {
     uint64_t size = 0;
-    int res;
+    plist_err_t res;
 
     if (!plist || !output || !length) {
         return PLIST_ERR_INVALID_ARG;
@@ -435,7 +435,7 @@ plist_err_t plist_write_to_string_default(plist_t plist, char **output, uint32_t
         indent = (options >> 24) & 0xFF;
     }
 
-    res = node_estimate_size(plist, &size, 0, indent, options & PLIST_OPT_PARTIAL_DATA);
+    res = node_estimate_size((node_t)plist, &size, 0, indent, options & PLIST_OPT_PARTIAL_DATA);
     if (res < 0) {
         return res;
     }
@@ -457,7 +457,7 @@ plist_err_t plist_write_to_string_default(plist_t plist, char **output, uint32_t
     }
     str_buf_append(outbuf, "\0", 1);
 
-    *output = outbuf->data;
+    *output = (char*)outbuf->data;
     *length = outbuf->len - 1;
 
     outbuf->data = NULL;
@@ -479,7 +479,7 @@ plist_err_t plist_write_to_stream_default(plist_t plist, FILE *stream, plist_wri
         return PLIST_ERR_NO_MEM;
     }
 
-    int res = _plist_write_to_strbuf(plist, outbuf, options);
+    plist_err_t res = _plist_write_to_strbuf(plist, outbuf, options);
     if (res < 0) {
         str_buf_free(outbuf);
         return res;
