@@ -1692,6 +1692,7 @@ plist_err_t plist_write_to_stream(plist_t plist, FILE *stream, plist_format_t fo
         if (fwrite(output, 1, length, stream) < length) {
             err = PLIST_ERR_IO;
         }
+        free(output);
     }
     return err;
 }
