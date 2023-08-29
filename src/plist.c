@@ -654,6 +654,9 @@ static void _plist_array_post_insert(plist_t node, plist_t item, long n)
 
 void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
 {
+    if (!item) {
+        return;
+    }
     if (node && PLIST_ARRAY == plist_get_node_type(node) && n < INT_MAX)
     {
         plist_t old_item = plist_array_get_item(node, n);
@@ -675,6 +678,9 @@ void plist_array_set_item(plist_t node, plist_t item, uint32_t n)
 
 void plist_array_append_item(plist_t node, plist_t item)
 {
+    if (!item) {
+        return;
+    }
     if (node && PLIST_ARRAY == plist_get_node_type(node))
     {
         node_attach((node_t)node, (node_t)item);
@@ -684,6 +690,9 @@ void plist_array_append_item(plist_t node, plist_t item)
 
 void plist_array_insert_item(plist_t node, plist_t item, uint32_t n)
 {
+    if (!item) {
+        return;
+    }
     if (node && PLIST_ARRAY == plist_get_node_type(node) && n < INT_MAX)
     {
         node_insert((node_t)node, n, (node_t)item);
@@ -852,6 +861,9 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
 
 void plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
+    if (!item) {
+        return;
+    }
     if (node && PLIST_DICT == plist_get_node_type(node)) {
         plist_t old_item = plist_dict_get_item(node, key);
         plist_t key_node = NULL;
