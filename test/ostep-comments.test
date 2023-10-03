@@ -13,8 +13,8 @@ fi
 export PLIST_OSTEP_DEBUG=1
 
 echo "Converting"
-$top_builddir/test/plist_otest $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out
+$top_builddir/test/plist_otest $DATASRC/$TESTFILE $DATAOUT/ostep-comments.test.out
 
 echo "Comparing"
 export PLIST_OSTEP_DEBUG=1
-$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.out
+$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/ostep-comments.test.out

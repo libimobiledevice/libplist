@@ -5,10 +5,10 @@ set -e
 DATASRC=$top_srcdir/test/data
 TESTFILE=7.plist
 DATAIN0=$DATASRC/$TESTFILE
-DATAOUT0=$top_builddir/test/data/$TESTFILE.bin
-DATAOUT1=$top_builddir/test/data/$TESTFILE.tz0.xml
-DATAOUT2=$top_builddir/test/data/$TESTFILE.tz1.xml
-DATAOUT3=$top_builddir/test/data/$TESTFILE.tz2.xml
+DATAOUT0=$top_builddir/test/data/timezone2.test.bin
+DATAOUT1=$top_builddir/test/data/timezone2.test.tz0.xml
+DATAOUT2=$top_builddir/test/data/timezone2.test.tz1.xml
+DATAOUT3=$top_builddir/test/data/timezone2.test.tz2.xml
 
 TZ=UTC $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 

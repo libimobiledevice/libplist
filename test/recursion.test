@@ -3,7 +3,7 @@
 DATASRC=$top_srcdir/test/data
 TESTFILE=recursion.bplist
 DATAIN0=$DATASRC/$TESTFILE
-DATAOUT0=$top_builddir/test/data/$TESTFILE.out
+DATAOUT0=$top_builddir/test/data/recursion.test.out
 
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 

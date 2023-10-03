@@ -13,8 +13,8 @@ CMPFILE1=signedunsigned.plist
 DATACMP0=$DATASRC/$CMPFILE0
 DATACMP1=$DATASRC/$CMPFILE1
 
-DATAOUT0=$top_builddir/test/data/$TESTFILE0.bin
-DATAOUT1=$top_builddir/test/data/$TESTFILE1.xml
+DATAOUT0=$top_builddir/test/data/signedunsigned3.test.signed.bin
+DATAOUT1=$top_builddir/test/data/signedunsigned3.test.unsigned.xml
 
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 $top_builddir/tools/plistutil -i $DATAIN1 -o $DATAOUT1

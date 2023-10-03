@@ -5,7 +5,7 @@ set -e
 DATASRC=$top_srcdir/test/data
 TESTFILE=empty_keys.plist
 DATAIN0=$DATASRC/$TESTFILE
-DATAOUT0=$top_builddir/test/data/$TESTFILE.bin
+DATAOUT0=$top_builddir/test/data/empty_keys.test.bin
 
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 

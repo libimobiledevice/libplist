@@ -6,7 +6,7 @@ DATASRC=$top_srcdir/test/data
 TESTFILE=order.bplist
 DATAIN0=$DATASRC/$TESTFILE
 DATAIN1=$DATASRC/order.plist
-DATAOUT0=$top_builddir/test/data/$TESTFILE.out
+DATAOUT0=$top_builddir/test/data/order.test.out
 
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0
 

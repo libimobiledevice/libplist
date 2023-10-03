@@ -3,7 +3,7 @@
 DATASRC=$top_srcdir/test/data
 TESTFILE=amp.plist
 DATAIN0=$DATASRC/$TESTFILE
-DATAOUT0=$top_builddir/test/data/$TESTFILE.out
+DATAOUT0=$top_builddir/test/data/amp.test.out
 
 rm -rf $DATAOUT0
 $top_builddir/tools/plistutil -i $DATAIN0 -o $DATAOUT0

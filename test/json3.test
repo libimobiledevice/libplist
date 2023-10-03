@@ -13,12 +13,12 @@ fi
 export PLIST_JSON_DEBUG=1
 
 echo "Converting input file to JSON"
-$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE -o $DATAOUT/$TESTFILE.json
+$top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE -o $DATAOUT/json3.test.json
 
 echo "Converting to binary and back to JSON"
-$top_builddir/test/plist_jtest $DATAOUT/$TESTFILE.json $DATAOUT/$TESTFILE.json.out
+$top_builddir/test/plist_jtest $DATAOUT/json3.test.json $DATAOUT/json3.test.json.out
 
 echo "Comparing"
-$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/$TESTFILE.json.out
+$top_builddir/test/plist_cmp $DATASRC/$TESTFILE $DATAOUT/json3.test.json.out
 
-rm -f $DATAOUT/$TESTFILE.json
+rm -f $DATAOUT/json3.test.json
