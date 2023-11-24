@@ -76,10 +76,6 @@ jobs:
             PYTHON_FRAMEWORK_PATH=$PYTHON_EXEC_PREFIX/Python3
             export PYTHON_LIBS="-L$PYTHON_LIBS_PATH -lpython$PYTHON_VER"
             export PYTHON_EXTRA_LDFLAGS="-Wl,-stack_size,1000000  -framework CoreFoundation $PYTHON_FRAMEWORK_PATH"
-          else
-            export PATH="$PATH:/Library/Frameworks/Python.framework/Versions/2.7/bin"
-            export LIBS="-L/Library/Frameworks/Python.framework/Versions/2.7/lib"
-            export PYTHON_EXTRA_LDFLAGS="-u _PyMac_Error /System/Library/Frameworks/Python.framework/Versions/2.7/Python"
           fi
           ./autogen.sh --enable-debug
     - name: make
