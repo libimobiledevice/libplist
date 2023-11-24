@@ -977,8 +977,10 @@ cpdef object dumps(value, fmt=FMT_XML, sort_keys=True, skipkeys=False):
         node = Dict(value)
     elif type(value) in (list, set, tuple):
         node = Array(value)
+    else:
+        node = value
 
     if fmt == FMT_XML:
-        return node.to_xml()
+        return node.to_xml().encode('utf-8')
 
     return node.to_bin()
