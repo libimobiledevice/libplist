@@ -38,7 +38,7 @@ If you want to optionally build the documentation or Python bindings use:
 ```shell
 sudo apt-get install \
 	doxygen \
-	cython
+	cython3
 ```
 
 Then clone the actual project repository:
@@ -119,4 +119,4 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2023-01-08
+README Updated on: 2023-11-26
