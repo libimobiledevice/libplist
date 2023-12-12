@@ -222,6 +222,9 @@ plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t *
         int is_xml = 0;
         /* skip whitespace */
         SKIP_WS(plist_data, pos, length);
+        if (pos >= length) {
+            return PLIST_ERR_PARSE;
+        }
         if (plist_data[pos] == '<' && (length-pos > 3) && !isxdigit(plist_data[pos+1]) && !isxdigit(plist_data[pos+2]) && !isxdigit(plist_data[pos+3])) {
             is_xml = 1;
         } else if (plist_data[pos] == '[') {
@@ -233,19 +236,28 @@ plist_err_t plist_from_memory(const char *plist_data, uint32_t length, plist_t *
             /* this could be json or openstep */
             pos++;
             SKIP_WS(plist_data, pos, length);
+            if (pos >= length) {
+                return PLIST_ERR_PARSE;
+            }
             if (plist_data[pos] == '"') {
                 /* still could be both */
                 pos++;
-                do {
+                while (pos < length) {
                     FIND_NEXT(plist_data, pos, length, '"');
                     if (plist_data[pos-1] != '\\') {
                         break;
                     }
                     pos++;
-                } while (pos < length);
+                }
+                if (pos >= length) {
+                    return PLIST_ERR_PARSE;
+                }
                 if (plist_data[pos] == '"') {
                     pos++;
                     SKIP_WS(plist_data, pos, length);
+                    if (pos >= length) {
+                        return PLIST_ERR_PARSE;
+                    }
                     if (plist_data[pos] == ':') {
                         /* this is definitely json */
                         is_json = 1;
