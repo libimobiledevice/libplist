@@ -19,6 +19,7 @@
  */
 
 #include <cstdlib>
+#include "plist.h"
 #include <plist/Uid.h>
 
 namespace PList

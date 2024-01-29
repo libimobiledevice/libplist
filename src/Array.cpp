@@ -18,11 +18,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <plist/Array.h>
-
+#include <cstdlib>
 #include <algorithm>
 #include <climits>
-#include <cstdlib>
+#include "plist.h"
+#include <plist/Array.h>
 
 namespace PList
 {

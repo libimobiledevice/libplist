@@ -174,7 +174,7 @@ else
 fi
 AM_CONDITIONAL([HAVE_CYTHON],[test "x$cython_python_bindings" = "xyes"])
 
-AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing -fvisibility=hidden $PTHREAD_CFLAGS")
+AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing $PTHREAD_CFLAGS")
 GLOBAL_LDFLAGS="$PTHREAD_LIBS"
 
 AC_ARG_ENABLE(debug,
@@ -192,7 +192,17 @@ if (test "x$debug" = "xyes"); then
        GLOBAL_CFLAGS+=" -g"
 fi
 
+if test "x$enable_static" = "xyes" -a "x$enable_shared" = "xno"; then
+	GLOBAL_CFLAGS+=" -DLIBPLIST_STATIC"
+fi
+
+GLOBAL_CXXFLAGS=$GLOBAL_CFLAGS
+AS_COMPILER_FLAG([-fvisibility=hidden], [
+  GLOBAL_CFLAGS+=" -fvisibility=hidden"
+], [])
+
 AC_SUBST(GLOBAL_CFLAGS)
+AC_SUBST(GLOBAL_CXXFLAGS)
 AC_SUBST(GLOBAL_LDFLAGS)
 
 case "$GLOBAL_CFLAGS" in

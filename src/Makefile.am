@@ -4,6 +4,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/libcnary/include
 
 AM_CFLAGS = $(GLOBAL_CFLAGS)
+AM_CXXFLAGS = $(GLOBAL_CXXFLAGS)
 AM_LDFLAGS = $(GLOBAL_LDFLAGS)
 
 lib_LTLIBRARIES = \

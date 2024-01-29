@@ -32,11 +32,11 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#include <plist/plist.h>
 #include "plist.h"
 #include "hashtable.h"
 #include "bytearray.h"
 #include "ptrarray.h"
+#include "plist/plist.h"
 
 #include <node.h>
 

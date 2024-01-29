@@ -19,6 +19,7 @@
  */
 
 #include <cstdlib>
+#include "plist.h"
 #include <plist/Node.h>
 #include <plist/Structure.h>
 #include <plist/Dictionary.h>

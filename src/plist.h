@@ -26,8 +26,6 @@
 #include <config.h>
 #endif
 
-#include "plist/plist.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -38,6 +36,20 @@
 #else
 #include <sys/time.h>
 #endif
+
+#ifdef LIBPLIST_STATIC
+  #define PLIST_API
+#elif defined(_WIN32)
+  #define PLIST_API __declspec( dllexport )
+#else
+  #if __GNUC__ >= 4
+    #define PLIST_API __attribute__((visibility("default")))
+  #else
+    #define PLIST_API
+  #endif
+#endif
+
+#include "plist/plist.h"
 
 struct plist_data_s
 {
