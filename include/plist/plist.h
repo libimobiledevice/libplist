@@ -1215,6 +1215,13 @@ extern "C"
      */
     PLIST_API void plist_set_debug(int debug);
 
+    /**
+     * Returns a static string of the libplist version.
+     *
+     * @return The libplist version as static ascii string
+     */
+    PLIST_API const char* libplist_version();
+
     /*@}*/
 
 #ifdef __cplusplus
