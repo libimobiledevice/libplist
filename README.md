@@ -21,11 +21,22 @@ Some key features are:
 
 ## Building
 
-You need to have a working compiler and development environent available.
+### Quick access
+
+* [Prerequisites](#prerequisites)
+  * [Linux (Debian/Ubuntu based)](#linux-debianubuntu-based)
+  * [macOS](#macos)
+  * [Windows](#windows)
+* [Configuring the source tree](#configuring-the-source-tree)
+* [Building and installation](#building-and-installation)
 
 ### Prerequisites
 
-* #### Debian/Ubuntu based Linux
+You need to have a working compiler and development environent available. This project uses autotools
+for the build process, allowing to have common build steps regardless of the platform. Only the
+prerequisites differ and are described in this section.
+
+* #### Linux (Debian/Ubuntu based)
 
   Install all required dependencies and build tools:
   ```shell
@@ -80,9 +91,9 @@ You need to have a working compiler and development environent available.
   export PYTHON_EXTRA_LDFLAGS="-Wl,-stack_size,1000000  -framework CoreFoundation $PYTHON_FRAMEWORK_PATH"
   ```
 
-* #### Windows: MSYS2
+* #### Windows
 
-  [MSYS2](https://www.msys2.org/) is the preferred way of compiling this project on Windows. Download the MSYS2 installer
+  [MSYS2](https://www.msys2.org/) is the official way of compiling this project on Windows. Download the MSYS2 installer
   and follow the installation steps.
 
   It is recommended to use the _MSYS2 MinGW 64-bit_ shell. Run it and make sure the required dependencies are installed:
@@ -253,5 +264,5 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2024-02-13
+README Updated on: 2024-02-16
 
