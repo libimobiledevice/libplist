@@ -6,6 +6,21 @@ JSON, or OpenStep format.*
 ![](https://github.com/libimobiledevice/libplist/workflows/build/badge.svg)
 ![](https://github.com/libimobiledevice/libplist/workflows/CodeQL/badge.svg)
 
+## Table of Contents
+- [Features](#features)
+- [Building](#building)
+  - [Prerequisites](#prerequisites)
+    - [Linux (Debian/Ubuntu based)](#linux-debianubuntu-based)
+    - [macOS](#macos)
+    - [Windows](#windows)
+  - [Configuring the source tree](#configuring-the-source-tree)
+  - [Building and installation](#building-and-installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [Links](#links)
+- [License](#license)
+- [Credits](#credits)
+
 ## Features
 
 The project provides an interface to read and write plist files in binary,
@@ -21,24 +36,16 @@ Some key features are:
 
 ## Building
 
-### Quick access
-
-* [Prerequisites](#prerequisites)
-  * [Linux (Debian/Ubuntu based)](#linux-debianubuntu-based)
-  * [macOS](#macos)
-  * [Windows](#windows)
-* [Configuring the source tree](#configuring-the-source-tree)
-* [Building and installation](#building-and-installation)
-
 ### Prerequisites
 
-You need to have a working compiler and development environent available. This project uses autotools
-for the build process, allowing to have common build steps regardless of the platform. Only the
-prerequisites differ and are described in this section.
+You need to have a working compiler (gcc/clang) and development environent
+available. This project uses autotools for the build process, allowing to
+have common build steps across different platforms.
+Only the prerequisites differ and they are described in this section.
 
-* #### Linux (Debian/Ubuntu based)
+#### Linux (Debian/Ubuntu based)
 
-  Install all required dependencies and build tools:
+* Install all required dependencies and build tools:
   ```shell
   sudo apt-get install \
 	build-essential \
@@ -56,9 +63,9 @@ prerequisites differ and are described in this section.
   	cython3
   ```
 
-* #### macOS
+#### macOS
 
-  Make sure the Xcode command line tools are installed. Then, use either [MacPorts](https://www.macports.org/)
+* Make sure the Xcode command line tools are installed. Then, use either [MacPorts](https://www.macports.org/)
   or [Homebrew](https://brew.sh/) to install `automake`, `autoconf`, and `libtool`.
 
   Using MacPorts:
@@ -70,9 +77,9 @@ prerequisites differ and are described in this section.
   ```shell
   brew install libtool autoconf automake
   ```
-  
+
   In case you want to build the documentation, install `doxygen` using the corresponding install command from above.
-  
+
   If you want to build Python bindings, you need to install cython:
   ```shell
   pip3 install cython
@@ -91,9 +98,9 @@ prerequisites differ and are described in this section.
   export PYTHON_EXTRA_LDFLAGS="-Wl,-stack_size,1000000  -framework CoreFoundation $PYTHON_FRAMEWORK_PATH"
   ```
 
-* #### Windows
+#### Windows
 
-  [MSYS2](https://www.msys2.org/) is the official way of compiling this project on Windows. Download the MSYS2 installer
+* Using [MSYS2](https://www.msys2.org/) is the official way of compiling this project on Windows. Download the MSYS2 installer
   and follow the installation steps.
 
   It is recommended to use the _MSYS2 MinGW 64-bit_ shell. Run it and make sure the required dependencies are installed:
@@ -121,7 +128,7 @@ prerequisites differ and are described in this section.
 You can build the source code from a git checkout, or from a `.tar.bz2` release tarball from [Releases](https://github.com/libimobiledevice/libplist/releases).
 Before we can build it, the source tree has to be configured for building. The steps depend on where you got the source from.
 
-* #### From git
+* **From git**
 
   If you haven't done already, clone the actual project repository and change into the directory.
   ```shell
@@ -134,7 +141,7 @@ Before we can build it, the source tree has to be configured for building. The s
   ./autogen.sh
   ```
 
-* #### From release tarball (.tar.bz2)
+* **From release tarball (.tar.bz2)**
 
   When using an official [release tarball](https://github.com/libimobiledevice/libplist/releases) (`libplist-x.y.z.tar.bz2`)
   the procedure is slightly different.
@@ -189,11 +196,19 @@ you are ready to build the project. This is simply done with
 make
 ```
 
-If no errors are emitted, you can go ahead and install it with:
+If no errors are emitted you are ready for installation. Depending on whether
+the current user has permissions to write to the destination directory or not,
+you would either run
+```shell
+make install
+```
+_OR_
 ```shell
 sudo make install
 ```
-When using a user-writable destination directory, or run from MinGW shell, you would just run `make install`, without sudo.
+
+If you are on Linux, you want to run `sudo ldconfig` after installation to
+make sure the installed libraries are made available.
 
 ## Usage
 
@@ -264,5 +279,5 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2024-02-16
+README Updated on: 2024-02-21
 
