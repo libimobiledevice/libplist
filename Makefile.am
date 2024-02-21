@@ -25,4 +25,7 @@ docs/html: $(top_builddir)/doxygen.cfg $(top_srcdir)/include/plist/*.h
 	rm -rf docs/html
 	doxygen doxygen.cfg
 
-docs: doxygen.cfg docs/html
+docs/README.doxygen.md: README.md
+	awk '/\#\# Table of Contents/{while(getline && $$0 != ""){}{print "[TOC]"}}1' README.md > $@
+
+docs: doxygen.cfg docs/README.doxygen.md docs/html

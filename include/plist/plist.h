@@ -90,7 +90,7 @@ extern "C"
 #include <stdio.h>
 
     /**
-     * \mainpage libplist : A library to handle Apple Property Lists
+     * libplist : A library to handle Apple Property Lists
      * \defgroup PublicAPI Public libplist API
      */
     /*@{*/
