@@ -1,3 +1,21 @@
+Version 2.4.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * Add a PLIST_OPT_NONE value to plist_write_options_t
+  * autoconf: Allow disabling build of test suite
+  * Update doxygen config and document undocumented macros
+  * Add an explicit PLIST_FORMAT_NONE value
+  * Add a libplist_version() function to the interface
+  * docs: Use README.md to generate mainpage with doxygen
+- Bugfixes:
+  * Several compiler-related fixes and code improvements
+  * Plug memory leak in plist_write_to_stream()
+  * Prevent adding NULL items to array/dictionary nodes
+  * Fix parallel running of test suite
+  * Fix cython bindings
+  * Fix OOB read in plist_from_memory()
+
 Version 2.3.0
 ~~~~~~~~~~~~~
 
