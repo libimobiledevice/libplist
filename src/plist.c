@@ -52,6 +52,13 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+#ifdef DEBUG
+static int plist_debug = 0;
+#define PLIST_ERR(...) if (plist_debug > 0) { fprintf(stderr, "libplist ERROR: " __VA_ARGS__); }
+#else
+#define PLIST_ERR(...)
+#endif
+
 extern void plist_xml_init(void);
 extern void plist_xml_deinit(void);
 extern void plist_bin_init(void);
@@ -60,6 +67,52 @@ extern void plist_json_init(void);
 extern void plist_json_deinit(void);
 extern void plist_ostep_init(void);
 extern void plist_ostep_deinit(void);
+
+#ifndef bswap16
+#define bswap16(x)   ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
+#endif
+
+#ifndef bswap32
+#define bswap32(x)   ((((x) & 0xFF000000) >> 24) \
+                    | (((x) & 0x00FF0000) >>  8) \
+                    | (((x) & 0x0000FF00) <<  8) \
+                    | (((x) & 0x000000FF) << 24))
+#endif
+
+#ifndef bswap64
+#define bswap64(x)   ((((x) & 0xFF00000000000000ull) >> 56) \
+                    | (((x) & 0x00FF000000000000ull) >> 40) \
+                    | (((x) & 0x0000FF0000000000ull) >> 24) \
+                    | (((x) & 0x000000FF00000000ull) >>  8) \
+                    | (((x) & 0x00000000FF000000ull) <<  8) \
+                    | (((x) & 0x0000000000FF0000ull) << 24) \
+                    | (((x) & 0x000000000000FF00ull) << 40) \
+                    | (((x) & 0x00000000000000FFull) << 56))
+#endif
+
+#ifndef le16toh
+#ifdef __LITTLE_ENDIAN__
+#define le16toh(x) (x)
+#else
+#define le16toh(x) bswap16(x)
+#endif
+#endif
+
+#ifndef le32toh
+#ifdef __LITTLE_ENDIAN__
+#define le32toh(x) (x)
+#else
+#define le32toh(x) bswap32(x)
+#endif
+#endif
+
+#ifndef le64toh
+#ifdef __LITTLE_ENDIAN__
+#define le64toh(x) (x)
+#else
+#define le64toh(x) bswap64(x)
+#endif
+#endif
 
 static void internal_plist_init(void)
 {
@@ -958,6 +1011,195 @@ void plist_dict_merge(plist_t *target, plist_t source)
 	free(it);
 }
 
+uint8_t plist_dict_get_bool(plist_t dict, const char *key)
+{
+	uint8_t bval = 0;
+	uint64_t uintval = 0;
+	const char *strval = NULL;
+	uint64_t strsz = 0;
+	plist_t node = plist_dict_get_item(dict, key);
+	if (!node) {
+		return 0;
+	}
+	switch (plist_get_node_type(node)) {
+	case PLIST_BOOLEAN:
+		plist_get_bool_val(node, &bval);
+		break;
+	case PLIST_INT:
+		plist_get_uint_val(node, &uintval);
+		bval = (uintval) ? 1 : 0;
+		break;
+	case PLIST_STRING:
+		strval = plist_get_string_ptr(node, NULL);
+		if (strval) {
+			if (strcmp(strval, "true")) {
+				bval = 1;
+			} else if (strcmp(strval, "false")) {
+				bval = 0;
+			} else {
+				PLIST_ERR("%s: invalid string '%s' for string to boolean conversion\n", __func__, strval);
+			}
+		}
+		break;
+	case PLIST_DATA:
+		strval = (const char*)plist_get_data_ptr(node, &strsz);
+		if (strval) {
+			if (strsz == 1) {
+				bval = (strval[0]) ? 1 : 0;
+			} else {
+				PLIST_ERR("%s: invalid size %" PRIu64 " for data to boolean conversion\n", __func__, strsz);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return bval;
+}
+
+int64_t plist_dict_get_int(plist_t dict, const char *key)
+{
+	int64_t intval = 0;
+	const char *strval = NULL;
+	uint64_t strsz = 0;
+	plist_t node = plist_dict_get_item(dict, key);
+	if (!node) {
+		return intval;
+	}
+	switch (plist_get_node_type(node)) {
+	case PLIST_INT:
+		plist_get_int_val(node, &intval);
+		break;
+	case PLIST_STRING:
+		strval = plist_get_string_ptr(node, NULL);
+		if (strval) {
+			intval = strtoll(strval, NULL, 0);
+		}
+		break;
+	case PLIST_DATA:
+		strval = (const char*)plist_get_data_ptr(node, &strsz);
+		if (strval) {
+			if (strsz == 8) {
+				intval = le64toh(*(int64_t*)strval);
+			} else if (strsz == 4) {
+				intval = le32toh(*(int32_t*)strval);
+			} else if (strsz == 2) {
+				intval = le16toh(*(int16_t*)strval);
+			} else if (strsz == 1) {
+				intval = strval[0];
+			} else {
+				PLIST_ERR("%s: invalid size %" PRIu64 " for data to integer conversion\n", __func__, strsz);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return intval;
+}
+
+
+uint64_t plist_dict_get_uint(plist_t dict, const char *key)
+{
+	uint64_t uintval = 0;
+	const char *strval = NULL;
+	uint64_t strsz = 0;
+	plist_t node = plist_dict_get_item(dict, key);
+	if (!node) {
+		return uintval;
+	}
+	switch (plist_get_node_type(node)) {
+	case PLIST_INT:
+		plist_get_uint_val(node, &uintval);
+		break;
+	case PLIST_STRING:
+		strval = plist_get_string_ptr(node, NULL);
+		if (strval) {
+			uintval = strtoull(strval, NULL, 0);
+		}
+		break;
+	case PLIST_DATA:
+		strval = (const char*)plist_get_data_ptr(node, &strsz);
+		if (strval) {
+			if (strsz == 8) {
+				uintval = le64toh(*(uint64_t*)strval);
+			} else if (strsz == 4) {
+				uintval = le32toh(*(uint32_t*)strval);
+			} else if (strsz == 2) {
+				uintval = le16toh(*(uint16_t*)strval);
+			} else if (strsz == 1) {
+				uintval = strval[0];
+			} else {
+				PLIST_ERR("%s: invalid size %" PRIu64 " for data to integer conversion\n", __func__, strsz);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return uintval;
+}
+
+plist_err_t plist_dict_copy_item(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key)
+{
+	plist_t node = plist_dict_get_item(source_dict, (alt_source_key) ? alt_source_key : key);
+	if (!node) {
+		return PLIST_ERR_INVALID_ARG;
+	}
+	plist_dict_set_item(target_dict, key, plist_copy(node));
+	return PLIST_ERR_SUCCESS;
+}
+
+plist_err_t plist_dict_copy_bool(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key)
+{
+	if (plist_dict_get_item(source_dict, (alt_source_key) ? alt_source_key : key) == NULL) {
+		return PLIST_ERR_INVALID_ARG;
+	}
+	uint8_t bval = plist_dict_get_bool(source_dict, (alt_source_key) ? alt_source_key : key);
+	plist_dict_set_item(target_dict, key, plist_new_bool(bval));
+	return PLIST_ERR_SUCCESS;
+}
+
+plist_err_t plist_dict_copy_int(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key)
+{
+	if (plist_dict_get_item(source_dict, (alt_source_key) ? alt_source_key : key) == NULL) {
+		return PLIST_ERR_INVALID_ARG;
+	}
+	int64_t i64val = plist_dict_get_int(source_dict, (alt_source_key) ? alt_source_key : key);
+	plist_dict_set_item(target_dict, key, plist_new_int(i64val));
+	return PLIST_ERR_SUCCESS;
+}
+
+plist_err_t plist_dict_copy_uint(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key)
+{
+	if (plist_dict_get_item(source_dict, (alt_source_key) ? alt_source_key : key) == NULL) {
+		return PLIST_ERR_INVALID_ARG;
+	}
+	uint64_t u64val = plist_dict_get_uint(source_dict, (alt_source_key) ? alt_source_key : key);
+	plist_dict_set_item(target_dict, key, plist_new_uint(u64val));
+	return PLIST_ERR_SUCCESS;
+}
+
+plist_err_t plist_dict_copy_data(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key)
+{
+	plist_t node = plist_dict_get_item(source_dict, (alt_source_key) ? alt_source_key : key);
+	if (!PLIST_IS_DATA(node)) {
+		return PLIST_ERR_INVALID_ARG;
+	}
+	plist_dict_set_item(target_dict, key, plist_copy(node));
+	return PLIST_ERR_SUCCESS;
+}
+
+plist_err_t plist_dict_copy_string(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key)
+{
+	plist_t node = plist_dict_get_item(source_dict, (alt_source_key) ? alt_source_key : key);
+	if (!PLIST_IS_STRING(node)) {
+		return PLIST_ERR_INVALID_ARG;
+	}
+	plist_dict_set_item(target_dict, key, plist_copy(node));
+	return PLIST_ERR_SUCCESS;
+}
+
 plist_t plist_access_pathv(plist_t plist, uint32_t length, va_list v)
 {
     plist_t current = plist;
@@ -1578,6 +1820,9 @@ extern void plist_ostep_set_debug(int debug);
 
 void plist_set_debug(int debug)
 {
+#if DEBUG
+    plist_debug = debug;
+#endif
     plist_xml_set_debug(debug);
     plist_bin_set_debug(debug);
     plist_json_set_debug(debug);

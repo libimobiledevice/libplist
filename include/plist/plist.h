@@ -492,6 +492,166 @@ extern "C"
      */
     PLIST_API void plist_dict_merge(plist_t *target, plist_t source);
 
+    /**
+     * Get a boolean value from a given #PLIST_DICT entry.
+     *
+     * The value node can be of type #PLIST_BOOLEAN, but also
+     * #PLIST_STRING (either 'true' or 'false'),
+     * #PLIST_INT with a numerical value of 0 or >= 1,
+     * or #PLIST_DATA with a single byte with a value of 0 or >= 1.
+     *
+     * @note This function returns 0 if the dictionary does not contain an
+     * entry for the given key, if the value node is of any other than
+     * the above mentioned type, or has any mismatching value.
+     *
+     * @param dict A node of type #PLIST_DICT
+     * @param key The key to look for in dict
+     * @return 0 or 1 depending on the value of the node.
+     */
+    PLIST_API uint8_t plist_dict_get_bool(plist_t dict, const char *key);
+
+    /**
+     * Get a signed integer value from a given #PLIST_DICT entry.
+     * The value node can be of type #PLIST_INT, but also
+     * #PLIST_STRING with a numerical value as string (decimal or hexadecimal),
+     * or #PLIST_DATA with a size of 1, 2, 4, or 8 bytes in little endian byte order.
+     *
+     * @note This function returns 0 if the dictionary does not contain an
+     * entry for the given key, if the value node is of any other than
+     * the above mentioned type, or has any mismatching value.
+     *
+     * @param dict A node of type #PLIST_DICT
+     * @param key The key to look for in dict
+     * @return Signed integer value depending on the value of the node.
+     */
+    PLIST_API int64_t plist_dict_get_int(plist_t dict, const char *key);
+
+    /**
+     * Get an unsigned integer value from a given #PLIST_DICT entry.
+     * The value node can be of type #PLIST_INT, but also
+     * #PLIST_STRING with a numerical value as string (decimal or hexadecimal),
+     * or #PLIST_DATA with a size of 1, 2, 4, or 8 bytes in little endian byte order.
+     *
+     * @note This function returns 0 if the dictionary does not contain an
+     * entry for the given key, if the value node is of any other than
+     * the above mentioned type, or has any mismatching value.
+     *
+     * @param dict A node of type #PLIST_DICT
+     * @param key The key to look for in dict
+     * @return Signed integer value depending on the value of the node.
+     */
+    PLIST_API uint64_t plist_dict_get_uint(plist_t dict, const char *key);
+
+    /**
+     * Copy a node from *source_dict* to *target_dict*.
+     * The node is looked up in *source_dict* with given *key*, unless *alt_source_key*
+     * is non-NULL, in which case it is looked up with *alt_source_key*.
+     * The entry in *target_dict* is **always** created with *key*.
+     *
+     * @param target_dict The target dictionary to copy to.
+     * @param source_dict The source dictionary to copy from.
+     * @param key The key for the node to copy.
+     * @param alt_source_key The alternative source key for lookup in *source_dict* or NULL.
+     *
+     * @result PLIST_ERR_SUCCESS on success or PLIST_ERR_INVALID_ARG if the source dictionary does not contain
+     *     any entry with given key or alt_source_key.
+     */
+    PLIST_API plist_err_t plist_dict_copy_item(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key);
+
+    /**
+     * Copy a boolean value from *source_dict* to *target_dict*.
+     * The node is looked up in *source_dict* with given *key*, unless *alt_source_key*
+     * is non-NULL, in which case it is looked up with *alt_source_key*.
+     * The entry in *target_dict* is **always** created with *key*.
+     *
+     * @note The boolean value from *source_dict* is retrieved with #plist_dict_get_bool,
+     *     but is **always** created as #PLIST_BOOLEAN in *target_dict*.
+     *
+     * @param target_dict The target dictionary to copy to.
+     * @param source_dict The source dictionary to copy from.
+     * @param key The key for the node to copy.
+     * @param alt_source_key The alternative source key for lookup in *source_dict* or NULL.
+     *
+     * @result PLIST_ERR_SUCCESS on success or PLIST_ERR_INVALID_ARG if the source dictionary does not contain
+     *     any entry with given key or alt_source_key.
+     */
+    PLIST_API plist_err_t plist_dict_copy_bool(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key);
+
+    /**
+     * Copy a signed integer value from *source_dict* to *target_dict*.
+     * The node is looked up in *source_dict* with given *key*, unless *alt_source_key*
+     * is non-NULL, in which case it is looked up with *alt_source_key*.
+     * The entry in *target_dict* is **always** created with *key*.
+     *
+     * @note The signed integer value from *source_dict* is retrieved with #plist_dict_get_int,
+     *     but is **always** created as #PLIST_INT.
+     *
+     * @param target_dict The target dictionary to copy to.
+     * @param source_dict The source dictionary to copy from.
+     * @param key The key for the node value to copy.
+     * @param alt_source_key The alternative source key for lookup in *source_dict* or NULL.
+     *
+     * @result PLIST_ERR_SUCCESS on success or PLIST_ERR_INVALID_ARG if the source dictionary does not contain
+     *     any entry with given key or alt_source_key.
+     */
+    PLIST_API plist_err_t plist_dict_copy_int(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key);
+
+    /**
+     * Copy an unsigned integer value from *source_dict* to *target_dict*.
+     * The node is looked up in *source_dict* with given *key*, unless *alt_source_key*
+     * is non-NULL, in which case it is looked up with *alt_source_key*.
+     * The entry in *target_dict* is **always** created with *key*.
+     *
+     * @note The unsigned integer value from *source_dict* is retrieved with #plist_dict_get_uint,
+     *     but is **always** created as #PLIST_INT.
+     *
+     * @param target_dict The target dictionary to copy to.
+     * @param source_dict The source dictionary to copy from.
+     * @param key The key for the node value to copy.
+     * @param alt_source_key The alternative source key for lookup in *source_dict* or NULL.
+     *
+     * @result PLIST_ERR_SUCCESS on success or PLIST_ERR_INVALID_ARG if the source dictionary does not contain
+     *     any entry with given key or alt_source_key.
+     */
+    PLIST_API plist_err_t plist_dict_copy_uint(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key);
+
+    /**
+     * Copy a #PLIST_DATA node from *source_dict* to *target_dict*.
+     * The node is looked up in *source_dict* with given *key*, unless *alt_source_key*
+     * is non-NULL, in which case it is looked up with *alt_source_key*.
+     * The entry in *target_dict* is **always** created with *key*.
+     *
+     * @note This function is like #plist_dict_copy_item, except that it fails
+     *     if the source node is not of type #PLIST_DATA.
+     *
+     * @param target_dict The target dictionary to copy to.
+     * @param source_dict The source dictionary to copy from.
+     * @param key The key for the node value to copy.
+     * @param alt_source_key The alternative source key for lookup in *source_dict* or NULL.
+     *
+     * @result PLIST_ERR_SUCCESS on success or PLIST_ERR_INVALID_ARG if the source dictionary does not contain
+     *     any entry with given key or alt_source_key, or if it is not of type #PLIST_DATA.
+     */
+    PLIST_API plist_err_t plist_dict_copy_data(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key);
+
+    /**
+     * Copy a #PLIST_STRING node from *source_dict* to *target_dict*.
+     * The node is looked up in *source_dict* with given *key*, unless *alt_source_key*
+     * is non-NULL, in which case it is looked up with *alt_source_key*.
+     * The entry in *target_dict* is **always** created with *key*.
+     *
+     * @note This function is like #plist_dict_copy_item, except that it fails
+     *     if the source node is not of type #PLIST_STRING.
+     *
+     * @param target_dict The target dictionary to copy to.
+     * @param source_dict The source dictionary to copy from.
+     * @param key The key for the node value to copy.
+     * @param alt_source_key The alternative source key for lookup in *source_dict* or NULL.
+     *
+     * @result PLIST_ERR_SUCCESS on success or PLIST_ERR_INVALID_ARG if the source dictionary does not contain
+     *     any entry with given key or alt_source_key, or if it is not of type #PLIST_STRING.
+     */
+    PLIST_API plist_err_t plist_dict_copy_string(plist_t target_dict, plist_t source_dict, const char *key, const char *alt_source_key);
 
     /********************************************
      *                                          *
@@ -608,7 +768,7 @@ extern "C"
      *
      * @return Pointer to the buffer
      */
-    PLIST_API const uint8_t* plist_get_data_ptr(plist_t node, uint64_t * length);
+    PLIST_API const uint8_t* plist_get_data_ptr(plist_t node, uint64_t* length);
 
     /**
      * Get the value of a #PLIST_DATE node.
