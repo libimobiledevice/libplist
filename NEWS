@@ -1,3 +1,11 @@
+Version 2.5.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * Change API around PLIST_DATA to use uint8_t* instead of char*
+  * Add PLIST_DICT helper functions for different operations
+  * Require Cython 3.0 for python bindings
+
 Version 2.4.0
 ~~~~~~~~~~~~~
 
