@@ -35,7 +35,7 @@ Data::Data(plist_t node, Node* parent) : Node(node, parent)
 Data::Data(const PList::Data& d) : Node(PLIST_DATA)
 {
     std::vector<uint8_t> b = d.GetValue();
-    plist_set_data_val(_node, &b[0], b.size());
+    plist_set_data_val_u8(_node, &b[0], b.size());
 }
 
 Data& Data::operator=(const PList::Data& b)
@@ -47,7 +47,7 @@ Data& Data::operator=(const PList::Data& b)
 
 Data::Data(const std::vector<uint8_t>& buff) : Node(PLIST_DATA)
 {
-    plist_set_data_val(_node, &buff[0], buff.size());
+    plist_set_data_val_u8(_node, &buff[0], buff.size());
 }
 
 Data::~Data()
@@ -61,14 +61,14 @@ Node* Data::Clone() const
 
 void Data::SetValue(const std::vector<uint8_t>& buff)
 {
-    plist_set_data_val(_node, &buff[0], buff.size());
+    plist_set_data_val_u8(_node, &buff[0], buff.size());
 }
 
 std::vector<uint8_t> Data::GetValue() const
 {
     uint8_t* buff = NULL;
     uint64_t length = 0;
-    plist_get_data_val(_node, &buff, &length);
+    plist_get_data_val_u8(_node, &buff, &length);
     std::vector<uint8_t> ret(buff, buff + length);
     delete buff;
     return ret;

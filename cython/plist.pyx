@@ -48,9 +48,13 @@ cdef extern from *:
     void plist_get_string_val(plist_t node, char **val)
     void plist_set_string_val(plist_t node, char *val)
 
-    plist_t plist_new_data(uint8_t *val, uint64_t length)
-    void plist_get_data_val(plist_t node, uint8_t **val, uint64_t * length)
-    void plist_set_data_val(plist_t node, uint8_t *val, uint64_t length)
+    plist_t plist_new_data_u8(uint8_t *val, uint64_t length)
+    void plist_get_data_val_u8(plist_t node, uint8_t **val, uint64_t * length)
+    void plist_set_data_val_u8(plist_t node, uint8_t *val, uint64_t length)
+
+    plist_t plist_new_data(char *val, uint64_t length)
+    void plist_get_data_val(plist_t node, char **val, uint64_t * length)
+    void plist_set_data_val(plist_t node, char *val, uint64_t length)
 
     plist_t plist_new_null();
 
@@ -554,9 +558,9 @@ cdef Date Date_factory(plist_t c_node, bint managed=True):
 cdef class Data(Node):
     def __cinit__(self, object value=None, *args, **kwargs):
         if value is None:
-            self._c_node = plist_new_data(NULL, 0)
+            self._c_node = plist_new_data_u8(NULL, 0)
         else:
-            self._c_node = plist_new_data(value, len(value))
+            self._c_node = plist_new_data_u8(value, len(value))
 
     def __repr__(self):
         d = self.get_value()
@@ -581,7 +585,7 @@ cdef class Data(Node):
         cdef:
             uint8_t* val = NULL
             uint64_t length = 0
-        plist_get_data_val(self._c_node, &val, &length)
+        plist_get_data_val_u8(self._c_node, &val, &length)
 
         try:
             return bytes(val[:length])

@@ -258,8 +258,11 @@ extern "C"
      * @return the created item
      * @sa #plist_type
      */
-    PLIST_API plist_t plist_new_data(const uint8_t *val, uint64_t length);
 
+    PLIST_API plist_t plist_new_data_u8(const uint8_t *val, uint64_t length);
+    /* deprecated version, do not use in new code */
+    PLIST_API plist_t plist_new_data (const char *val, uint64_t length);
+  
     /**
      * Create a new plist_t type #PLIST_DATE
      *
@@ -755,7 +758,10 @@ extern "C"
      * @param length the length of the buffer
      * @note Use plist_mem_free() to free the allocated memory.
      */
-    PLIST_API void plist_get_data_val(plist_t node, uint8_t **val, uint64_t * length);
+
+    PLIST_API void plist_get_data_val_u8(plist_t node, uint8_t **val, uint64_t * length);
+    /* deprecated version, do not use in new code */
+    PLIST_API void plist_get_data_val(plist_t node, char **val, uint64_t * length);
 
     /**
      * Get a pointer to the data buffer of a #PLIST_DATA node.
@@ -768,8 +774,10 @@ extern "C"
      *
      * @return Pointer to the buffer
      */
-    PLIST_API const uint8_t* plist_get_data_ptr(plist_t node, uint64_t* length);
-
+     PLIST_API const uint8_t* plist_get_data_ptr_u8(plist_t node, uint64_t* length);
+     /* deprecated version, do not use in new code */
+     PLIST_API const char* plist_get_data_ptr(plist_t node, uint64_t* length);
+  
     /**
      * Get the value of a #PLIST_DATE node.
      * This function does nothing if node is not of type #PLIST_DATE
@@ -860,8 +868,9 @@ extern "C"
      *		be freed by the node.
      * @param length the length of the buffer
      */
-    PLIST_API void plist_set_data_val(plist_t node, const uint8_t *val, uint64_t length);
-
+    PLIST_API void plist_set_data_val_u8(plist_t node, const uint8_t *val, uint64_t length);
+    /* deprecated version, do not use in new code */
+    PLIST_API void plist_set_data_val(plist_t node, const char *val, uint64_t length);
     /**
      * Set the value of a node.
      * Forces type of node to #PLIST_DATE
