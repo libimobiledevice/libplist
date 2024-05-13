@@ -48,9 +48,9 @@ cdef extern from *:
     void plist_get_string_val(plist_t node, char **val)
     void plist_set_string_val(plist_t node, char *val)
 
-    plist_t plist_new_data(uint8_t *val, uint64_t length)
-    void plist_get_data_val(plist_t node, uint8_t **val, uint64_t * length)
-    void plist_set_data_val(plist_t node, uint8_t *val, uint64_t length)
+    plist_t plist_new_data(char *val, uint64_t length)
+    void plist_get_data_val(plist_t node, char **val, uint64_t * length)
+    void plist_set_data_val(plist_t node, char *val, uint64_t length)
 
     plist_t plist_new_null();
 
@@ -579,7 +579,7 @@ cdef class Data(Node):
 
     cpdef bytes get_value(self):
         cdef:
-            uint8_t* val = NULL
+            char* val = NULL
             uint64_t length = 0
         plist_get_data_val(self._c_node, &val, &length)
 

@@ -544,7 +544,7 @@ plist_t plist_new_real(double val)
     return plist_new_node(data);
 }
 
-plist_t plist_new_data(const uint8_t *val, uint64_t length)
+plist_t plist_new_data(const char *val, uint64_t length)
 {
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_DATA;
@@ -1385,7 +1385,7 @@ void plist_get_real_val(plist_t node, double *val)
     assert(length == sizeof(double));
 }
 
-void plist_get_data_val(plist_t node, uint8_t **val, uint64_t * length)
+void plist_get_data_val(plist_t node, char **val, uint64_t * length)
 {
     if (!node || !val || !length)
         return;
@@ -1395,7 +1395,7 @@ void plist_get_data_val(plist_t node, uint8_t **val, uint64_t * length)
     plist_get_type_and_value(node, &type, (void *) val, length);
 }
 
-const uint8_t* plist_get_data_ptr(plist_t node, uint64_t* length)
+const char* plist_get_data_ptr(plist_t node, uint64_t* length)
 {
     if (!node || !length)
         return NULL;
@@ -1404,7 +1404,7 @@ const uint8_t* plist_get_data_ptr(plist_t node, uint64_t* length)
         return NULL;
     plist_data_t data = plist_get_data(node);
     *length = data->length;
-    return data->buff;
+    return (const char*)data->buff;
 }
 
 void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
@@ -1575,7 +1575,7 @@ void plist_set_real_val(plist_t node, double val)
     plist_set_element_val(node, PLIST_REAL, &val, sizeof(double));
 }
 
-void plist_set_data_val(plist_t node, const uint8_t *val, uint64_t length)
+void plist_set_data_val(plist_t node, const char *val, uint64_t length)
 {
     plist_set_element_val(node, PLIST_DATA, val, length);
 }

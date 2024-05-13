@@ -35,13 +35,13 @@ public :
     Data(plist_t node, Node* parent = NULL);
     Data(const Data& d);
     Data& operator=(const Data& b);
-    Data(const std::vector<uint8_t>& buff);
+    Data(const std::vector<char>& buff);
     virtual ~Data();
 
     Node* Clone() const;
 
-    void SetValue(const std::vector<uint8_t>& buff);
-    std::vector<uint8_t> GetValue() const;
+    void SetValue(const std::vector<char>& buff);
+    std::vector<char> GetValue() const;
 };
 
 };
