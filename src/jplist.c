@@ -460,6 +460,8 @@ static int64_t parse_decimal(const char* str, const char* str_end, char** endp)
     if (str[0] == '-') {
         is_neg = 1;
         (*endp)++;
+    } else if (str[0] == '+') {
+        (*endp)++;
     }
     if (is_neg) {
         MAX++;
@@ -522,7 +524,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
             } else {
                 val = plist_new_uint((uint64_t)intpart);
             }
-        } else if ((*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) || ((*endp == 'e' || *endp == 'E') && endp+1 < str_end && (isdigit(*(endp+1)) || ((*(endp+1) == '-') && endp+2 < str_end && isdigit(*(endp+2)))))) {
+        } else if ((*endp == '.' && endp+1 < str_end && isdigit(*(endp+1))) || ((*endp == 'e' || *endp == 'E') && endp+1 < str_end && (isdigit(*(endp+1)) || (((*(endp+1) == '-') || (*(endp+1) == '+')) && endp+2 < str_end && isdigit(*(endp+2)))))) {
             /* floating point */
             double dval = (double)intpart;
             char* fendp = endp;
@@ -546,7 +548,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
                 if (fendp >= str_end) {
                     break;
                 }
-                if (fendp+1 < str_end && (*fendp == 'e' || *fendp == 'E') && (isdigit(*(fendp+1)) || ((*(fendp+1) == '-') && fendp+2 < str_end && isdigit(*(fendp+2))))) {
+                if (fendp+1 < str_end && (*fendp == 'e' || *fendp == 'E') && (isdigit(*(fendp+1)) || (((*(fendp+1) == '-') || (*(fendp+1) == '+')) && fendp+2 < str_end && isdigit(*(fendp+2))))) {
                     int64_t exp = parse_decimal(fendp+1, str_end, &fendp);
                     dval = dval * pow(10, (double)exp);
                 } else {
