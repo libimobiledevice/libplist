@@ -260,8 +260,8 @@ Please make sure your contribution adheres to:
 ## Links
 
 * Homepage: https://libimobiledevice.org/
-* Repository: https://git.libimobiledevice.org/libplist.git
-* Repository (Mirror): https://github.com/libimobiledevice/libplist.git
+* Repository: https://github.com/libimobiledevice/libplist.git
+* Repository (Mirror): https://git.libimobiledevice.org/libplist.git
 * Issue Tracker: https://github.com/libimobiledevice/libplist/issues
 * Mailing List: https://lists.libimobiledevice.org/mailman/listinfo/libimobiledevice-devel
 * Twitter: https://twitter.com/libimobiledev
@@ -279,5 +279,5 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2024-02-21
+README Updated on: 2024-10-22
 
