@@ -45,6 +45,13 @@ String& String::operator=(const PList::String& s)
     return *this;
 }
 
+String& String::operator=(const char* s)
+{
+    plist_free(_node);
+    _node = plist_new_string(s);
+    return *this;
+}
+
 String::String(const std::string& s) : Node(PLIST_STRING)
 {
     plist_set_string_val(_node, s.c_str());
@@ -69,7 +76,7 @@ std::string String::GetValue() const
     char* s = NULL;
     plist_get_string_val(_node, &s);
     std::string ret = s ? s : "";
-    delete s;
+    free((void*)s);
     return ret;
 }
 
