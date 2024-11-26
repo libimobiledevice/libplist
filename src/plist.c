@@ -59,15 +59,6 @@ static int plist_debug = 0;
 #define PLIST_ERR(...)
 #endif
 
-extern void plist_xml_init(void);
-extern void plist_xml_deinit(void);
-extern void plist_bin_init(void);
-extern void plist_bin_deinit(void);
-extern void plist_json_init(void);
-extern void plist_json_deinit(void);
-extern void plist_ostep_init(void);
-extern void plist_ostep_deinit(void);
-
 #ifndef bswap16
 #define bswap16(x)   ((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
 #endif
@@ -114,13 +105,41 @@ extern void plist_ostep_deinit(void);
 #endif
 #endif
 
-static void internal_plist_init(void)
-{
-    plist_bin_init();
-    plist_xml_init();
-    plist_json_init();
-    plist_ostep_init();
-}
+// Reference: https://stackoverflow.com/a/2390626/1806760
+// Initializer/finalizer sample for MSVC and GCC/Clang.
+// 2010-2016 Joe Lowe. Released into the public domain.
+
+#ifdef __cplusplus
+    #define INITIALIZER(f) \
+        static void f(void); \
+        struct f##_t_ { f##_t_(void) { f(); } }; static f##_t_ f##_; \
+        static void f(void)
+#elif defined(_MSC_VER)
+    #pragma section(".CRT$XCU",read)
+    #define INITIALIZER2_(f,p) \
+        static void f(void); \
+        __declspec(allocate(".CRT$XCU")) void (*f##_)(void) = f; \
+        __pragma(comment(linker,"/include:" p #f "_")) \
+        static void f(void)
+    #ifdef _WIN64
+        #define INITIALIZER(f) INITIALIZER2_(f,"")
+    #else
+        #define INITIALIZER(f) INITIALIZER2_(f,"_")
+    #endif
+#else
+    #define INITIALIZER(f) \
+        static void f(void) __attribute__((__constructor__)); \
+        static void f(void)
+#endif
+
+extern void plist_xml_init(void);
+extern void plist_xml_deinit(void);
+extern void plist_bin_init(void);
+extern void plist_bin_deinit(void);
+extern void plist_json_init(void);
+extern void plist_json_deinit(void);
+extern void plist_ostep_init(void);
+extern void plist_ostep_deinit(void);
 
 static void internal_plist_deinit(void)
 {
@@ -130,66 +149,14 @@ static void internal_plist_deinit(void)
     plist_ostep_deinit();
 }
 
-#ifdef WIN32
-typedef volatile struct {
-    LONG lock;
-    int state;
-} thread_once_t;
-
-static thread_once_t init_once = {0, 0};
-static thread_once_t deinit_once = {0, 0};
-
-static void thread_once(thread_once_t *once_control, void (*init_routine)(void))
+INITIALIZER(internal_plist_init)
 {
-    while (InterlockedExchange(&(once_control->lock), 1) != 0) {
-        Sleep(1);
-    }
-    if (!once_control->state) {
-        once_control->state = 1;
-        init_routine();
-    }
-    InterlockedExchange(&(once_control->lock), 0);
+    plist_bin_init();
+    plist_xml_init();
+    plist_json_init();
+    plist_ostep_init();
+    atexit(internal_plist_deinit);
 }
-#else
-static pthread_once_t init_once = PTHREAD_ONCE_INIT;
-static pthread_once_t deinit_once = PTHREAD_ONCE_INIT;
-#define thread_once pthread_once
-#endif
-
-#ifndef HAVE_ATTRIBUTE_CONSTRUCTOR
-  #if defined(__llvm__) || defined(__GNUC__)
-    #define HAVE_ATTRIBUTE_CONSTRUCTOR
-  #endif
-#endif
-
-#ifdef HAVE_ATTRIBUTE_CONSTRUCTOR
-static void __attribute__((constructor)) libplist_initialize(void)
-{
-    thread_once(&init_once, internal_plist_init);
-}
-
-static void __attribute__((destructor)) libplist_deinitialize(void)
-{
-    thread_once(&deinit_once, internal_plist_deinit);
-}
-#elif defined(WIN32)
-BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, LPVOID lpReserved)
-{
-    switch (dwReason) {
-    case DLL_PROCESS_ATTACH:
-        thread_once(&init_once, internal_plist_init);
-        break;
-    case DLL_PROCESS_DETACH:
-        thread_once(&deinit_once, internal_plist_deinit);
-        break;
-    default:
-        break;
-    }
-    return 1;
-}
-#else
-#warning No compiler support for constructor/destructor attributes, some features might not be available.
-#endif
 
 #ifndef HAVE_MEMMEM
 // see https://sourceware.org/legacy-ml/libc-alpha/2007-12/msg00000.html
