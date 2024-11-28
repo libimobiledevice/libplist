@@ -32,10 +32,13 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
+#define STDIN_FILENO _fileno(stdin)
 #endif
 
 typedef struct _options
