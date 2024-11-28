@@ -173,7 +173,7 @@ static options_t *parse_arguments(int argc, char *argv[])
         }
         else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v"))
         {
-            printf("plistutil %s\n", PACKAGE_VERSION);
+            printf("plistutil %s\n", libplist_version());
             exit(EXIT_SUCCESS);
         }
         else
