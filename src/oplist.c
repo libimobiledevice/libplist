@@ -71,8 +71,10 @@ void plist_ostep_set_debug(int debug)
 }
 
 #ifndef HAVE_STRNDUP
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 static char* strndup(const char* str, size_t len)
 {
     char *newstr = (char *)malloc(len+1);
@@ -82,7 +84,9 @@ static char* strndup(const char* str, size_t len)
     }
     return newstr;
 }
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 #endif
 
 static size_t dtostr(char *buf, size_t bufsize, double realval)
