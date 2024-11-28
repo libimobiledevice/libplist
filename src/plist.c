@@ -82,26 +82,26 @@ static int plist_debug = 0;
 #endif
 
 #ifndef le16toh
-#ifdef __LITTLE_ENDIAN__
-#define le16toh(x) (x)
-#else
+#ifdef __BIG_ENDIAN__
 #define le16toh(x) bswap16(x)
+#else
+#define le16toh(x) (x)
 #endif
 #endif
 
 #ifndef le32toh
-#ifdef __LITTLE_ENDIAN__
-#define le32toh(x) (x)
-#else
+#ifdef __BIG_ENDIAN__
 #define le32toh(x) bswap32(x)
+#else
+#define le32toh(x) (x)
 #endif
 #endif
 
 #ifndef le64toh
-#ifdef __LITTLE_ENDIAN__
-#define le64toh(x) (x)
-#else
+#ifdef __BIG_ENDIAN__
 #define le64toh(x) bswap64(x)
+#else
+#define le64toh(x) (x)
 #endif
 #endif
 

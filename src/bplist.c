@@ -168,15 +168,13 @@ union plist_uint_ptr
 
 #define get_real_bytes(x) ((x) == (float) (x) ? sizeof(float) : sizeof(double))
 
-#if (defined(__LITTLE_ENDIAN__) \
-     && !defined(__FLOAT_WORD_ORDER__)) \
- || (defined(__FLOAT_WORD_ORDER__) \
-     && __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-#define float_bswap64(x) bswap64(x)
-#define float_bswap32(x) bswap32(x)
-#else
+#if (defined(__BIG_ENDIAN__) && !defined(__FLOAT_WORD_ORDER__)) \
+ || (defined(__FLOAT_WORD_ORDER__) && __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define float_bswap64(x) (x)
 #define float_bswap32(x) (x)
+#else
+#define float_bswap64(x) bswap64(x)
+#define float_bswap32(x) bswap32(x)
 #endif
 
 #ifndef __has_builtin
