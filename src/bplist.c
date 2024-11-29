@@ -175,7 +175,7 @@ uint16_t get_unaligned_16(uint16_t *ptr)
 static uint64_t UINT_TO_HOST(const void* x, uint8_t n)
 {
 		union plist_uint_ptr __up;
-		__up.src = (n > 8) ? (const char*)x + (n - 8) : x;
+		__up.src = (n > 8) ? (const char*)x + (n - 8) : (const char*)x;
 		return (n >= 8 ? be64toh( get_unaligned_64(__up.u64ptr) ) :
 		(n == 4 ? be32toh( get_unaligned_32(__up.u32ptr) ) :
 		(n == 2 ? be16toh( get_unaligned_16(__up.u16ptr) ) :
@@ -187,7 +187,7 @@ static uint64_t UINT_TO_HOST(const void* x, uint8_t n)
 #define UINT_TO_HOST(x, n) \
 	({ \
 		union plist_uint_ptr __up; \
-		__up.src = ((n) > 8) ? (const char*)(x) + ((n) - 8) : (x); \
+		__up.src = ((n) > 8) ? (const char*)(x) + ((n) - 8) : (const char*)(x); \
 		((n) >= 8 ? be64toh( get_unaligned(__up.u64ptr) ) : \
 		((n) == 4 ? be32toh( get_unaligned(__up.u32ptr) ) : \
 		((n) == 2 ? be16toh( get_unaligned(__up.u16ptr) ) : \
