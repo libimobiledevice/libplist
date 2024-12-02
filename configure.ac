@@ -79,33 +79,6 @@ AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
 
 AC_SEARCH_LIBS([fmin],[m])
 
-# Check if the C compiler supports __attribute__((constructor))
-AC_CACHE_CHECK([wether the C compiler supports constructor/destructor attributes],
-  ac_cv_attribute_constructor, [
-  ac_cv_attribute_constructor=no
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [[
-      #ifndef __has_attribute
-        #define __has_attribute(x) 0
-      #endif
-      #if !__has_attribute(constructor)
-        #error No constructor attribute
-      #endif
-      #if !__has_attribute(destructor)
-        #error No destructor attribute
-      #endif
-      static void __attribute__((constructor)) test_constructor(void) {
-      }
-      static void __attribute__((destructor)) test_destructor(void) {
-      }
-    ]], [])],
-    [ac_cv_attribute_constructor=yes]
-  )]
-)
-if test "$ac_cv_attribute_constructor" = "yes"; then
-  AC_DEFINE(HAVE_ATTRIBUTE_CONSTRUCTOR, 1, [Define if the C compiler supports constructor/destructor attributes])
-fi
-
 # Check if struct tm has a tm_gmtoff member
 AC_CACHE_CHECK(for tm_gmtoff in struct tm, ac_cv_struct_tm_gmtoff,
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
