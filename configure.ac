@@ -147,6 +147,14 @@ else
 fi
 AM_CONDITIONAL([HAVE_CYTHON],[test "x$cython_python_bindings" = "xyes"])
 
+AC_ARG_WITH([tools],
+    [AS_HELP_STRING([--with-tools], [Build libplist tools. [default=yes]])],
+    [build_tools=${withval}],
+    [build_tools=yes]
+)
+AS_IF([test "x$build_tools" = "xyes"], [AC_DEFINE(BUILD_TOOLS, 1, [Define if we are building plist tools])])
+AM_CONDITIONAL(BUILD_TOOLS, test "x$build_tools" = "xyes")
+
 AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing $PTHREAD_CFLAGS")
 GLOBAL_LDFLAGS="$PTHREAD_LIBS"
 
@@ -199,7 +207,11 @@ AC_ARG_WITH([tests],
             [AS_HELP_STRING([--without-tests],
             [Do not build libplist test suite (default is yes)])],
             [build_tests=${withval}],
-            [build_tests=yes])
+            [build_tests=${build_tools}])
+
+if test "x$build_tests" = "xyes" -a "x$build_tools" != "xyes"; then
+    AC_MSG_ERROR([Building the test suite requires plistutil. Reconfigure with --with-tools=yes to enable.])
+fi
 
 if test "x$build_fuzzers" = "xyes"; then
     if test "x$build_sanitizers" = "xno"; then
@@ -318,6 +330,8 @@ Configuration for $PACKAGE $VERSION:
   Install prefix ..........: $prefix
   Debug code ..............: $debug
   Python bindings .........: $cython_python_bindings
+  Build tools .............: $build_tools
+  Build test suite ........: $build_tests
 $EXTRA_CONF
   Now type 'make' to build $PACKAGE $VERSION,
   and then 'make install' for installation.
