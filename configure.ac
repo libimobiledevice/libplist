@@ -71,8 +71,6 @@ case ${host_os} in
     ;;
   *)
     AC_MSG_RESULT([${host_os}])
-    AX_PTHREAD([], [AC_MSG_ERROR([pthread is required to build libplist])])
-    AC_CHECK_LIB(pthread, [pthread_once], [], [AC_MSG_ERROR([pthread with pthread_once required to build libplist])])
     ;;
 esac
 AM_CONDITIONAL(WIN32, test x$win32 = xtrue)
@@ -155,8 +153,8 @@ AC_ARG_WITH([tools],
 AS_IF([test "x$build_tools" = "xyes"], [AC_DEFINE(BUILD_TOOLS, 1, [Define if we are building plist tools])])
 AM_CONDITIONAL(BUILD_TOOLS, test "x$build_tools" = "xyes")
 
-AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing $PTHREAD_CFLAGS")
-GLOBAL_LDFLAGS="$PTHREAD_LIBS"
+AS_COMPILER_FLAGS(GLOBAL_CFLAGS, "-Wall -Wextra -Wredundant-decls -Wshadow -Wpointer-arith  -Wwrite-strings -Wswitch-default -Wno-unused-parameter -Wno-strict-aliasing")
+GLOBAL_LDFLAGS=""
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],

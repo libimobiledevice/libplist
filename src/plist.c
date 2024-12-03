@@ -39,8 +39,6 @@
 
 #ifdef WIN32
 #include <windows.h>
-#else
-#include <pthread.h>
 #endif
 
 #include <node.h>
