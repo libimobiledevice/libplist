@@ -35,6 +35,7 @@ public :
     String(plist_t node, Node* parent = NULL);
     String(const String& s);
     String& operator=(const String& s);
+    String& operator=(const char* s);
     String(const std::string& s);
     virtual ~String();
 
