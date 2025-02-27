@@ -77,7 +77,7 @@ void Structure::UpdateNodeParent(Node* node)
     if ( NULL != node->_parent )
     {
         plist_type type = plist_get_node_type(node->_parent);
-        if (PLIST_ARRAY ==type || PLIST_DICT == type )
+        if (PLIST_ARRAY == type || PLIST_DICT == type)
         {
             Structure* s = static_cast<Structure*>(node->_parent);
             s->Remove(node);
@@ -117,8 +117,14 @@ Structure* Structure::FromBin(const std::vector<char>& bin)
     plist_from_bin(&bin[0], bin.size(), &root);
 
     return ImportStruct(root);
+}
 
+Structure* Structure::FromBin(const char* bin, uint64_t size)
+{
+    plist_t root = NULL;
+    plist_from_bin(bin, size, &root);
+
+    return ImportStruct(root);
 }
 
 }  // namespace PList
-

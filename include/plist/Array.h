@@ -57,6 +57,16 @@ public :
     void Remove(Node* node);
     void Remove(unsigned int pos);
     unsigned int GetNodeIndex(Node* node) const;
+    template <typename T>
+    T* at(unsigned int index)
+    {
+        return (T*)(_array.at(index));
+    }
+    template <typename T>
+    T* At(unsigned int index)
+    {
+        return (T*)(_array.at(index));
+    }
 
 private :
     std::vector<Node*> _array;
