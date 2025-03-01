@@ -168,7 +168,7 @@ void Array::Remove(Node* node)
         std::vector<Node*>::iterator it = _array.begin();
         it += pos;
         _array.erase(it);
-        delete node;
+        free(node);
     }
 }
 

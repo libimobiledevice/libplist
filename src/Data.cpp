@@ -66,14 +66,10 @@ void Data::SetValue(const std::vector<char>& buff)
 
 std::vector<char> Data::GetValue() const
 {
-    char* buff = NULL;
     uint64_t length = 0;
-    plist_get_data_val(_node, &buff, &length);
+    const char* buff = plist_get_data_ptr(_node, &length);
     std::vector<char> ret(buff, buff + length);
-    delete buff;
     return ret;
 }
-
-
 
 }  // namespace PList

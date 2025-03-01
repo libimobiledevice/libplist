@@ -57,7 +57,7 @@ std::string Structure::ToXml() const
     uint32_t length = 0;
     plist_to_xml(_node, &xml, &length);
     std::string ret(xml, xml+length);
-    delete xml;
+    free(xml);
     return ret;
 }
 
@@ -67,7 +67,7 @@ std::vector<char> Structure::ToBin() const
     uint32_t length = 0;
     plist_to_bin(_node, &bin, &length);
     std::vector<char> ret(bin, bin+length);
-    delete bin;
+    free(bin);
     return ret;
 }
 
