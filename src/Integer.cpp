@@ -55,16 +55,6 @@ Integer::Integer(int64_t i) : Node(PLIST_INT)
     plist_set_int_val(_node, i);
 }
 
-Integer::Integer(unsigned long i) : Node(PLIST_INT)
-{
-    plist_set_uint_val(_node, i);
-}
-
-Integer::Integer(long i) : Node(PLIST_INT)
-{
-    plist_set_int_val(_node, i);
-}
-
 Integer::~Integer()
 {
 }
