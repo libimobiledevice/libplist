@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include "plist.h"
 #include <plist/Structure.h>
+#include <string.h>
 
 namespace PList
 {
