@@ -119,12 +119,18 @@ Structure* Structure::FromBin(const std::vector<char>& bin)
     return ImportStruct(root);
 }
 
-Structure* Structure::FromBin(const char* bin, uint64_t size)
+Structure *Structure::FromBuffer(const char *bin, uint64_t size)
 {
     plist_t root = NULL;
-    plist_from_bin(bin, size, &root);
+    if (strncmp("bplist", bin, 6) == 0)
+    {
+        plist_from_bin(bin, size, &root);
+    }
+    else
+    {
+        plist_from_xml(bin, size, &root);
+    }
 
     return ImportStruct(root);
 }
-
-}  // namespace PList
+} // namespace PList

@@ -36,6 +36,7 @@ public :
     Data(const Data& d);
     Data& operator=(const Data& b);
     Data(const std::vector<char>& buff);
+    Data(const char *bin, uint64_t size);
     virtual ~Data();
 
     Node* Clone() const;

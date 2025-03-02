@@ -1382,7 +1382,6 @@ void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     if (PLIST_DATE != type)
         return;
     plist_get_type_and_value(node, &type, (void *) &val, &length);
-    assert(length == sizeof(double));
     if (sec)
         *sec = (int32_t)val;
     if (usec)

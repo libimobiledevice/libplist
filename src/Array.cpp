@@ -40,7 +40,9 @@ static void array_fill(Array *_this, std::vector<Node*> &array, plist_t node)
     do {
         subnode = NULL;
         plist_array_next_item(node, iter, &subnode);
-        array.push_back( Node::FromPlist(subnode, _this) );
+        if (subnode != NULL) {
+            array.push_back( Node::FromPlist(subnode, _this) );
+        }
     } while (subnode);
     free(iter);
 }
@@ -88,6 +90,16 @@ Node* Array::operator[](unsigned int array_index)
     return _array.at(array_index);
 }
 
+Node *Array::back()
+{
+    return _array.back();
+}
+
+Node *Array::Back()
+{
+    return _array.back();
+}
+
 Array::iterator Array::Begin()
 {
     return _array.begin();
@@ -132,7 +144,7 @@ size_t Array::size() const {
     return _array.size();
 }
 
-void Array::Append(Node* node)
+void Array::Append(const Node* node)
 {
     if (node)
     {
@@ -143,7 +155,15 @@ void Array::Append(Node* node)
     }
 }
 
-void Array::Insert(Node* node, unsigned int pos)
+void Array::Append(const Node &node)
+{
+    Node *clone = node.Clone();
+    UpdateNodeParent(clone);
+    plist_array_append_item(_node, clone->GetPlist());
+    _array.push_back(clone);
+}
+
+void Array::Insert(const Node* node, unsigned int pos)
 {
     if (node)
     {
@@ -156,6 +176,10 @@ void Array::Insert(Node* node, unsigned int pos)
     }
 }
 
+void Array::Insert(const Node &node, unsigned int pos)
+{
+    Insert(&node, pos);
+}
 void Array::Remove(Node* node)
 {
     if (node)

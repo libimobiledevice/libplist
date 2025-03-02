@@ -36,6 +36,8 @@ public :
     Integer& operator=(const Integer& i);
     Integer(uint64_t i);
     Integer(int64_t i);
+    Integer(unsigned long i);
+    Integer(long i);
     virtual ~Integer();
 
     Node* Clone() const;
