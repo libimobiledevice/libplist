@@ -55,15 +55,13 @@ public :
     const_iterator end() const;
     size_t size() const;
     const_iterator Find(const std::string& key) const;
-    iterator Set(const std::string& key, const Node* node);
     iterator Set(const std::string& key, const Node& node);
+    iterator Set(const std::string& key, const Node* node);
     void Remove(Node* node);
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* node);
-    template <typename T>
-    T* Get(const std::string& key)
-    {
-        return (T*)(_map[key]);
+    template <typename T> T *Get(const std::string &key) {
+        return (T *)(_map[key]);
     }
 
 private :

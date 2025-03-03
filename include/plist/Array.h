@@ -43,6 +43,8 @@ public :
     typedef std::vector<Node*>::const_iterator const_iterator;
 
     Node* operator[](unsigned int index);
+    Node *back();
+    Node *Back();
     iterator Begin();
     iterator begin();
     iterator End();
@@ -52,20 +54,18 @@ public :
     const_iterator End() const;
     const_iterator end() const;
     size_t size() const;
-    void Append(Node* node);
-    void Insert(Node* node, unsigned int pos);
+    void Append(const Node &node);
+    void Append(const Node* node);
+    void Insert(const Node &node, unsigned int pos);
+    void Insert(const Node* node, unsigned int pos);
     void Remove(Node* node);
     void Remove(unsigned int pos);
     unsigned int GetNodeIndex(Node* node) const;
-    template <typename T>
-    T* at(unsigned int index)
-    {
-        return (T*)(_array.at(index));
+    template <typename T> T *at(unsigned int index) {
+        return (T *)(_array.at(index));
     }
-    template <typename T>
-    T* At(unsigned int index)
-    {
-        return (T*)(_array.at(index));
+    template <typename T> T *At(unsigned int index) {
+        return (T *)(_array.at(index));
     }
 
 private :

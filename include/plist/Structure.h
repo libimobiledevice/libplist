@@ -43,7 +43,7 @@ public :
 
     static Structure* FromXml(const std::string& xml);
     static Structure* FromBin(const std::vector<char>& bin);
-    static Structure* FromBin(const char* bin, uint64_t size);
+    static Structure *FromBuffer(const char *bin, uint64_t size);
 
 protected:
     Structure(Node* parent = NULL);
