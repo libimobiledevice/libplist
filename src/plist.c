@@ -1808,6 +1808,9 @@ void plist_sort(plist_t plist)
     } else if (PLIST_IS_DICT(plist)) {
         node_t node = (node_t)plist;
         node_t ch;
+        if (!node_first_child(node)) {
+            return;
+        }
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
             ch = node_next_sibling(ch);
             plist_sort((plist_t)ch);
