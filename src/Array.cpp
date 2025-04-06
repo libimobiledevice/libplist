@@ -40,7 +40,9 @@ static void array_fill(Array *_this, std::vector<Node*> &array, plist_t node)
     do {
         subnode = NULL;
         plist_array_next_item(node, iter, &subnode);
-        array.push_back( Node::FromPlist(subnode, _this) );
+        if (subnode) {
+            array.push_back( Node::FromPlist(subnode, _this) );
+        }
     } while (subnode);
     free(iter);
 }
