@@ -57,6 +57,11 @@ String::String(const std::string& s) : Node(PLIST_STRING)
     plist_set_string_val(_node, s.c_str());
 }
 
+String::String(const char *s) : Node(PLIST_STRING)
+{
+    plist_set_string_val(_node, s);
+}
+
 String::~String()
 {
 }
