@@ -60,9 +60,7 @@ public :
     void Remove(Node* node);
     void Remove(const std::string& key);
     std::string GetNodeKey(Node* node);
-    template <typename T>
-    T* Get(const std::string& key)
-    {
+    template <typename T> T* Get(const std::string& key) {
         return (T*)(_map[key]);
     }
 
