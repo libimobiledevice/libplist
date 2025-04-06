@@ -127,4 +127,17 @@ Structure* Structure::FromBin(const char* bin, uint64_t size)
     return ImportStruct(root);
 }
 
+Structure* Structure::FromMemory(const std::vector<char>& buf, plist_format_t *format)
+{
+    return Structure::FromMemory(&buf[0], buf.size(), format);
+}
+
+Structure* Structure::FromMemory(const char* buf, uint64_t size, plist_format_t *format)
+{
+    plist_t root = NULL;
+    plist_from_memory(buf, size, &root, format);
+    return ImportStruct(root);
+}
+
+
 }  // namespace PList

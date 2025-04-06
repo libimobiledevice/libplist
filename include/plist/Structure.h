@@ -44,6 +44,8 @@ public :
     static Structure* FromXml(const std::string& xml);
     static Structure* FromBin(const std::vector<char>& bin);
     static Structure* FromBin(const char* bin, uint64_t size);
+    static Structure* FromMemory(const std::vector<char>& buf, plist_format_t* format = NULL);
+    static Structure* FromMemory(const char* buf, uint64_t size, plist_format_t* format = NULL);
 
 protected:
     Structure(Node* parent = NULL);
