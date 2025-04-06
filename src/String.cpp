@@ -45,6 +45,13 @@ String& String::operator=(const PList::String& s)
     return *this;
 }
 
+String& String::operator=(const std::string& s)
+{
+    plist_free(_node);
+    _node = plist_new_string(s.c_str());
+    return *this;
+}
+
 String& String::operator=(const char* s)
 {
     plist_free(_node);
