@@ -53,7 +53,7 @@ Array::Array(plist_t node, Node* parent) : Structure(parent)
     array_fill(this, _array, _node);
 }
 
-Array::Array(const PList::Array& a)
+Array::Array(const PList::Array& a) : Structure(a.GetParent())
 {
     _array.clear();
     _node = plist_copy(a.GetPlist());

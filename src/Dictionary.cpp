@@ -51,7 +51,7 @@ Dictionary::Dictionary(plist_t node, Node* parent) : Structure(parent)
     dictionary_fill(this, _map, _node);
 }
 
-Dictionary::Dictionary(const PList::Dictionary& d)
+Dictionary::Dictionary(const PList::Dictionary& d) : Structure(d.GetParent())
 {
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
