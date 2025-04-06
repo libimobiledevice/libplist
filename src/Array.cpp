@@ -90,6 +90,26 @@ Node* Array::operator[](unsigned int array_index)
     return _array.at(array_index);
 }
 
+Node* Array::Back()
+{
+    return _array.back();
+}
+
+Node* Array::back()
+{
+    return _array.back();
+}
+
+Node* Array::Front()
+{
+    return _array.front();
+}
+
+Node* Array::front()
+{
+    return _array.front();
+}
+
 Array::iterator Array::Begin()
 {
     return _array.begin();

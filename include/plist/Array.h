@@ -43,6 +43,10 @@ public :
     typedef std::vector<Node*>::const_iterator const_iterator;
 
     Node* operator[](unsigned int index);
+    Node* Back();
+    Node* back();
+    Node* Front();
+    Node* front();
     iterator Begin();
     iterator begin();
     iterator End();
