@@ -134,7 +134,7 @@ size_t Array::size() const {
     return _array.size();
 }
 
-void Array::Append(Node* node)
+void Array::Append(const Node* node)
 {
     if (node)
     {
@@ -145,7 +145,12 @@ void Array::Append(Node* node)
     }
 }
 
-void Array::Insert(Node* node, unsigned int pos)
+void Array::Append(const Node& node)
+{
+    Append(&node);
+}
+
+void Array::Insert(const Node* node, unsigned int pos)
 {
     if (node)
     {
@@ -156,6 +161,11 @@ void Array::Insert(Node* node, unsigned int pos)
         it += pos;
         _array.insert(it, clone);
     }
+}
+
+void Array::Insert(const Node &node, unsigned int pos)
+{
+    Insert(&node, pos);
 }
 
 void Array::Remove(Node* node)
@@ -183,10 +193,15 @@ void Array::Remove(unsigned int pos)
     _array.erase(it);
 }
 
-unsigned int Array::GetNodeIndex(Node* node) const
+unsigned int Array::GetNodeIndex(const Node* node) const
 {
     std::vector<Node*>::const_iterator it = std::find(_array.begin(), _array.end(), node);
     return std::distance (_array.begin(), it);
+}
+
+unsigned int Array::GetNodeIndex(const Node& node) const
+{
+    return GetNodeIndex(&node);
 }
 
 }  // namespace PList
