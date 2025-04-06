@@ -50,6 +50,11 @@ Data::Data(const std::vector<char>& buff) : Node(PLIST_DATA)
     plist_set_data_val(_node, &buff[0], buff.size());
 }
 
+Data::Data(const char* buff, uint64_t size) : Node(PLIST_DATA)
+{
+    plist_set_data_val(_node, buff, size);
+}
+
 Data::~Data()
 {
 }
