@@ -1548,7 +1548,7 @@ void plist_set_data_val(plist_t node, const char *val, uint64_t length)
 void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
 {
     double val = (double)sec + (double)usec / 1000000;
-    plist_set_element_val(node, PLIST_DATE, &val, sizeof(struct timeval));
+    plist_set_element_val(node, PLIST_DATE, &val, sizeof(double));
 }
 
 int plist_bool_val_is_true(plist_t boolnode)
