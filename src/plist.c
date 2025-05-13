@@ -46,6 +46,8 @@
 #include <hashtable.h>
 #include <ptrarray.h>
 
+#define MAC_EPOCH 978307200
+
 #ifdef _MSC_VER
 typedef SSIZE_T ssize_t;
 #endif
@@ -524,6 +526,15 @@ plist_t plist_new_date(int32_t sec, int32_t usec)
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_DATE;
     data->realval = (double)sec + (double)usec / 1000000;
+    data->length = sizeof(double);
+    return plist_new_node(data);
+}
+
+plist_t plist_new_unix_date(int64_t sec)
+{
+    plist_data_t data = plist_new_plist_data();
+    data->type = PLIST_DATE;
+    data->realval = (double)sec - MAC_EPOCH;
     data->length = sizeof(double);
     return plist_new_node(data);
 }
@@ -1392,6 +1403,20 @@ void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     }
 }
 
+void plist_get_unix_date_val(plist_t node, int64_t *sec)
+{
+    if (!node || !sec)
+        return;
+    plist_type type = plist_get_node_type(node);
+    uint64_t length = 0;
+    double val = 0;
+    if (PLIST_DATE != type)
+        return;
+    plist_get_type_and_value(node, &type, (void *) &val, &length);
+    assert(length == sizeof(double));
+    *sec = (int64_t)val + MAC_EPOCH;
+}
+
 int plist_data_compare(const void *a, const void *b)
 {
     plist_data_t val_a = NULL;
@@ -1551,6 +1576,12 @@ void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
     plist_set_element_val(node, PLIST_DATE, &val, sizeof(double));
 }
 
+void plist_set_unix_date_val(plist_t node, int64_t sec)
+{
+    double val = (double)(sec - MAC_EPOCH);
+    plist_set_element_val(node, PLIST_DATE, &val, sizeof(double));
+}
+
 int plist_bool_val_is_true(plist_t boolnode)
 {
     if (!PLIST_IS_BOOLEAN(boolnode)) {
@@ -1675,6 +1706,24 @@ int plist_date_val_compare(plist_t datenode, int32_t cmpsec, int32_t cmpusec)
     plist_get_date_val(datenode, &sec, &usec);
     uint64_t dateval = ((int64_t)sec << 32) | usec;
     uint64_t cmpval = ((int64_t)cmpsec << 32) | cmpusec;
+    if (dateval == cmpval) {
+        return 0;
+    }
+
+    if (dateval < cmpval) {
+        return -1;
+    }
+
+    return 1;
+}
+
+int plist_unix_date_val_compare(plist_t datenode, int64_t cmpval)
+{
+    if (!PLIST_IS_DATE(datenode)) {
+        return -1;
+    }
+    int64_t dateval = 0;
+    plist_get_unix_date_val(datenode, &dateval);
     if (dateval == cmpval) {
         return 0;
     }

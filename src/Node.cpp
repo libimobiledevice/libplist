@@ -73,7 +73,7 @@ Node::Node(plist_type type, Node* parent) : _parent(parent)
         _node = plist_new_data(NULL,0);
         break;
     case PLIST_DATE:
-        _node = plist_new_date(0,0);
+        _node = plist_new_unix_date(0);
         break;
     case PLIST_ARRAY:
         _node = plist_new_array();

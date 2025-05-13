@@ -1,5 +1,5 @@
 #include <Python.h>
 
-void datetime_to_ints(PyObject* obj, int32_t* sec, int32_t* usec);
-PyObject* ints_to_datetime(int32_t sec, int32_t usec);
+int64_t datetime_to_timestamp(PyObject* obj);
+PyObject* timestamp_to_datetime(int64_t sec);
 int check_datetime(PyObject* obj);

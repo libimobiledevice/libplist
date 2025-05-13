@@ -40,13 +40,13 @@ public :
     Date(plist_t node, Node* parent = NULL);
     Date(const Date& d);
     Date& operator=(const Date& d);
-    Date(timeval t);
+    Date(int64_t t);
     virtual ~Date();
 
     Node* Clone() const;
 
-    void SetValue(timeval t);
-    timeval GetValue() const;
+    void SetValue(int64_t t);
+    int64_t GetValue() const;
 };
 
 };

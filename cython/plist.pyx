@@ -33,9 +33,9 @@ cdef extern from *:
     void plist_get_real_val(plist_t node, double *val)
     void plist_set_real_val(plist_t node, double val)
 
-    plist_t plist_new_date(int32_t sec, int32_t usec)
-    void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
-    void plist_set_date_val(plist_t node, int32_t sec, int32_t usec)
+    plist_t plist_new_unix_date(int64_t sec)
+    void plist_get_unix_date_val(plist_t node, int64_t *sec)
+    void plist_set_unix_date_val(plist_t node, int64_t sec)
 
     void plist_get_key_val(plist_t node, char **val)
     void plist_set_key_val(plist_t node, char *val)
@@ -488,23 +488,21 @@ cdef String String_factory(plist_t c_node, bint managed=True):
     instance._c_node = c_node
     return instance
 
-MAC_EPOCH = 978307200
-
 cdef extern from "plist_util.h":
-    void datetime_to_ints(object obj, int32_t* sec, int32_t* usec)
-    object ints_to_datetime(int32_t sec, int32_t usec)
+    int64_t datetime_to_timestamp(object obj)
+    object timestamp_to_datetime(int64_t sec)
     int check_datetime(object obj)
 
 cdef plist_t create_date_plist(value=None):
     cdef plist_t node = NULL
-    cdef int32_t secs
-    cdef int32_t usecs
     if value is None:
-        node = plist_new_date(0, 0)
+        node = plist_new_unix_date(0)
+    elif isinstance(value, int):
+        node = plist_new_unix_date(value)
+    elif isinstance(value, float):
+        node = plist_new_unix_date(int(value))
     elif check_datetime(value):
-        datetime_to_ints(value, &secs, &usecs)
-        secs -= MAC_EPOCH
-        node = plist_new_date(secs, usecs)
+        node = plist_new_unix_date(datetime_to_timestamp(value))
     return node
 
 cdef class Date(Node):
@@ -531,19 +529,21 @@ cdef class Date(Node):
             return d >= other
 
     cpdef object get_value(self):
-        cdef int32_t secs = 0
-        cdef int32_t usecs = 0
-        plist_get_date_val(self._c_node, &secs, &usecs)
-        secs += MAC_EPOCH
-        return ints_to_datetime(secs, usecs)
+        cdef int64_t secs = 0
+        plist_get_unix_date_val(self._c_node, &secs)
+        return timestamp_to_datetime(secs)
 
     cpdef set_value(self, object value):
-        cdef int32_t secs
-        cdef int32_t usecs
-        if not check_datetime(value):
-            raise ValueError("Expected a datetime")
-        datetime_to_ints(value, &secs, &usecs)
-        plist_set_date_val(self._c_node, secs, usecs)
+        cdef int64_t secs = 0
+        if isinstance(value, int):
+            secs = value
+        elif isinstance(value, float):
+            secs = int(value)
+        elif check_datetime(value):
+            secs = datetime_to_timestamp(value)
+        else:
+            raise ValueError("Expected int or datetime")
+        plist_set_unix_date_val(self._c_node, secs)
 
 cdef Date Date_factory(plist_t c_node, bint managed=True):
     cdef Date instance = Date.__new__(Date)

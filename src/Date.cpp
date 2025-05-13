@@ -34,8 +34,8 @@ Date::Date(plist_t node, Node* parent) : Node(node, parent)
 
 Date::Date(const PList::Date& d) : Node(PLIST_DATE)
 {
-    timeval t = d.GetValue();
-    plist_set_date_val(_node, t.tv_sec, t.tv_usec);
+    int64_t t = d.GetValue();
+    plist_set_unix_date_val(_node, t);
 }
 
 Date& Date::operator=(const PList::Date& d)
@@ -45,9 +45,9 @@ Date& Date::operator=(const PList::Date& d)
     return *this;
 }
 
-Date::Date(timeval t) : Node(PLIST_DATE)
+Date::Date(int64_t t) : Node(PLIST_DATE)
 {
-    plist_set_date_val(_node, t.tv_sec, t.tv_usec);
+    plist_set_unix_date_val(_node, t);
 }
 
 Date::~Date()
@@ -59,18 +59,16 @@ Node* Date::Clone() const
     return new Date(*this);
 }
 
-void Date::SetValue(timeval t)
+void Date::SetValue(int64_t t)
 {
-    plist_set_date_val(_node, t.tv_sec, t.tv_usec);
+    plist_set_unix_date_val(_node, t);
 }
 
-timeval Date::GetValue() const
+int64_t Date::GetValue() const
 {
-    int32_t tv_sec = 0;
-    int32_t tv_usec = 0;
-    plist_get_date_val(_node, &tv_sec, &tv_usec);
-    timeval t = {tv_sec, tv_usec};
-    return t;
+    int64_t sec = 0;
+    plist_get_unix_date_val(_node, &sec);
+    return sec;
 }
 
 }  // namespace PList

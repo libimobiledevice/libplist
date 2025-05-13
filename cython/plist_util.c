@@ -3,13 +3,11 @@
 #include <time.h>
 #include <datetime.h>
 
-void datetime_to_ints(PyObject* obj, int32_t* sec, int32_t* usec) {
+int64_t datetime_to_timestamp(PyObject* obj) {
     PyDateTime_IMPORT;
     if (!PyDateTime_Check(obj)) {
-		PyErr_SetString(PyExc_ValueError,"Expected a datetime");
-		sec = NULL;
-		usec = NULL;
-		return;
+        PyErr_SetString(PyExc_ValueError,"Expected a datetime");
+        return 0;
     }
     struct tm t;
     memset(&t, 0, sizeof(t));
@@ -19,22 +17,21 @@ void datetime_to_ints(PyObject* obj, int32_t* sec, int32_t* usec) {
     t.tm_mday = PyDateTime_GET_DAY(obj);
     t.tm_mon = PyDateTime_GET_MONTH(obj)-1;
     t.tm_year = PyDateTime_GET_YEAR(obj)-1900;
-	*sec = (int32_t)mktime(&t);
-	*usec = PyDateTime_DATE_GET_MICROSECOND(obj);
+    return mktime(&t);
 }
-PyObject* ints_to_datetime(int32_t sec, int32_t usec) {
-	time_t sec_tt = sec;
+PyObject* timestamp_to_datetime(int64_t sec) {
+    time_t sec_tt = sec;
     struct tm* t = gmtime(&sec_tt);
     if(t){
-		PyDateTime_IMPORT;
-		return PyDateTime_FromDateAndTime(t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, usec);
+        PyDateTime_IMPORT;
+        return PyDateTime_FromDateAndTime(t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, 0);
     }
-	return NULL;
+    return NULL;
 }
 int check_datetime(PyObject* ob) {
-	if(ob){
-		PyDateTime_IMPORT;
-		return PyDateTime_Check(ob);
-	}
-	return 0;
+    if(ob){
+        PyDateTime_IMPORT;
+        return PyDateTime_Check(ob);
+    }
+    return 0;
 }
