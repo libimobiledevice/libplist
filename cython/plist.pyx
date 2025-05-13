@@ -851,7 +851,7 @@ cdef plist_t native_to_plist_t(object native):
         return plist_new_string(native)
     if isinstance(native, bool):
         return plist_new_bool(<bint>native)
-    if isinstance(native, int) or isinstance(native, long):
+    if isinstance(native, int):
         return plist_new_uint(native)
     if isinstance(native, float):
         return plist_new_real(native)
