@@ -1701,9 +1701,12 @@ int plist_date_val_compare(plist_t datenode, int32_t cmpsec, int32_t cmpusec)
     if (!PLIST_IS_DATE(datenode)) {
         return -1;
     }
-    int32_t sec = 0;
-    int32_t usec = 0;
-    plist_get_date_val(datenode, &sec, &usec);
+    plist_data_t data = plist_get_data(datenode);
+    assert(data->length == sizeof(double));
+    double val = data->realval;
+    int32_t sec = (int32_t)val;
+    val = fabs((val - (int64_t)val) * 1000000);
+    int32_t usec = (int32_t)val;
     uint64_t dateval = ((int64_t)sec << 32) | usec;
     uint64_t cmpval = ((int64_t)cmpsec << 32) | cmpusec;
     if (dateval == cmpval) {
