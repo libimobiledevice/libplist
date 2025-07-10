@@ -97,7 +97,7 @@ jobs:
         name: libplist-latest_macOS
         path: libplist.tar
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     defaults:
       run:
         shell: msys2 {0}
@@ -118,6 +118,8 @@ jobs:
           base-devel
           git
           mingw-w64-${{ matrix.arch }}-gcc
+          mingw-w64-${{ matrix.arch }}-pkg-config
+          mingw-w64-${{ matrix.arch }}-python
           make
           libtool
           autoconf
