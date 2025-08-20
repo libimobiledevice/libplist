@@ -40,6 +40,8 @@ Integer::Integer(const PList::Integer& i) : Node(PLIST_INT)
 
 Integer& Integer::operator=(const PList::Integer& i)
 {
+    if (this == &i) return *this;
+
     plist_free(_node);
     _node = plist_copy(i.GetPlist());
     return *this;

@@ -40,6 +40,8 @@ String::String(const PList::String& s) : Node(PLIST_INT)
 
 String& String::operator=(const PList::String& s)
 {
+    if (this == &s) return *this;
+
     plist_free(_node);
     _node = plist_copy(s.GetPlist());
     return *this;
