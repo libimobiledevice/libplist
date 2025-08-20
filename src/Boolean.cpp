@@ -40,6 +40,8 @@ Boolean::Boolean(const PList::Boolean& b) : Node(PLIST_BOOLEAN)
 
 Boolean& Boolean::operator=(const PList::Boolean& b)
 {
+    if (this == &b) return *this;
+
     plist_free(_node);
     _node = plist_copy(b.GetPlist());
     return *this;

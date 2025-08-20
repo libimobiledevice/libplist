@@ -65,6 +65,8 @@ Dictionary::Dictionary(const PList::Dictionary& d) : Structure(d.GetParent())
 
 Dictionary& Dictionary::operator=(const PList::Dictionary& d)
 {
+    if (this == &d) return *this;
+
     for (Dictionary::iterator it = _map.begin(); it != _map.end(); it++)
     {
         plist_free(it->second->GetPlist());

@@ -62,6 +62,8 @@ Array::Array(const PList::Array& a) : Structure(a.GetParent())
 
 Array& Array::operator=(const PList::Array& a)
 {
+    if (this == &a) return *this;
+
     plist_free(_node);
     for (size_t it = 0; it < _array.size(); it++) {
         delete _array.at(it);
