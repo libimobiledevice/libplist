@@ -40,6 +40,8 @@ Uid::Uid(const PList::Uid& i) : Node(PLIST_UID)
 
 Uid& Uid::operator=(const PList::Uid& i)
 {
+    if (this == &i) return *this;
+
     plist_free(_node);
     _node = plist_copy(i.GetPlist());
     return *this;
