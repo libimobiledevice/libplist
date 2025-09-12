@@ -358,7 +358,7 @@ plist_data_t plist_get_data(plist_t node)
 
 plist_data_t plist_new_plist_data(void)
 {
-    plist_data_t data = (plist_data_t) calloc(sizeof(struct plist_data_s), 1);
+    plist_data_t data = (plist_data_t) calloc(1, sizeof(struct plist_data_s));
     return data;
 }
 
