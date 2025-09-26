@@ -39,6 +39,8 @@ Real::Real(const PList::Real& d) : Node(PLIST_INT)
 
 Real& Real::operator=(const PList::Real& d)
 {
+    if (this == &d) return *this;
+    
     plist_free(_node);
     _node = plist_copy(d.GetPlist());
     return *this;

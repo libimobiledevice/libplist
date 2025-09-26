@@ -40,6 +40,8 @@ Date::Date(const PList::Date& d) : Node(PLIST_DATE)
 
 Date& Date::operator=(const PList::Date& d)
 {
+    if (this == &d) return *this;
+
     plist_free(_node);
     _node = plist_copy(d.GetPlist());
     return *this;
