@@ -196,8 +196,8 @@ int main(int argc, char *argv[])
     plist_t root_node = NULL;
     char *plist_out = NULL;
     uint32_t size = 0;
-    int read_size = 0;
-    int read_capacity = 4096;
+    size_t read_size = 0;
+    size_t read_capacity = 4096;
     char *plist_entire = NULL;
     struct stat filestats;
     options_t *options = parse_arguments(argc, argv);
