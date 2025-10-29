@@ -40,6 +40,8 @@ Key::Key(const PList::Key& k) : Node(PLIST_INT)
 
 Key& Key::operator=(const PList::Key& k)
 {
+    if (this == &k) return *this;
+
     plist_free(_node);
     _node = plist_copy(k.GetPlist());
     return *this;

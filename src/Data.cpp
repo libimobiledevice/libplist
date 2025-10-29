@@ -40,6 +40,8 @@ Data::Data(const PList::Data& d) : Node(PLIST_DATA)
 
 Data& Data::operator=(const PList::Data& b)
 {
+    if (this == &b) return *this;
+
     plist_free(_node);
     _node = plist_copy(b.GetPlist());
     return *this;
