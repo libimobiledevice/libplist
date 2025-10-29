@@ -369,13 +369,13 @@ static plist_t parse_string_node(const char **bnode, uint64_t size)
     return node_create(NULL, data);
 }
 
-static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read, long *items_written)
+static char *plist_utf16be_to_utf8(uint16_t *unistr, size_t len, size_t *items_read, size_t *items_written)
 {
 	if (!unistr || (len <= 0)) return NULL;
 	char* outbuf;
 	char* outbuf_new;
-	int p = 0;
-	long i = 0;
+	size_t p = 0;
+	size_t i = 0;
 
 	uint16_t wc;
 	uint32_t w;
@@ -443,8 +443,8 @@ static char *plist_utf16be_to_utf8(uint16_t *unistr, long len, long *items_read,
 static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
-    long items_read = 0;
-    long items_written = 0;
+    size_t items_read = 0;
+    size_t items_written = 0;
 
     data->type = PLIST_STRING;
     data->strval = plist_utf16be_to_utf8((uint16_t*)(*bnode), size, &items_read, &items_written);
@@ -1097,11 +1097,11 @@ static void write_string(bytearray_t * bplist, char *val, uint64_t size)
     write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
 }
 
-static uint16_t *plist_utf8_to_utf16be(char *unistr, long size, long *items_read, long *items_written)
+static uint16_t *plist_utf8_to_utf16be(char *unistr, size_t size, size_t *items_read, size_t *items_written)
 {
 	uint16_t *outbuf;
-	int p = 0;
-	long i = 0;
+	size_t p = 0;
+	size_t i = 0;
 
 	unsigned char c0;
 	unsigned char c1;
@@ -1156,10 +1156,10 @@ static uint16_t *plist_utf8_to_utf16be(char *unistr, long size, long *items_read
 	return outbuf;
 }
 
-static void write_unicode(bytearray_t * bplist, char *val, uint64_t size)
+static void write_unicode(bytearray_t * bplist, char *val, size_t size)
 {
-    long items_read = 0;
-    long items_written = 0;
+    size_t items_read = 0;
+    size_t items_written = 0;
     uint16_t *unicodestr = NULL;
 
     unicodestr = plist_utf8_to_utf16be(val, size, &items_read, &items_written);
