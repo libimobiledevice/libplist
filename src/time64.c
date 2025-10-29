@@ -224,6 +224,7 @@ Time64_T timegm64(const struct TM *date) {
     Time64_T days    = 0;
     Time64_T seconds = 0;
     Year     year;
+    assert(date != NULL);
     Year     orig_year = (Year)date->tm_year;
     int      cycles  = 0;
 
