@@ -761,7 +761,7 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             char c = *ctx->pos;
             ctx->pos++;
             p = ctx->pos;
-            int num_escapes = 0;
+            size_t num_escapes = 0;
             while (ctx->pos < ctx->end) {
                 if (*ctx->pos == '\\') {
                     num_escapes++;
