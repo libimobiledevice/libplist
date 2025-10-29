@@ -1066,7 +1066,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 ctx->err++;
                 goto err_out;
             }
-            int taglen = ctx->pos - p;
+            size_t taglen = ctx->pos - p;
             tag = (char*)malloc(taglen + 1);
             strncpy(tag, p, taglen);
             tag[taglen] = '\0';
@@ -1084,7 +1084,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 goto err_out;
             }
             if (*(ctx->pos-1) == '/') {
-                int idx = ctx->pos - p - 1;
+                size_t idx = ctx->pos - p - 1;
                 if (idx < taglen)
                     tag[idx] = '\0';
                 is_empty = 1;
