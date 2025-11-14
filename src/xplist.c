@@ -256,7 +256,7 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
     /* append tag */
     str_buf_append(*outbuf, "<", 1);
     str_buf_append(*outbuf, tag, tag_len);
-    if (node_data->type == PLIST_STRING || node_data->type == PLIST_KEY) {
+    if ((node_data->type == PLIST_STRING || node_data->type == PLIST_KEY) && node_data->length > 0) {
         size_t j;
         size_t len;
         off_t start = 0;
@@ -1274,6 +1274,14 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         data->length = length;
                     }
                 } else {
+                    if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
+                        keyname = strdup("");
+                        free(tag);
+                        tag = NULL;
+                        plist_free(subnode);
+                        subnode = NULL;
+                        continue;
+                    }
                     data->strval = strdup("");
                     data->length = 0;
                 }
