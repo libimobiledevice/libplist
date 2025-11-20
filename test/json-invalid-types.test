@@ -14,19 +14,19 @@ export PLIST_JSON_DEBUG=1
 
 echo "Converting (failure expected)"
 $top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE0 -o /dev/null
-if [ $? -neq 2 ]; then
+if [ $? -ne 2 ]; then
   exit 1
 fi
 
 echo "Converting (failure expected)"
 $top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE1 -o /dev/null
-if [ $? -neq 2 ]; then
+if [ $? -ne 2 ]; then
   exit 2
 fi
 
 echo "Converting (failure expected)"
 $top_builddir/tools/plistutil -f json -i $DATASRC/$TESTFILE2 -o /dev/null
-if [ $? -neq 2 ]; then
+if [ $? -ne 2 ]; then
   exit 3
 fi
 
