@@ -2,7 +2,6 @@
 
 DATASRC=$top_srcdir/test/data
 DATAOUT=$top_builddir/test/data
-TESTFILE0=data.bplist
 TESTFILE1=7.plist
 TESTFILE2=uid.bplist
 
@@ -13,7 +12,7 @@ fi
 export PLIST_OSTEP_DEBUG=1
 
 echo "Converting (failure expected)"
-$top_builddir/tools/plistutil -f openstep -i $DATASRC/$TESTFILE0 -o /dev/null
+echo '[true]' |$top_builddir/tools/plistutil -f openstep -i - -o /dev/null
 if [ $? -ne 2 ]; then
   exit 1
 fi
