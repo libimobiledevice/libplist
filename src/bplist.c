@@ -876,7 +876,14 @@ plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * pli
     ref_size = trailer->ref_size;
     num_objects = be64toh(trailer->num_objects);
     root_object = be64toh(trailer->root_object_index);
-    offset_table = (char *)(plist_bin + be64toh(trailer->offset_table_offset));
+
+    uint64_t offset_table_offset = be64toh(trailer->offset_table_offset);
+    uint64_t max_valid_offset = (uint64_t)length - sizeof(bplist_trailer_t);
+    if (offset_table_offset > max_valid_offset) {
+        PLIST_BIN_ERR("offset table offset outside of valid range\n");
+        return PLIST_ERR_PARSE;
+    }
+    offset_table = (char *)(plist_bin + offset_table_offset);
 
     if (num_objects == 0) {
         PLIST_BIN_ERR("number of objects must be larger than 0\n");
