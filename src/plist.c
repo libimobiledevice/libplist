@@ -515,8 +515,10 @@ plist_t plist_new_data(const char *val, uint64_t length)
 {
     plist_data_t data = plist_new_plist_data();
     data->type = PLIST_DATA;
+if (val && length) {
     data->buff = (uint8_t *) malloc(length);
     memcpy(data->buff, val, length);
+}
     data->length = length;
     return plist_new_node(data);
 }
@@ -1422,14 +1424,20 @@ int plist_data_compare(const void *a, const void *b)
     plist_data_t val_a = NULL;
     plist_data_t val_b = NULL;
 
-    if (!a || !b)
-        return FALSE;
+    if (a == b)
+        return TRUE;
 
-    if (!((node_t) a)->data || !((node_t) b)->data)
+    if (!a || !b)
         return FALSE;
 
     val_a = plist_get_data((plist_t) a);
     val_b = plist_get_data((plist_t) b);
+
+    if (val_a == NULL && val_b == NULL)
+        return TRUE;
+
+    if (val_a == NULL || val_b == NULL)
+        return FALSE;
 
     if (val_a->type != val_b->type)
         return FALSE;
@@ -1442,28 +1450,30 @@ int plist_data_compare(const void *a, const void *b)
     case PLIST_REAL:
     case PLIST_DATE:
     case PLIST_UID:
-        if (val_a->length != val_b->length)
-            return FALSE;
-        return val_a->intval == val_b->intval;	//it is an union so this is sufficient
+        return val_a->length == val_b->length
+            && val_a->intval == val_b->intval;	// it is a union so this is sufficient
 
     case PLIST_KEY:
     case PLIST_STRING:
+        if (!val_a->strval || !val_b->strval)
+            return val_a->strval == val_b->strval;
         return strcmp(val_a->strval, val_b->strval) == 0;
 
-    case PLIST_DATA:
+    case PLIST_DATA: {
         if (val_a->length != val_b->length)
             return FALSE;
+        if (val_a->length == 0)
+            return TRUE;
         return memcmp(val_a->buff, val_b->buff, val_a->length) == 0;
-
+    }
     case PLIST_ARRAY:
     case PLIST_DICT:
         //compare pointer
         return a == b;
 
     default:
-        break;
+        return FALSE;
     }
-    return FALSE;
 }
 
 char plist_compare_node_value(plist_t node_l, plist_t node_r)
