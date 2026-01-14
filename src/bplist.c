@@ -1168,7 +1168,7 @@ static uint16_t *plist_utf8_to_utf16be(char *unistr, size_t size, size_t *items_
 			i+=1;
 		} else {
 			// invalid character
-			PLIST_BIN_ERR("%s: invalid utf8 sequence in string at index %lu\n", __func__, i);
+			PLIST_BIN_ERR("%s: invalid utf8 sequence in string at index %zu\n", __func__, i);
 			break;
 		}
 	}
