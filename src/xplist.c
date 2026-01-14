@@ -46,6 +46,7 @@
 #include "base64.h"
 #include "strbuf.h"
 #include "time64.h"
+#include "hashtable.h"
 
 #define XPLIST_KEY	"key"
 #define XPLIST_KEY_LEN 3
@@ -444,17 +445,29 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth)
+static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, hashtable_t *visited)
 {
     plist_data_t data;
     if (!node) {
         return PLIST_ERR_INVALID_ARG;
     }
+
+    if (hash_table_lookup(visited, node)) {
+        PLIST_XML_WRITE_ERR("circular reference detected\n");
+        return PLIST_ERR_CIRCULAR_REF;
+    }
+
+    // mark as visited
+    hash_table_insert(visited, node, (void*)1);
+
     data = plist_get_data(node);
     if (node->children) {
         node_t ch;
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            node_estimate_size(ch, size, depth + 1);
+            plist_err_t err = _node_estimate_size(ch, size, depth + 1, visited);
+            if (err != PLIST_ERR_SUCCESS) {
+                return err;
+            }
         }
         switch (data->type) {
         case PLIST_DICT:
@@ -527,6 +540,15 @@ static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t dept
         *size += indent;
     }
     return PLIST_ERR_SUCCESS;
+}
+
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth)
+{
+    hashtable_t *visited = hash_table_new(plist_node_ptr_hash, plist_node_ptr_compare, NULL);
+    if (!visited) return PLIST_ERR_NO_MEM;
+    plist_err_t err = _node_estimate_size(node, size, depth, visited);
+    hash_table_destroy(visited);
+    return err;
 }
 
 plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)

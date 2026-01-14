@@ -38,6 +38,7 @@
 #include "plist.h"
 #include "strbuf.h"
 #include "time64.h"
+#include "hashtable.h"
 
 #define MAC_EPOCH 978307200
 
@@ -310,19 +311,30 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, uint32_t indent, int partial_data)
+static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, uint32_t indent, int partial_data, hashtable_t *visited)
 {
     plist_data_t data;
     if (!node) {
         return PLIST_ERR_INVALID_ARG;
     }
+
+    if (hash_table_lookup(visited, node)) {
+#if DEBUG
+        fprintf(stderr, "libplist: ERROR: circular reference detected\n");
+#endif
+        return PLIST_ERR_CIRCULAR_REF;
+    }
+
+    // mark as visited
+    hash_table_insert(visited, node, (void*)1);
+
     data = plist_get_data(node);
     if (node->children) {
         node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            plist_err_t res = node_estimate_size(ch, size, depth + 1, indent, partial_data);
-            if (res < 0) {
+            plist_err_t res = _node_estimate_size(ch, size, depth + 1, indent, partial_data, visited);
+            if (res != PLIST_ERR_SUCCESS) {
                 return res;
             }
         }
@@ -399,6 +411,15 @@ static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t dept
         *size += 1; // final newline
     }
     return PLIST_ERR_SUCCESS;
+}
+
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, uint32_t indent, int partial_data)
+{
+    hashtable_t *visited = hash_table_new(plist_node_ptr_hash, plist_node_ptr_compare, NULL);
+    if (!visited) return PLIST_ERR_NO_MEM;
+    plist_err_t err = _node_estimate_size(node, size, depth, indent, partial_data, visited);
+    hash_table_destroy(visited);
+    return err;
 }
 
 static plist_err_t _plist_write_to_strbuf(plist_t plist, strbuf_t *outbuf, plist_write_options_t options)

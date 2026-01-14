@@ -37,6 +37,7 @@
 
 #include "plist.h"
 #include "strbuf.h"
+#include "hashtable.h"
 
 #ifdef DEBUG
 static int plist_ostep_debug = 0;
@@ -359,18 +360,27 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
+static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, hashtable_t *visited)
 {
     plist_data_t data;
     if (!node) {
         return PLIST_ERR_INVALID_ARG;
     }
+
+    if (hash_table_lookup(visited, node)) {
+        PLIST_OSTEP_WRITE_ERR("circular reference detected\n");
+        return PLIST_ERR_CIRCULAR_REF;
+    }
+
+    // mark as visited
+    hash_table_insert(visited, node, (void*)1);
+
     data = plist_get_data(node);
     if (node->children) {
         node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            plist_err_t res = node_estimate_size(ch, size, depth + 1, prettify);
+            plist_err_t res = _node_estimate_size(ch, size, depth + 1, prettify, visited);
             if (res < 0) {
                 return res;
             }
@@ -444,6 +454,15 @@ static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t dept
         }
     }
     return PLIST_ERR_SUCCESS;
+}
+
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
+{
+    hashtable_t *visited = hash_table_new(plist_node_ptr_hash, plist_node_ptr_compare, NULL);
+    if (!visited) return PLIST_ERR_NO_MEM;
+    plist_err_t err = _node_estimate_size(node, size, depth, prettify, visited);
+    hash_table_destroy(visited);
+    return err;
 }
 
 plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, int prettify)

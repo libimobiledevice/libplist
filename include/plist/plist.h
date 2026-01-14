@@ -144,6 +144,7 @@ extern "C"
         PLIST_ERR_PARSE        = -3,  /**< parsing of the input format failed */
         PLIST_ERR_NO_MEM       = -4,  /**< not enough memory to handle the operation */
         PLIST_ERR_IO           = -5,  /**< I/O error */
+        PLIST_ERR_CIRCULAR_REF = -6,  /**< circular reference detected */
         PLIST_ERR_UNKNOWN      = -255 /**< an unspecified error occurred */
     } plist_err_t;
 

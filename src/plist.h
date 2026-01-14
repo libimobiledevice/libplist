@@ -81,4 +81,17 @@ extern plist_err_t plist_write_to_stream_default(plist_t plist, FILE *stream, pl
 extern plist_err_t plist_write_to_stream_limd(plist_t plist, FILE *stream, plist_write_options_t options);
 extern plist_err_t plist_write_to_stream_plutil(plist_t plist, FILE *stream, plist_write_options_t options);
 
+static inline unsigned int plist_node_ptr_hash(const void *ptr)
+{
+    uintptr_t h = (uintptr_t)ptr;
+    h ^= (h >> 16);
+    h *= 0x85ebca6b;
+    return (unsigned int)h;
+}
+
+static inline int plist_node_ptr_compare(const void *a, const void *b)
+{
+    return a == b;
+}
+
 #endif

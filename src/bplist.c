@@ -244,8 +244,10 @@ struct bplist_data {
 #ifdef DEBUG
 static int plist_bin_debug = 0;
 #define PLIST_BIN_ERR(...) if (plist_bin_debug) { fprintf(stderr, "libplist[binparser] ERROR: " __VA_ARGS__); }
+#define PLIST_BIN_WRITE_ERR(...) if (plist_bin_debug) { fprintf(stderr, "libplist[binwriter] ERROR: " __VA_ARGS__); }
 #else
 #define PLIST_BIN_ERR(...)
+#define PLIST_BIN_WRITE_ERR(...)
 #endif
 
 void plist_bin_init(void)
@@ -997,35 +999,53 @@ struct serialize_s
 {
     ptrarray_t* objects;
     hashtable_t* ref_table;
+    hashtable_t* in_stack;
 };
 
-static void serialize_plist(node_t node, void* data)
+static plist_err_t serialize_plist(node_t node, void* data)
 {
     uint64_t *index_val = NULL;
     struct serialize_s *ser = (struct serialize_s *) data;
-    uint64_t current_index = ser->objects->len;
 
-    //first check that node is not yet in objects
-    void* val = hash_table_lookup(ser->ref_table, node);
-    if (val)
-    {
-        //data is already in table
-        return;
+    // circular reference check: is node on current recursion stack?
+    if (hash_table_lookup(ser->in_stack, node)) {
+        PLIST_BIN_WRITE_ERR("circular reference detected\n");
+        return PLIST_ERR_CIRCULAR_REF;
     }
-    //insert new ref
+
+    // first check that node is not yet in objects
+    void* val = hash_table_lookup(ser->ref_table, node);
+    if (val) {
+        // data is already in table
+        return PLIST_ERR_SUCCESS;
+    }
+
+    // mark as active
+    hash_table_insert(ser->in_stack, node, (void*)1);
+
+    // insert new ref
     index_val = (uint64_t *) malloc(sizeof(uint64_t));
     assert(index_val != NULL);
-    *index_val = current_index;
+    *index_val = ser->objects->len;
     hash_table_insert(ser->ref_table, node, index_val);
 
-    //now append current node to object array
+    // now append current node to object array
     ptr_array_add(ser->objects, node);
 
-    //now recurse on children
+    // now recurse on children
     node_t ch;
+    plist_err_t err = PLIST_ERR_SUCCESS;
     for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-        serialize_plist(ch, data);
+        err = serialize_plist(ch, data);
+        if (err != PLIST_ERR_SUCCESS) {
+            break;
+        }
     }
+
+    // leave recursion stack
+    hash_table_remove(ser->in_stack, node);
+
+    return err;
 }
 
 #define Log2(x) ((x) == 8 ? 3 : ((x) == 4 ? 2 : ((x) == 2 ? 1 : 0)))
@@ -1251,6 +1271,7 @@ plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 {
     ptrarray_t* objects = NULL;
     hashtable_t* ref_table = NULL;
+    hashtable_t* in_stack = NULL;
     struct serialize_s ser_s;
     uint8_t offset_size = 0;
     uint8_t ref_size = 0;
@@ -1280,11 +1301,28 @@ plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
         ptr_array_free(objects);
         return PLIST_ERR_NO_MEM;
     }
+    //hashtable for circular reference detection
+    in_stack = hash_table_new(plist_node_ptr_hash, plist_node_ptr_compare, NULL);
+    if (!in_stack) {
+        ptr_array_free(objects);
+        hash_table_destroy(ref_table);
+        return PLIST_ERR_NO_MEM;
+    }
 
     //serialize plist
     ser_s.objects = objects;
     ser_s.ref_table = ref_table;
-    serialize_plist((node_t)plist, &ser_s);
+    ser_s.in_stack = in_stack;
+    plist_err_t err = serialize_plist((node_t)plist, &ser_s);
+    if (err != PLIST_ERR_SUCCESS) {
+        ptr_array_free(objects);
+        hash_table_destroy(ref_table);
+        hash_table_destroy(in_stack);
+        return err;
+    }
+    //no longer needed
+    hash_table_destroy(in_stack);
+    ser_s.in_stack = NULL;
 
     //now stream to output buffer
     offset_size = 0;			//unknown yet
