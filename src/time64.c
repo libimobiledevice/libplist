@@ -443,7 +443,7 @@ void copy_TM64_to_tm(const struct TM *src, struct tm *dest) {
 }
 
 
-#ifndef HAVE_LOCALTIME_R
+#if !defined(HAVE_LOCALTIME_R) && !defined(_WIN32)
 /* Simulate localtime_r() to the best of our ability */
 static struct tm * fake_localtime_r(const time_t *time, struct tm *result) {
     const struct tm *static_result = localtime(time);
@@ -462,7 +462,7 @@ static struct tm * fake_localtime_r(const time_t *time, struct tm *result) {
 #endif
 
 
-#ifndef HAVE_GMTIME_R
+#if !defined(HAVE_GMTIME_R) && !defined(_WIN32)
 /* Simulate gmtime_r() to the best of our ability */
 static struct tm * fake_gmtime_r(const time_t *time, struct tm *result) {
     const struct tm *static_result = gmtime(time);
