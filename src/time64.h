@@ -58,11 +58,15 @@ Time64_T   timelocal64   (struct TM *);
 /* Not everyone has gm/localtime_r(), provide a replacement */
 #ifdef HAVE_LOCALTIME_R
 #    define LOCALTIME_R(clock, result) localtime_r(clock, result)
+#elif defined(_WIN32)
+#    define LOCALTIME_R(clock, result) (localtime_s(result, clock) ? NULL : result)
 #else
 #    define LOCALTIME_R(clock, result) fake_localtime_r(clock, result)
 #endif
 #ifdef HAVE_GMTIME_R
 #    define GMTIME_R(clock, result)    gmtime_r(clock, result)
+#elif defined (_WIN32)
+#    define GMTIME_R(clock, result)    (gmtime_s(result, clock) ? NULL : result)
 #else
 #    define GMTIME_R(clock, result)    fake_gmtime_r(clock, result)
 #endif
