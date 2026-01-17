@@ -831,7 +831,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
             void *node_level = ptr_array_index(bplist->used_indexes, bplist->level);
             if (node_i == node_level) {
                 PLIST_BIN_ERR("recursion detected in binary plist\n");
-                bplist->err = PLIST_ERR_PARSE;
+                bplist->err = PLIST_ERR_CIRCULAR_REF;
                 return NULL;
             }
         }
