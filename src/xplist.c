@@ -452,6 +452,11 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
         return PLIST_ERR_INVALID_ARG;
     }
 
+    if (depth > PLIST_MAX_NESTING_DEPTH) {
+        PLIST_XML_WRITE_ERR("maximum nesting depth (%u) exceeded\n", (unsigned)PLIST_MAX_NESTING_DEPTH);
+        return PLIST_ERR_MAX_NESTING;
+    }
+
     if (hash_table_lookup(visited, node)) {
         PLIST_XML_WRITE_ERR("circular reference detected\n");
         return PLIST_ERR_CIRCULAR_REF;
@@ -596,7 +601,7 @@ plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
 struct _parse_ctx {
     const char *pos;
     const char *end;
-    int err;
+    plist_err_t err;
 };
 typedef struct _parse_ctx* parse_ctx;
 
@@ -720,21 +725,21 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
         find_char(ctx, '<', 0);
         if (ctx->pos >= ctx->end || *ctx->pos != '<') {
             PLIST_XML_ERR("EOF while looking for closing tag\n");
-            ctx->err++;
+            ctx->err = PLIST_ERR_PARSE;
             return NULL;
         }
         q = ctx->pos;
         ctx->pos++;
         if (ctx->pos >= ctx->end) {
             PLIST_XML_ERR("EOF while parsing '%s'\n", p);
-            ctx->err++;
+            ctx->err = PLIST_ERR_PARSE;
             return NULL;
         }
         if (*ctx->pos == '!') {
             ctx->pos++;
             if (ctx->pos >= ctx->end-1) {
                 PLIST_XML_ERR("EOF while parsing <! special tag\n");
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 return NULL;
             }
             if (*ctx->pos == '-' && *(ctx->pos+1) == '-') {
@@ -747,7 +752,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                 find_str(ctx, "-->", 3, 0);
                 if (ctx->pos > ctx->end-3 || strncmp(ctx->pos, "-->", 3) != 0) {
                     PLIST_XML_ERR("EOF while looking for end of comment\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     return NULL;
                 }
                 ctx->pos += 3;
@@ -755,7 +760,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                 ctx->pos++;
                 if (ctx->pos >= ctx->end - 8) {
                     PLIST_XML_ERR("EOF while parsing <[ tag\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     return NULL;
                 }
                 if (strncmp(ctx->pos, "CDATA[", 6) == 0) {
@@ -771,7 +776,7 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                     find_str(ctx, "]]>", 3, 0);
                     if (ctx->pos > ctx->end-3 || strncmp(ctx->pos, "]]>", 3) != 0) {
                         PLIST_XML_ERR("EOF while looking for end of CDATA block\n");
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         return NULL;
                     }
                     q = ctx->pos;
@@ -785,14 +790,14 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                     p = ctx->pos;
                     find_next(ctx, " \r\n\t>", 5, 1);
                     PLIST_XML_ERR("Invalid special tag <[%.*s> encountered inside <%s> tag\n", (int)(ctx->pos - p), p, tag);
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     return NULL;
                 }
             } else {
                 p = ctx->pos;
                 find_next(ctx, " \r\n\t>", 5, 1);
                 PLIST_XML_ERR("Invalid special tag <!%.*s> encountered inside <%s> tag\n", (int)(ctx->pos - p), p, tag);
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 return NULL;
             }
         } else if (*ctx->pos == '/') {
@@ -801,25 +806,25 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
             p = ctx->pos;
             find_next(ctx, " \r\n\t>", 5, 1);
             PLIST_XML_ERR("Invalid tag <%.*s> encountered inside <%s> tag\n", (int)(ctx->pos - p), p, tag);
-            ctx->err++;
+            ctx->err = PLIST_ERR_PARSE;
             return NULL;
         }
     } while (1);
     ctx->pos++;
     if (ctx->pos >= ctx->end-tag_len || strncmp(ctx->pos, tag, tag_len) != 0) {
         PLIST_XML_ERR("EOF or end tag mismatch\n");
-        ctx->err++;
+        ctx->err = PLIST_ERR_PARSE;
         return NULL;
     }
     ctx->pos+=tag_len;
     parse_skip_ws(ctx);
     if (ctx->pos >= ctx->end) {
         PLIST_XML_ERR("EOF while parsing closing tag\n");
-        ctx->err++;
+        ctx->err = PLIST_ERR_PARSE;
         return NULL;
     } else if (*ctx->pos != '>') {
         PLIST_XML_ERR("Invalid closing tag; expected '>', found '%c'\n", *ctx->pos);
-        ctx->err++;
+        ctx->err = PLIST_ERR_PARSE;
         return NULL;
     }
     ctx->pos++;
@@ -995,6 +1000,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
         void *prev;
     };
     struct node_path_item* node_path = NULL;
+    int depth = 0;
 
     while (ctx->pos < ctx->end && !ctx->err) {
         parse_skip_ws(ctx);
@@ -1005,13 +1011,13 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             p = ctx->pos;
             find_next(ctx, " \t\r\n", 4, 0);
             PLIST_XML_ERR("Expected: opening tag, found: %.*s\n", (int)(ctx->pos - p), p);
-            ctx->err++;
+            ctx->err = PLIST_ERR_PARSE;
             goto err_out;
         }
         ctx->pos++;
         if (ctx->pos >= ctx->end) {
             PLIST_XML_ERR("EOF while parsing tag\n");
-            ctx->err++;
+            ctx->err = PLIST_ERR_PARSE;
             goto err_out;
         }
 
@@ -1019,12 +1025,12 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             find_str(ctx, "?>", 2, 1);
             if (ctx->pos > ctx->end-2) {
                 PLIST_XML_ERR("EOF while looking for <? tag closing marker\n");
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             if (strncmp(ctx->pos, "?>", 2) != 0) {
                 PLIST_XML_ERR("Couldn't find <? tag closing marker\n");
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             ctx->pos += 2;
@@ -1036,7 +1042,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 find_str(ctx,"-->", 3, 0);
                 if (ctx->pos > ctx->end-3 || strncmp(ctx->pos, "-->", 3) != 0) {
                     PLIST_XML_ERR("Couldn't find end of comment\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
                 ctx->pos+=3;
@@ -1047,7 +1053,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     find_next(ctx, " \t\r\n[>", 6, 1);
                     if (ctx->pos >= ctx->end) {
                         PLIST_XML_ERR("EOF while parsing !DOCTYPE\n");
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     if (*ctx->pos == '[') {
@@ -1065,7 +1071,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     find_str(ctx, "]>", 2, 1);
                     if (ctx->pos > ctx->end-2 || strncmp(ctx->pos, "]>", 2) != 0) {
                         PLIST_XML_ERR("Couldn't find end of DOCTYPE\n");
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     ctx->pos += 2;
@@ -1074,7 +1080,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 p = ctx->pos;
                 find_next(ctx, " \r\n\t>", 5, 1);
                 PLIST_XML_ERR("Invalid or incomplete special tag <%.*s> encountered\n", (int)(ctx->pos - p), p);
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             continue;
@@ -1085,7 +1091,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             find_next(ctx," \r\n\t<>", 6, 0);
             if (ctx->pos >= ctx->end) {
                 PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             size_t taglen = ctx->pos - p;
@@ -1097,12 +1103,12 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             if (ctx->pos >= ctx->end) {
                 PLIST_XML_ERR("Unexpected EOF while parsing XML\n");
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             if (*ctx->pos != '>') {
                 PLIST_XML_ERR("Missing '>' for tag <%s\n", tag);
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             if (*(ctx->pos-1) == '/') {
@@ -1123,14 +1129,14 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 }
                 if (is_empty) {
                     PLIST_XML_ERR("Empty plist tag\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
 
                 struct node_path_item *path_item = (struct node_path_item*)malloc(sizeof(struct node_path_item));
                 if (!path_item) {
                     PLIST_XML_ERR("out of memory when allocating node path item\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
                 path_item->type = "plist";
@@ -1141,17 +1147,17 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             } else if (!strcmp(tag, "/plist")) {
                 if (!has_content) {
                     PLIST_XML_ERR("encountered empty plist tag\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
                 if (!node_path) {
                     PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
                 if (strcmp(node_path->type, tag+1) != 0) {
                     PLIST_XML_ERR("mismatching closing tag <%s> found for opening tag <%s>\n", tag, node_path->type);
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
                 struct node_path_item *path_item = node_path;
@@ -1179,7 +1185,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     if (tp->begin) {
@@ -1188,7 +1194,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err++;
+                            ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
                         char *str = str_content;
@@ -1230,7 +1236,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     if (tp->begin) {
@@ -1239,7 +1245,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err++;
+                            ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
                         data->realval = atof(str_content);
@@ -1274,14 +1280,14 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     str = text_parts_get_content(tp, 1, &length, NULL);
                     text_parts_free((text_part_t*)first_part.next);
                     if (!str) {
                         PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
@@ -1315,7 +1321,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     if (tp->begin) {
@@ -1324,7 +1330,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err++;
+                            ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
                         size_t size = tp->length;
@@ -1347,7 +1353,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     Time64_T timev = 0;
@@ -1358,7 +1364,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err++;
+                            ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
 
@@ -1387,7 +1393,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             } else {
                 PLIST_XML_ERR("Unexpected tag <%s%s> encountered\n", tag, (is_empty) ? "/" : "");
                 ctx->pos = ctx->end;
-                ctx->err++;
+                ctx->err = PLIST_ERR_PARSE;
                 goto err_out;
             }
             if (subnode && !closing_tag) {
@@ -1405,7 +1411,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     case PLIST_DICT:
                         if (!keyname) {
                             PLIST_XML_ERR("missing key name while adding dict item\n");
-                            ctx->err++;
+                            ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
                         plist_dict_set_item(parent, keyname, subnode);
@@ -1416,35 +1422,42 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     default:
                         /* should not happen */
                         PLIST_XML_ERR("parent is not a structured node\n");
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                 }
                 if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
+                    if (depth >= PLIST_MAX_NESTING_DEPTH) {
+                        PLIST_XML_ERR("maximum nesting depth (%u) exceeded\n", (unsigned)PLIST_MAX_NESTING_DEPTH);
+                        ctx->err = PLIST_ERR_MAX_NESTING;
+                        goto err_out;
+                    }
                     struct node_path_item *path_item = (struct node_path_item*)malloc(sizeof(struct node_path_item));
                     if (!path_item) {
                         PLIST_XML_ERR("out of memory when allocating node path item\n");
-                        ctx->err++;
+                        ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
                     path_item->type = (data->type == PLIST_DICT) ? XPLIST_DICT : XPLIST_ARRAY;
                     path_item->prev = node_path;
                     node_path = path_item;
 
+                    depth++;
                     parent = subnode;
                 }
                 subnode = NULL;
             } else if (closing_tag) {
                 if (!node_path) {
                     PLIST_XML_ERR("node path is empty while trying to match closing tag with opening tag\n");
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
                 if (strcmp(node_path->type, tag+1) != 0) {
                     PLIST_XML_ERR("unexpected %s found (for opening %s)\n", tag, node_path->type);
-                    ctx->err++;
+                    ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
+                if (depth > 0) depth--;
                 struct node_path_item *path_item = node_path;
                 node_path = (struct node_path_item*)node_path->prev;
                 free(path_item);
@@ -1466,7 +1479,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
 
     if (node_path) {
         PLIST_XML_ERR("EOF encountered while </%s> was expected\n", node_path->type);
-        ctx->err++;
+        ctx->err = PLIST_ERR_PARSE;
     }
 
 err_out:
@@ -1481,10 +1494,10 @@ err_out:
         free(path_item);
     }
 
-    if (ctx->err) {
+    if (ctx->err != PLIST_ERR_SUCCESS) {
         plist_free(*plist);
         *plist = NULL;
-        return PLIST_ERR_PARSE;
+        return ctx->err;
     }
 
     /* check if we have a UID "dict" so we can replace it with a proper UID node */
@@ -1511,7 +1524,7 @@ plist_err_t plist_from_xml(const char *plist_xml, uint32_t length, plist_t * pli
         return PLIST_ERR_INVALID_ARG;
     }
 
-    struct _parse_ctx ctx = { plist_xml, plist_xml + length, 0 };
+    struct _parse_ctx ctx = { plist_xml, plist_xml + length, PLIST_ERR_SUCCESS };
 
     return node_from_xml(&ctx, plist);
 }

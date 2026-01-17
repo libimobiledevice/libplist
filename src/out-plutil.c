@@ -312,6 +312,13 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
         return PLIST_ERR_INVALID_ARG;
     }
 
+    if (depth > PLIST_MAX_NESTING_DEPTH) {
+#if DEBUG
+        fprintf(stderr, "libplist: ERROR: maximum nesting depth (%u) exceeded\n", (unsigned)PLIST_MAX_NESTING_DEPTH);
+#endif
+        return PLIST_ERR_MAX_NESTING;
+    }
+
     if (hash_table_lookup(visited, node)) {
 #if DEBUG
         fprintf(stderr, "libplist: ERROR: circular reference detected\n");

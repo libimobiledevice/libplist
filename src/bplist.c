@@ -239,6 +239,7 @@ struct bplist_data {
     const char* offset_table;
     uint32_t level;
     ptrarray_t* used_indexes;
+    plist_err_t err;
 };
 
 #ifdef DEBUG
@@ -787,6 +788,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
 
     if (node_index >= bplist->num_objects) {
         PLIST_BIN_ERR("node index (%u) must be smaller than the number of objects (%" PRIu64 ")\n", node_index, bplist->num_objects);
+        bplist->err = PLIST_ERR_PARSE;
         return NULL;
     }
 
@@ -794,6 +796,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     if (idx_ptr < bplist->offset_table ||
         idx_ptr >= bplist->offset_table + bplist->num_objects * bplist->offset_size) {
         PLIST_BIN_ERR("node index %u points outside of valid range\n", node_index);
+        bplist->err = PLIST_ERR_PARSE;
         return NULL;
     }
 
@@ -801,6 +804,14 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     /* make sure the node offset is in a sane range */
     if ((ptr < bplist->data+BPLIST_MAGIC_SIZE+BPLIST_VERSION_SIZE) || (ptr >= bplist->offset_table)) {
         PLIST_BIN_ERR("offset for node index %u points outside of valid range\n", node_index);
+        bplist->err = PLIST_ERR_PARSE;
+        return NULL;
+    }
+
+    /* check nesting depth */
+    if (bplist->level > PLIST_MAX_NESTING_DEPTH) {
+        PLIST_BIN_ERR("maximum nesting depth (%u) exceeded\n",(unsigned)PLIST_MAX_NESTING_DEPTH);
+        bplist->err = PLIST_ERR_MAX_NESTING;
         return NULL;
     }
 
@@ -820,6 +831,7 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
             void *node_level = ptr_array_index(bplist->used_indexes, bplist->level);
             if (node_i == node_level) {
                 PLIST_BIN_ERR("recursion detected in binary plist\n");
+                bplist->err = PLIST_ERR_PARSE;
                 return NULL;
             }
         }
@@ -931,6 +943,7 @@ plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * pli
     bplist.offset_table = offset_table;
     bplist.level = 0;
     bplist.used_indexes = ptr_array_new(16);
+    bplist.err = PLIST_ERR_SUCCESS;
 
     if (!bplist.used_indexes) {
         PLIST_BIN_ERR("failed to create array to hold used node indexes. Out of memory?\n");
@@ -942,7 +955,7 @@ plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * pli
     ptr_array_free(bplist.used_indexes);
 
     if (!*plist) {
-        return PLIST_ERR_PARSE;
+        return (bplist.err != PLIST_ERR_SUCCESS) ? bplist.err : PLIST_ERR_PARSE;
     }
 
     return PLIST_ERR_SUCCESS;
@@ -1002,10 +1015,15 @@ struct serialize_s
     hashtable_t* in_stack;
 };
 
-static plist_err_t serialize_plist(node_t node, void* data)
+static plist_err_t serialize_plist(node_t node, void* data, uint32_t depth)
 {
     uint64_t *index_val = NULL;
     struct serialize_s *ser = (struct serialize_s *) data;
+
+    if (depth > PLIST_MAX_NESTING_DEPTH) {
+        PLIST_BIN_WRITE_ERR("maximum nesting depth (%u) exceeded\n", (unsigned)PLIST_MAX_NESTING_DEPTH);
+        return PLIST_ERR_MAX_NESTING;
+    }
 
     // circular reference check: is node on current recursion stack?
     if (hash_table_lookup(ser->in_stack, node)) {
@@ -1036,7 +1054,7 @@ static plist_err_t serialize_plist(node_t node, void* data)
     node_t ch;
     plist_err_t err = PLIST_ERR_SUCCESS;
     for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-        err = serialize_plist(ch, data);
+        err = serialize_plist(ch, data, depth+1);
         if (err != PLIST_ERR_SUCCESS) {
             break;
         }
@@ -1313,7 +1331,7 @@ plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     ser_s.objects = objects;
     ser_s.ref_table = ref_table;
     ser_s.in_stack = in_stack;
-    plist_err_t err = serialize_plist((node_t)plist, &ser_s);
+    plist_err_t err = serialize_plist((node_t)plist, &ser_s, 0);
     if (err != PLIST_ERR_SUCCESS) {
         ptr_array_free(objects);
         hash_table_destroy(ref_table);

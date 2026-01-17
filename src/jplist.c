@@ -323,6 +323,11 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
         return PLIST_ERR_INVALID_ARG;
     }
 
+    if (depth > PLIST_MAX_NESTING_DEPTH) {
+        PLIST_JSON_WRITE_ERR("maximum nesting depth (%u) exceeded\n", (unsigned)PLIST_MAX_NESTING_DEPTH);
+        return PLIST_ERR_MAX_NESTING;
+    }
+
     if (hash_table_lookup(visited, node)) {
         PLIST_JSON_WRITE_ERR("circular reference detected\n");
         return PLIST_ERR_CIRCULAR_REF;
@@ -471,6 +476,7 @@ plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, in
 typedef struct {
     jsmntok_t* tokens;
     int count;
+    plist_err_t err;
 } jsmntok_info_t;
 
 static int64_t parse_decimal(const char* str, const char* str_end, char** endp)
@@ -698,12 +704,18 @@ static plist_t parse_string(const char* js, jsmntok_info_t* ti, int* index)
     return node;
 }
 
-static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index);
+static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index, uint32_t depth);
 
-static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index)
+static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index, uint32_t depth)
 {
     if (ti->tokens[*index].type != JSMN_ARRAY) {
         PLIST_JSON_ERR("%s: token type != JSMN_ARRAY\n", __func__);
+        ti->err = PLIST_ERR_PARSE;
+        return NULL;
+    }
+    if (depth > PLIST_MAX_NESTING_DEPTH) {
+        PLIST_JSON_ERR("%s: maximum nesting depth (%u) exceeded\n", __func__, (unsigned)PLIST_MAX_NESTING_DEPTH);
+        ti->err = PLIST_ERR_MAX_NESTING;
         return NULL;
     }
     plist_t arr = plist_new_array();
@@ -714,15 +726,16 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index)
         if (j >= ti->count) {
             PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
             plist_free(arr);
+            ti->err = PLIST_ERR_PARSE;
             return NULL;
         }
         plist_t val = NULL;
         switch (ti->tokens[j].type) {
             case JSMN_OBJECT:
-                val = parse_object(js, ti, &j);
+                val = parse_object(js, ti, &j, depth+1);
                 break;
             case JSMN_ARRAY:
-                val = parse_array(js, ti, &j);
+                val = parse_array(js, ti, &j, depth+1);
                 break;
             case JSMN_STRING:
                 val = parse_string(js, ti, &j);
@@ -737,6 +750,7 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index)
             plist_array_append_item(arr, val);
         } else {
             plist_free(arr);
+            ti->err = PLIST_ERR_PARSE;
             return NULL;
         }
     }
@@ -744,10 +758,16 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index)
     return arr;
 }
 
-static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
+static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index, uint32_t depth)
 {
     if (ti->tokens[*index].type != JSMN_OBJECT) {
         PLIST_JSON_ERR("%s: token type != JSMN_OBJECT\n", __func__);
+        ti->err = PLIST_ERR_PARSE;
+        return NULL;
+    }
+    if (depth > PLIST_MAX_NESTING_DEPTH) {
+        PLIST_JSON_ERR("%s: maximum nesting depth (%u) exceeded\n", __func__, (unsigned)PLIST_MAX_NESTING_DEPTH);
+        ti->err = PLIST_ERR_MAX_NESTING;
         return NULL;
     }
     int num_tokens = ti->tokens[*index].size;
@@ -755,6 +775,7 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
     int j = (*index)+1;
     if (num_tokens % 2 != 0) {
         PLIST_JSON_ERR("%s: number of children must be even\n", __func__);
+        ti->err = PLIST_ERR_PARSE;
         return NULL;
     }
     plist_t obj = plist_new_dict();
@@ -762,12 +783,14 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
         if (j+1 >= ti->count) {
             PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
             plist_free(obj);
+            ti->err = PLIST_ERR_PARSE;
             return NULL;
         }
         if (ti->tokens[j].type == JSMN_STRING) {
             char* key = unescape_string(js + ti->tokens[j].start, ti->tokens[j].end - ti->tokens[j].start, NULL);
             if (!key) {
                 plist_free(obj);
+                ti->err = PLIST_ERR_PARSE;
                 return NULL;
             }
             plist_t val = NULL;
@@ -775,10 +798,10 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
             num++;
             switch (ti->tokens[j].type) {
                 case JSMN_OBJECT:
-                    val = parse_object(js, ti, &j);
+                    val = parse_object(js, ti, &j, depth+1);
                     break;
                 case JSMN_ARRAY:
-                    val = parse_array(js, ti, &j);
+                    val = parse_array(js, ti, &j, depth+1);
                     break;
                 case JSMN_STRING:
                     val = parse_string(js, ti, &j);
@@ -794,12 +817,14 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index)
             } else {
                 free(key);
                 plist_free(obj);
+                ti->err = PLIST_ERR_PARSE;
                 return NULL;
             }
             free(key);
         } else {
             PLIST_JSON_ERR("%s: keys must be of type STRING\n", __func__);
             plist_free(obj);
+            ti->err = PLIST_ERR_PARSE;
             return NULL;
         }
     }
@@ -859,7 +884,7 @@ plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist)
     }
 
     int startindex = 0;
-    jsmntok_info_t ti = { tokens, parser.toknext };
+    jsmntok_info_t ti = { tokens, parser.toknext, PLIST_ERR_SUCCESS };
     switch (tokens[startindex].type) {
         case JSMN_PRIMITIVE:
             *plist = parse_primitive(json, &ti, &startindex);
@@ -868,14 +893,17 @@ plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist)
             *plist = parse_string(json, &ti, &startindex);
             break;
         case JSMN_ARRAY:
-            *plist = parse_array(json, &ti, &startindex);
+            *plist = parse_array(json, &ti, &startindex, 0);
             break;
         case JSMN_OBJECT:
-            *plist = parse_object(json, &ti, &startindex);
+            *plist = parse_object(json, &ti, &startindex, 0);
             break;
         default:
             break;
     }
     free(tokens);
+    if (!*plist) {
+        return (ti.err != PLIST_ERR_SUCCESS) ? ti.err : PLIST_ERR_PARSE;
+    }
     return PLIST_ERR_SUCCESS;
 }

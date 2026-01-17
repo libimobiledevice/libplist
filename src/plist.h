@@ -49,6 +49,10 @@
   #endif
 #endif
 
+#ifndef PLIST_MAX_NESTING_DEPTH
+#define PLIST_MAX_NESTING_DEPTH 512
+#endif
+
 #include "plist/plist.h"
 
 struct plist_data_s
