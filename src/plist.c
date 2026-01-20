@@ -581,12 +581,27 @@ static plist_t plist_copy_node(node_t node)
     node_type = plist_get_node_type(node);
     switch (node_type) {
         case PLIST_DATA:
-            newdata->buff = (uint8_t *) malloc(data->length);
-            memcpy(newdata->buff, data->buff, data->length);
+            if (data->buff) {
+                newdata->buff = (uint8_t *) malloc(data->length);
+                assert(newdata->buff);
+                memcpy(newdata->buff, data->buff, data->length);
+            } else {
+                newdata->buff = NULL;
+                newdata->length = 0;
+            }
             break;
         case PLIST_KEY:
         case PLIST_STRING:
-            newdata->strval = strdup(data->strval);
+            if (data->strval) {
+                size_t n = strlen(data->strval) + 1;
+                newdata->strval = (char*)malloc(n);
+                assert(newdata->strval);
+                memcpy(newdata->strval, data->strval, n);
+                newdata->length = (uint64_t)n;
+            } else {
+                newdata->strval = NULL;
+                newdata->length = 0;
+            }
             break;
         case PLIST_ARRAY:
             if (data->hashtable) {
