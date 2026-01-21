@@ -1142,63 +1142,78 @@ static void write_string(bytearray_t * bplist, char *val, uint64_t size)
     write_raw_data(bplist, BPLIST_STRING, (uint8_t *) val, size);
 }
 
-static uint16_t *plist_utf8_to_utf16be(char *unistr, size_t size, size_t *items_read, size_t *items_written)
+static uint16_t *plist_utf8_to_utf16be(const unsigned char *unistr, size_t size, size_t *items_read, size_t *items_written)
 {
-	uint16_t *outbuf;
-	size_t p = 0;
-	size_t i = 0;
+    uint16_t *outbuf;
+    size_t p = 0;
+    size_t i = 0;
 
-	unsigned char c0;
-	unsigned char c1;
-	unsigned char c2;
-	unsigned char c3;
+    unsigned char c0;
+    unsigned char c1;
+    unsigned char c2;
+    unsigned char c3;
 
-	uint32_t w;
+    outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
+    if (!outbuf) {
+        PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)((size*2)+1)*sizeof(uint16_t));
+        return NULL;
+    }
 
-	outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
-	if (!outbuf) {
-		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)((size*2)+1)*sizeof(uint16_t));
-		return NULL;
-	}
+    while (i < size) {
+        c0 = unistr[i];
+        c1 = (i+1 < size) ? unistr[i+1] : 0;
+        c2 = (i+2 < size) ? unistr[i+2] : 0;
+        c3 = (i+3 < size) ? unistr[i+3] : 0;
+        if ((c0 >= 0xF0 && c0 <= 0xF4) && (i+3 < size) && ((c1 & 0xC0) == 0x80) && ((c2 & 0xC0) == 0x80) && ((c3 & 0xC0) == 0x80)) {
+            // 4 byte sequence.  Need to generate UTF-16 surrogate pair
+            /* lead-specific second-byte constraints */
+            if ((c0 == 0xF0 && c1 < 0x90) ||     /* overlong (< U+10000) */
+               (c0 == 0xF4 && c1 > 0x8F))       /* > U+10FFFF */
+            {
+                break;
+            }
+            uint32_t w = ((uint32_t)(c3 & 0x3F)) | ((uint32_t)(c2 & 0x3F) << 6) | ((uint32_t)(c1 & 0x3F) << 12) | ((uint32_t)(c0 & 0x07) << 18);
+            if (w < 0x10000 || w > 0x10FFFF) break;
+            w -= 0x10000;
+            outbuf[p++] = be16toh((uint16_t)(0xD800 + (w >> 10)));
+            outbuf[p++] = be16toh((uint16_t)(0xDC00 + (w & 0x3FF)));
+            i+=4;
+        } else if (((c0 & 0xF0) == 0xE0) && (i+2 < size) && ((c1 & 0xC0) == 0x80) && ((c2 & 0xC0) == 0x80)) {
+            // 3 byte sequence
+            if ((c0 == 0xE0 && c1 < 0xA0) ||     /* overlong (< U+0800) */
+               (c0 == 0xED && c1 > 0x9F))       /* UTF-16 surrogate range */
+            {
+                break;
+            }
+            uint32_t w = ((uint32_t)(c2 & 0x3F)) | ((uint32_t)(c1 & 0x3F) << 6) | ((uint32_t)(c0 & 0x0F) << 12);
+            if (w < 0x800) break;
+            if (w >= 0xD800 && w <= 0xDFFF) break; // invalid Unicode scalar values
+            outbuf[p++] = be16toh((uint16_t)w);
+            i+=3;
+        } else if ((c0 >= 0xC2 && c0 <= 0xDF) && (i+1 < size) && ((c1 & 0xC0) == 0x80)) {
+            // 2 byte sequence
+            uint32_t w = ((uint32_t)(c1 & 0x3F)) | ((uint32_t)(c0 & 0x1F) << 6);
+            outbuf[p++] = be16toh((uint16_t)w);
+            i+=2;
+        } else if (c0 < 0x80) {
+            // 1 byte sequence
+            outbuf[p++] = be16toh((uint16_t)c0);
+            i+=1;
+        } else {
+            // invalid character
+            PLIST_BIN_ERR("%s: invalid utf8 sequence in string at index %zu\n", __func__, i);
+            break;
+        }
+    }
+    if (items_read) {
+        *items_read = i;
+    }
+    if (items_written) {
+        *items_written = p;
+    }
+    outbuf[p] = 0;
 
-	while (i < size) {
-		c0 = unistr[i];
-		c1 = (i < size-1) ? unistr[i+1] : 0;
-		c2 = (i < size-2) ? unistr[i+2] : 0;
-		c3 = (i < size-3) ? unistr[i+3] : 0;
-		if ((c0 >= 0xF0) && (i < size-3) && (c1 >= 0x80) && (c2 >= 0x80) && (c3 >= 0x80)) {
-			// 4 byte sequence.  Need to generate UTF-16 surrogate pair
-			w = ((((c0 & 7) << 18) + ((c1 & 0x3F) << 12) + ((c2 & 0x3F) << 6) + (c3 & 0x3F)) & 0x1FFFFF) - 0x010000;
-			outbuf[p++] = be16toh(0xD800 + (w >> 10));
-			outbuf[p++] = be16toh(0xDC00 + (w & 0x3FF));
-			i+=4;
-		} else if ((c0 >= 0xE0) && (i < size-2) && (c1 >= 0x80) && (c2 >= 0x80)) {
-			// 3 byte sequence
-			outbuf[p++] = be16toh(((c2 & 0x3F) + ((c1 & 3) << 6)) + (((c1 >> 2) & 15) << 8) + ((c0 & 15) << 12));
-			i+=3;
-		} else if ((c0 >= 0xC0) && (i < size-1) && (c1 >= 0x80)) {
-			// 2 byte sequence
-			outbuf[p++] = be16toh(((c1 & 0x3F) + ((c0 & 3) << 6)) + (((c0 >> 2) & 7) << 8));
-			i+=2;
-		} else if (c0 < 0x80) {
-			// 1 byte sequence
-			outbuf[p++] = be16toh(c0);
-			i+=1;
-		} else {
-			// invalid character
-			PLIST_BIN_ERR("%s: invalid utf8 sequence in string at index %zu\n", __func__, i);
-			break;
-		}
-	}
-	if (items_read) {
-		*items_read = i;
-	}
-	if (items_written) {
-		*items_written = p;
-	}
-	outbuf[p] = 0;
-
-	return outbuf;
+    return outbuf;
 }
 
 static void write_unicode(bytearray_t * bplist, char *val, size_t size)
