@@ -1286,18 +1286,17 @@ static void write_uid(bytearray_t * bplist, uint64_t val)
     byte_array_append(bplist, (uint8_t*)&val + (8-size), size);
 }
 
-static int is_ascii_string(char* s, int len)
+static int is_ascii_string(const char* s, size_t len)
 {
-  int ret = 1, i = 0;
-  for(i = 0; i < len; i++)
-  {
-      if ( !isascii( s[i] ) )
-      {
-          ret = 0;
-          break;
-      }
-  }
-  return ret;
+    int ret = 1;
+    size_t i = 0;
+    for (i = 0; i < len; i++) {
+        if ( !isascii( s[i] ) ) {
+            ret = 0;
+            break;
+        }
+    }
+    return ret;
 }
 
 plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
