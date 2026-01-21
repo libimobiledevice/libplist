@@ -210,7 +210,7 @@ void* memmem(const void* haystack, size_t haystack_len, const void* needle, size
 
 int plist_is_binary(const char *plist_data, uint32_t length)
 {
-    if (length < 8) {
+    if (!plist_data || length < 8) {
         return 0;
     }
 
