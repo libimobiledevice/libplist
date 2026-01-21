@@ -719,8 +719,8 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index, uint3
         return NULL;
     }
     plist_t arr = plist_new_array();
-    int num_tokens = ti->tokens[*index].size;
-    int num;
+    size_t num_tokens = ti->tokens[*index].size;
+    size_t num;
     int j = (*index)+1;
     for (num = 0; num < num_tokens; num++) {
         if (j >= ti->count) {
@@ -770,8 +770,8 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index, uint
         ti->err = PLIST_ERR_MAX_NESTING;
         return NULL;
     }
-    int num_tokens = ti->tokens[*index].size;
-    int num;
+    size_t num_tokens = ti->tokens[*index].size;
+    size_t num;
     int j = (*index)+1;
     if (num_tokens % 2 != 0) {
         PLIST_JSON_ERR("%s: number of children must be even\n", __func__);
@@ -844,14 +844,15 @@ plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist)
 
     jsmn_parser parser;
     jsmn_init(&parser);
-    int maxtoks = 256;
-    int curtoks = 0;
+    unsigned int maxtoks = 256;
+    unsigned int curtoks = 0;
     int r = 0;
     jsmntok_t *tokens = NULL;
 
     do {
         jsmntok_t* newtokens = (jsmntok_t*)realloc(tokens, sizeof(jsmntok_t)*maxtoks);
         if (!newtokens) {
+            free(tokens);
             PLIST_JSON_ERR("%s: Out of memory\n", __func__);
             return PLIST_ERR_NO_MEM;
         }
@@ -861,8 +862,14 @@ plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist)
 
         r = jsmn_parse(&parser, json, length, tokens, maxtoks);
         if (r == JSMN_ERROR_NOMEM) {
+            if (maxtoks > (unsigned int)INT_MAX - 16) {
+                free(tokens);
+                return PLIST_ERR_NO_MEM;
+            }
             maxtoks+=16;
             continue;
+        } else if (r < 0) {
+            break;
         }
     } while (r == JSMN_ERROR_NOMEM);
 
@@ -877,6 +884,10 @@ plist_err_t plist_from_json(const char *json, uint32_t length, plist_t * plist)
             return PLIST_ERR_PARSE;
         case JSMN_ERROR_PART:
             PLIST_JSON_ERR("%s: Incomplete JSON, more bytes expected\n", __func__);
+            free(tokens);
+            return PLIST_ERR_PARSE;
+        case JSMN_ERROR_LIMIT:
+            PLIST_JSON_ERR("%s: Input data too large\n", __func__);
             free(tokens);
             return PLIST_ERR_PARSE;
         default:

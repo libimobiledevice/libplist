@@ -3,6 +3,8 @@
  * Simple JSON parser (header file)
  *
  * Copyright (c) 2010 Serge A. Zaitsev
+ * Updated to use size_t for token offsets and harden against overflows.
+ *   (Nikias Bassen, January 2026)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +27,8 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
 
+#include <stddef.h>
+
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -46,6 +50,8 @@ typedef enum {
 	JSMN_ERROR_INVAL = -2,
 	/* The string is not a full JSON packet, more bytes expected */
 	JSMN_ERROR_PART = -3,
+	/* Input exceeds implementation-defined limits */
+	JSMN_ERROR_LIMIT = -4,
 	/* Everything was fine */
 	JSMN_SUCCESS = 0
 } jsmnerr_t;
@@ -58,9 +64,9 @@ typedef enum {
  */
 typedef struct {
 	jsmntype_t type;
-	int start;
-	int end;
-	int size;
+	size_t start;
+	size_t end;
+	size_t size;
 #ifdef JSMN_PARENT_LINKS
 	int parent;
 #endif
@@ -71,8 +77,8 @@ typedef struct {
  * the string being parsed now and current position in that string
  */
 typedef struct {
-	unsigned int pos; /* offset in the JSON string */
-	unsigned int end; /* offset after last character of JSON string */
+	size_t pos; /* offset in the JSON string */
+	size_t end; /* offset after last character of JSON string */
 	int toknext; /* next token to allocate */
 	int toksuper; /* superior token node, e.g parent object or array */
 } jsmn_parser;
@@ -86,7 +92,7 @@ void jsmn_init(jsmn_parser *parser);
  * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
  * a single JSON object.
  */
-jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, unsigned int length,
+jsmnerr_t jsmn_parse(jsmn_parser *parser, const char *js, size_t length,
 		jsmntok_t *tokens, unsigned int num_tokens);
 
 #endif /* __JSMN_H_ */
