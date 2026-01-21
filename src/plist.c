@@ -593,10 +593,10 @@ static plist_t plist_copy_node(node_t node)
         case PLIST_KEY:
         case PLIST_STRING:
             if (data->strval) {
-                size_t n = strlen(data->strval) + 1;
-                newdata->strval = (char*)malloc(n);
+                size_t n = strlen(data->strval);
+                newdata->strval = (char*)malloc(n+1);
                 assert(newdata->strval);
-                memcpy(newdata->strval, data->strval, n);
+                memcpy(newdata->strval, data->strval, n+1);
                 newdata->length = (uint64_t)n;
             } else {
                 newdata->strval = NULL;
