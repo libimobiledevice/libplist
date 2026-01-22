@@ -979,7 +979,7 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
     tp = tmp;
     while (tp && tp->begin) {
         size_t len = tp->length;
-        strncpy(p, tp->begin, len);
+        memcpy(p, tp->begin, len);
         p[len] = '\0';
         if (!tp->is_cdata && unesc_entities) {
             if (unescape_entities(p, &len) < 0) {
@@ -1110,7 +1110,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             size_t taglen = ctx->pos - p;
             tag = (char*)malloc(taglen + 1);
-            strncpy(tag, p, taglen);
+            memcpy(tag, p, taglen);
             tag[taglen] = '\0';
             if (*ctx->pos != '>') {
                 find_next(ctx, "<>", 2, 1);
@@ -1386,7 +1386,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                             /* we need to copy here and 0-terminate because sscanf will read the entire string (whole rest of XML data) which can be huge */
                             char strval[32];
                             struct TM btime;
-                            strncpy(strval, str_content, length);
+                            memcpy(strval, str_content, length);
                             strval[tp->length] = '\0';
                             parse_date(strval, &btime);
                             timev = timegm64(&btime);
