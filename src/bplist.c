@@ -1222,7 +1222,7 @@ static void write_unicode(bytearray_t * bplist, char *val, size_t size)
     size_t items_written = 0;
     uint16_t *unicodestr = NULL;
 
-    unicodestr = plist_utf8_to_utf16be(val, size, &items_read, &items_written);
+    unicodestr = plist_utf8_to_utf16be((const unsigned char *)val, size, &items_read, &items_written);
     write_raw_data(bplist, BPLIST_UNICODE, (uint8_t*)unicodestr, items_written);
     free(unicodestr);
 }
