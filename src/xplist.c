@@ -854,7 +854,7 @@ static int unescape_entities(char *str, size_t *length)
                 return -1;
             }
             if (str+i >= entp+1) {
-                int entlen = str+i - entp;
+                long int entlen = str+i - entp;
                 int bytelen = 1;
                 if (!strncmp(entp, "amp", 3)) {
                     /* the '&' is already there */
