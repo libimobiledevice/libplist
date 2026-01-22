@@ -853,42 +853,50 @@ static int unescape_entities(char *str, size_t *length)
                 PLIST_XML_ERR("Invalid entity sequence encountered (missing terminating ';')\n");
                 return -1;
             }
-            if (str+i >= entp+1) {
-                int entlen = str+i - entp;
-                int bytelen = 1;
-                if (!strncmp(entp, "amp", 3)) {
+            size_t entlen = (size_t)(str+i - entp);
+            if (entlen > 0) {
+                if (entlen > 256) {
+                    PLIST_XML_ERR("Rejecting absurdly large entity at &%.*s...\n", 8, entp);
+                    return -1;
+                }
+                size_t bytelen = 1;
+                if (entlen == 3 && memcmp(entp, "amp", 3) == 0) {
                     /* the '&' is already there */
-                } else if (!strncmp(entp, "apos", 4)) {
+                } else if (entlen == 4 && memcmp(entp, "apos", 4) == 0) {
                     *(entp-1) = '\'';
-                } else if (!strncmp(entp, "quot", 4)) {
+                } else if (entlen == 4 && memcmp(entp, "quot", 4) == 0) {
                     *(entp-1) = '"';
-                } else if (!strncmp(entp, "lt", 2)) {
+                } else if (entlen == 2 && memcmp(entp, "lt", 2) == 0) {
                     *(entp-1) = '<';
-                } else if (!strncmp(entp, "gt", 2)) {
+                } else if (entlen == 2 && memcmp(entp, "gt", 2) == 0) {
                     *(entp-1) = '>';
                 } else if (*entp == '#') {
                     /* numerical  character reference */
                     uint64_t val = 0;
                     char* ep = NULL;
                     if (entlen > 8) {
-                        PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too long: &%.*s;\n", entlen, entp);
+                        PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too long: &%.*s;\n", (int)entlen, entp);
                         return -1;
                     }
-                    if (*(entp+1) == 'x' || *(entp+1) == 'X') {
+                    if (entlen >= 2 && (entp[1] == 'x' || entp[1] == 'X')) {
                         if (entlen < 3) {
-                            PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", entlen, entp);
+                            PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", (int)entlen, entp);
                             return -1;
                         }
                         val = strtoull(entp+2, &ep, 16);
                     } else {
                         if (entlen < 2) {
-                            PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", entlen, entp);
+                            PLIST_XML_ERR("Invalid numerical character reference encountered, sequence too short: &%.*s;\n", (int)entlen, entp);
                             return -1;
                         }
                         val = strtoull(entp+1, &ep, 10);
                     }
-                    if (val == 0 || val > 0x10FFFF || ep-entp != entlen) {
-                        PLIST_XML_ERR("Invalid numerical character reference found: &%.*s;\n", entlen, entp);
+                    if (val == 0 || val > 0x10FFFF || (size_t)(ep-entp) != entlen) {
+                        PLIST_XML_ERR("Invalid numerical character reference found: &%.*s;\n", (int)entlen, entp);
+                        return -1;
+                    }
+                    if (val >= 0xD800 && val <= 0xDFFF) {
+                        PLIST_XML_ERR("Invalid numerical character reference found (surrogate): &%.*s;\n", (int)entlen, entp);
                         return -1;
                     }
                     /* convert to UTF8 */
@@ -918,12 +926,18 @@ static int unescape_entities(char *str, size_t *length)
                         *(entp-1) = (char)(val & 0x7F);
                     }
                 } else {
-                    PLIST_XML_ERR("Invalid entity encountered: &%.*s;\n", entlen, entp);
+                    PLIST_XML_ERR("Invalid entity encountered: &%.*s;\n", (int)entlen, entp);
                     return -1;
                 }
-                memmove(entp, str+i+1, len - i);
-                i -= entlen+1 - bytelen;
-                len -= entlen+2 - bytelen;
+                memmove(entp, str+i+1, len - i); /* include '\0' */
+                size_t dec = entlen + 1 - bytelen;
+                size_t shrink = entlen + 2 - bytelen;
+                if (i < dec || len < shrink) {
+                    PLIST_XML_ERR("Internal error: length underflow?!\n");
+                    return -1;
+                }
+                i -= dec;
+                len -= shrink;
                 continue;
             } else {
                 PLIST_XML_ERR("Invalid empty entity sequence &;\n");
