@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
         plist_entire = malloc(sizeof(char) * read_capacity);
         if(plist_entire == NULL)
         {
-            fprintf(stderr, "ERROR: Failed to allocate buffer to read from stdin");
+            fprintf(stderr, "ERROR: Failed to allocate buffer to read from stdin\n");
             free(options);
             return 1;
         }
@@ -278,6 +278,12 @@ int main(int argc, char *argv[])
         fstat(fileno(iplist), &filestats);
 
         plist_entire = (char *) malloc(sizeof(char) * (filestats.st_size + 1));
+        if(plist_entire == NULL)
+        {
+            fprintf(stderr, "ERROR: Failed to allocate buffer to read from file\n");
+            free(options);
+            return 1;
+        }
         read_size = fread(plist_entire, sizeof(char), filestats.st_size, iplist);
         plist_entire[read_size] = '\0';
         fclose(iplist);
