@@ -900,31 +900,39 @@ plist_t plist_dict_item_get_key(plist_t node)
 plist_t plist_dict_get_item(plist_t node, const char* key)
 {
     plist_t ret = NULL;
-
-    if (node && PLIST_DICT == plist_get_node_type(node))
-    {
-        plist_data_t data = plist_get_data(node);
-        hashtable_t *ht = (hashtable_t*)data->hashtable;
-        if (ht) {
-            struct plist_data_s sdata;
-            sdata.strval = (char*)key;
-            sdata.length = strlen(key);
-            ret = (plist_t)hash_table_lookup(ht, &sdata);
-        } else {
-            plist_t current = NULL;
-            for (current = (plist_t)node_first_child((node_t)node);
-                current;
-                current = (plist_t)node_next_sibling(node_next_sibling((node_t)current)))
-            {
-                data = plist_get_data(current);
-                assert( PLIST_KEY == plist_get_node_type(current) );
-
-                if (data && !strcmp(key, data->strval))
-                {
-                    ret = (plist_t)node_next_sibling((node_t)current);
-                    break;
-                }
+    if (!PLIST_IS_DICT(node) || !key) {
+        PLIST_ERR("invalid argument passed to %s (node=%p, key=%p)\n", __func__, node, key);
+        return NULL;
+    }
+    plist_data_t data = plist_get_data(node);
+    assert(data);
+    if (!data) {
+        PLIST_ERR("%s: invalid node\n", __func__);
+        return NULL;
+    }
+    size_t keylen = strlen(key);
+    hashtable_t *ht = (hashtable_t*)data->hashtable;
+    if (ht) {
+        struct plist_data_s sdata = { 0 };
+        sdata.strval = (char*)key;
+        sdata.length = keylen;
+        return (plist_t)hash_table_lookup(ht, &sdata);
+    } else {
+        plist_t k = NULL;
+        for (k = (plist_t)node_first_child((node_t)node); k; ) {
+            plist_t v = (plist_t)node_next_sibling(k);
+            if (!v) break;
+            data = plist_get_data(k);
+            assert(PLIST_IS_KEY(k));
+            if (!PLIST_IS_KEY(k) || !data || !data->strval) {
+                PLIST_ERR("invalid key node at %p\n", k);
+                break;
             }
+            if (data->length == keylen && !memcmp(key, data->strval, keylen+1)) {
+                ret = v;
+                break;
+            }
+            k = node_next_sibling(v);
         }
     }
     return ret;
