@@ -143,7 +143,7 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
 
     const char *tag = NULL;
     size_t tag_len = 0;
-    char *val = NULL;
+    char val[64] = { 0 };
     size_t val_len = 0;
 
     uint32_t i = 0;
@@ -172,19 +172,17 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
     case PLIST_INT:
         tag = XPLIST_INT;
         tag_len = XPLIST_INT_LEN;
-        val = (char*)malloc(64);
         if (node_data->length == 16) {
-            val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
+            val_len = snprintf(val, sizeof(val), "%" PRIu64, node_data->intval);
         } else {
-            val_len = snprintf(val, 64, "%" PRIi64, node_data->intval);
+            val_len = snprintf(val, sizeof(val), "%" PRIi64, node_data->intval);
         }
         break;
 
     case PLIST_REAL:
         tag = XPLIST_REAL;
         tag_len = XPLIST_REAL_LEN;
-        val = (char*)malloc(64);
-        val_len = dtostr(val, 64, node_data->realval);
+        val_len = dtostr(val, sizeof(val), node_data->realval);
         break;
 
     case PLIST_STRING:
@@ -222,13 +220,11 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
             struct TM _btime;
             struct TM *btime = gmtime64_r(&timev, &_btime);
             if (btime) {
-                val = (char*)calloc(1, 24);
                 struct tm _tmcopy;
                 copy_TM64_to_tm(btime, &_tmcopy);
-                val_len = strftime(val, 24, "%Y-%m-%dT%H:%M:%SZ", &_tmcopy);
+                val_len = strftime(val, sizeof(val), "%Y-%m-%dT%H:%M:%SZ", &_tmcopy);
                 if (val_len <= 0) {
-                    free (val);
-                    val = NULL;
+                    snprintf(val, sizeof(val), "1970-01-01T00:00:00Z");
                 }
             }
         }
@@ -236,11 +232,10 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
     case PLIST_UID:
         tag = XPLIST_DICT;
         tag_len = XPLIST_DICT_LEN;
-        val = (char*)malloc(64);
         if (node_data->length == 16) {
-            val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
+            val_len = snprintf(val, sizeof(val), "%" PRIu64, node_data->intval);
         } else {
-            val_len = snprintf(val, 64, "%" PRIi64, node_data->intval);
+            val_len = snprintf(val, sizeof(val), "%" PRIi64, node_data->intval);
         }
         break;
     case PLIST_NULL:
@@ -344,7 +339,7 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
         for (i = 0; i < depth; i++) {
             str_buf_append(*outbuf, "\t", 1);
         }
-    } else if (val) {
+    } else if (val_len > 0) {
         str_buf_append(*outbuf, ">", 1);
         tagOpen = TRUE;
         str_buf_append(*outbuf, val, val_len);
@@ -355,7 +350,6 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
         tagOpen = FALSE;
         str_buf_append(*outbuf, "/>", 2);
     }
-    free(val);
 
     if (isStruct) {
         /* add newline for structured types */
@@ -1002,7 +996,7 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, size_t 
 
 static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
 {
-    char *tag = NULL;
+    char tag[16] = { 0 };
     char *keyname = NULL;
     plist_t subnode = NULL;
     const char *p = NULL;
@@ -1109,7 +1103,12 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 goto err_out;
             }
             size_t taglen = ctx->pos - p;
-            tag = (char*)malloc(taglen + 1);
+            if (taglen >= sizeof(tag)) {
+                PLIST_XML_ERR("Unexpected tag <%.*s> encountered\n", (int)taglen, p);
+                ctx->pos = ctx->end;
+                ctx->err = PLIST_ERR_PARSE;
+                goto err_out;
+            }
             memcpy(tag, p, taglen);
             tag[taglen] = '\0';
             if (*ctx->pos != '>') {
@@ -1133,8 +1132,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             ctx->pos++;
             if (!strcmp(tag, "plist")) {
-                free(tag);
-                tag = NULL;
                 has_content = 0;
 
                 if (!node_path && *plist) {
@@ -1177,10 +1174,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 struct node_path_item *path_item = node_path;
                 node_path = (struct node_path_item*)node_path->prev;
                 free(path_item);
-
-                free(tag);
-                tag = NULL;
-
                 continue;
             }
 
@@ -1306,8 +1299,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     }
                     if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
                         keyname = str;
-                        free(tag);
-                        tag = NULL;
                         plist_free(subnode);
                         subnode = NULL;
                         continue;
@@ -1318,8 +1309,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 } else {
                     if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
                         keyname = strdup("");
-                        free(tag);
-                        tag = NULL;
                         plist_free(subnode);
                         subnode = NULL;
                         continue;
@@ -1481,9 +1470,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     goto err_out;
                 }
             }
-
-            free(tag);
-            tag = NULL;
             free(keyname);
             keyname = NULL;
             plist_free(subnode);
@@ -1497,7 +1483,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
     }
 
 err_out:
-    free(tag);
     free(keyname);
     plist_free(subnode);
 
