@@ -23,11 +23,11 @@
 	<key>Another Boolean</key>
 	<true/>
 	<key>Some Int</key>
-	<integer></integer>
+	<integer>0</integer>
 	<key>Some Real</key>
-	<real></real>
+	<real>1e4</real>
 	<key>Some Date</key>
-	<date></date>
+	<date>1970-01-01T00:00:00Z</date>
 	<key>Some Data</key>
 	<data>
 	</data>
