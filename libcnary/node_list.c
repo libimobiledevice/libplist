@@ -49,7 +49,7 @@ node_list_t node_list_create()
 
 int node_list_add(node_list_t list, node_t node)
 {
-	if (!list || !node) return -1;
+	if (!list || !node) return NODE_ERR_INVALID_ARG;
 
 	// Find the last element in the list
 	node_t last = list->end;
@@ -72,89 +72,80 @@ int node_list_add(node_list_t list, node_t node)
 
 	// Increment our node count for this list
 	list->count++;
-	return 0;
+	return NODE_ERR_SUCCESS;
 }
 
 int node_list_insert(node_list_t list, unsigned int node_index, node_t node)
 {
-	if (!list || !node) return -1;
-	if (node_index >= list->count) {
+	if (!list || !node) return NODE_ERR_INVALID_ARG;
+	if (node_index > list->count) return NODE_ERR_INVALID_ARG;
+	if (node_index == list->count) {
 		return node_list_add(list, node);
 	}
 
 	// Get the first element in the list
 	node_t cur = list->begin;
-
-	unsigned int pos = 0;
 	node_t prev = NULL;
 
-	if (node_index > 0) {
-		while (pos < node_index) {
-			prev = cur;
-			cur = cur->next;
-			pos++;
-		}
+	for (unsigned int pos = 0; pos < node_index; pos++) {
+		if (!cur) return NODE_ERR_INVALID_ARG;
+		prev = cur;
+		cur = cur->next;
 	}
 
+	// insert node before cur
+	node->prev = prev;
+	node->next = cur;
+
 	if (prev) {
-		// Set previous node
-		node->prev = prev;
-		// Set next node of our new node to next node of the previous node
-		node->next = prev->next;
-		// Set next node of previous node to our new node
 		prev->next = node;
 	} else {
-		node->prev = NULL;
-		// get old first element in list
-		node->next = list->begin;
-		// set new node as first element in list
 		list->begin = node;
 	}
 
-	if (node->next == NULL) {
-		// Set the lists prev to the new last element
-		list->end = node;
+	if (cur) {
+		cur->prev = node;
 	} else {
-		// set prev of the new next element to our node
-		node->next->prev = node;
+		// should not happen with bounds above, but keeps things consistent
+		list->end = node;
 	}
 
 	// Increment our node count for this list
 	list->count++;
-	return 0;
+	return NODE_ERR_SUCCESS;
 }
 
+// Returns removed index (>=0) on success, or NODE_ERR_* (<0) on failure.
 int node_list_remove(node_list_t list, node_t node)
 {
-	if (!list || !node) return -1;
-	if (list->count == 0) return -1;
+	if (!list || !node) return NODE_ERR_INVALID_ARG;
+	if (list->count == 0) return NODE_ERR_NOT_FOUND;
 
 	int node_index = 0;
-	node_t n;
-	for (n = list->begin; n; n = n->next) {
-		if (node == n) {
-			node_t newnode = node->next;
-			if (node->prev) {
-				node->prev->next = newnode;
-				if (newnode) {
-					newnode->prev = node->prev;
-				} else {
-					// last element in the list
-					list->end = node->prev;
-				}
-			} else {
-				// we just removed the first element
-				if (newnode) {
-					newnode->prev = NULL;
-				} else {
-					list->end = NULL;
-				}
-				list->begin = newnode;
-			}
-			list->count--;
-			return node_index;
+	for (node_t n = list->begin; n; n = n->next, node_index++) {
+		if (node != n) continue;
+
+		node_t newnode = node->next;
+		if (node->prev) {
+			node->prev->next = newnode;
+		} else {
+			// we just removed the first element
+			list->begin = newnode;
 		}
-		node_index++;
+
+		if (newnode) {
+			newnode->prev = node->prev;
+		} else {
+			// we removed the last element, set new end
+			list->end = node->prev;
+		}
+
+		// fully detach node from list
+		node->prev = NULL;
+		node->next = NULL;
+
+		list->count--;
+		return node_index;
 	}
-	return -1;
+	return NODE_ERR_NOT_FOUND;
 }

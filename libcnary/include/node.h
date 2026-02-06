@@ -29,6 +29,18 @@
 
 #define NODE_TYPE 1;
 
+#ifndef NODE_MAX_DEPTH
+#define NODE_MAX_DEPTH 512
+#endif
+
+#define NODE_ERR_SUCCESS       0
+#define NODE_ERR_INVALID_ARG  -1
+#define NODE_ERR_NO_MEM       -2
+#define NODE_ERR_PARENT       -3
+#define NODE_ERR_CIRCULAR_REF -4
+#define NODE_ERR_MAX_DEPTH    -5
+#define NODE_ERR_NOT_FOUND    -6
+
 // This class implements the abstract iterator class
 typedef struct node* node_t;
 struct node {

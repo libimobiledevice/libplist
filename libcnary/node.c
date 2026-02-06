@@ -61,12 +61,11 @@ node_t node_create(node_t parent, void* data)
 	node->children = NULL;
 
 	// Pass NULL to create a root node
-	if(parent != NULL) {
+	if (parent != NULL) {
 		// This is a child node so attach it to it's parent
 		error = node_attach(parent, node);
-		if(error < 0) {
+		if (error < 0) {
 			// Unable to attach nodes
-			printf("ERROR: %d \"Unable to attach nodes\"\n", error);
 			node_destroy(node);
 			return NULL;
 		}
@@ -75,15 +74,86 @@ node_t node_create(node_t parent, void* data)
 	return node;
 }
 
+static int node_depth_from_root(node_t n)
+{
+	int d = 0;
+	while (n && n->parent) {
+		d++;
+		n = n->parent;
+		if (d > NODE_MAX_DEPTH) return d; // early out
+	}
+	return d;
+}
+
+static int node_subtree_max_depth(node_t root)
+{
+	if (!root) return 0;
+
+	typedef struct { node_t n; int depth; } frame_t;
+	size_t cap = 64, sp = 0;
+	frame_t *st = (frame_t*)malloc(cap * sizeof(*st));
+	if (!st) return NODE_MAX_DEPTH + 1;
+
+	st[sp++] = (frame_t){ root, 0 };
+	int maxd = 0;
+
+	while (sp) {
+		frame_t f = st[--sp];
+		if (f.depth > maxd) maxd = f.depth;
+		if (maxd > NODE_MAX_DEPTH) break;
+
+		if (!f.n->children) continue;
+
+		for (node_t ch = node_first_child(f.n); ch; ch = node_next_sibling(ch)) {
+			if (sp == cap) {
+				cap *= 2;
+				frame_t *tmp = (frame_t*)realloc(st, cap * sizeof(*st));
+				if (!tmp) { maxd = NODE_MAX_DEPTH + 1; goto out; }
+				st = tmp;
+			}
+			st[sp++] = (frame_t){ ch, f.depth + 1 };
+		}
+	}
+
+out:
+	free(st);
+	return maxd;
+}
+
+static int would_create_cycle(node_t parent, node_t child)
+{
+	// if parent is anywhere in child's ancestor chain => cycle
+	for (node_t p = parent; p; p = p->parent) {
+		if (p == child) return 1;
+	}
+	return 0;
+}
+
 int node_attach(node_t parent, node_t child)
 {
-	if (!parent || !child) return -1;
-	child->parent = parent;
-	if(!parent->children) {
+	if (!parent || !child) return NODE_ERR_INVALID_ARG;
+
+	// already parented?
+	if (child->parent) return NODE_ERR_PARENT;
+
+	// self/cycle guard
+	if (parent == child) return NODE_ERR_CIRCULAR_REF;
+	if (would_create_cycle(parent, child)) return NODE_ERR_CIRCULAR_REF;
+
+	// depth guard: depth(parent)+1+max_depth(child_subtree) <= NODE_MAX_DEPTH
+	int pd = node_depth_from_root(parent);
+	int cd = node_subtree_max_depth(child);
+	if (pd + 1 + cd > NODE_MAX_DEPTH) {
+		return NODE_ERR_MAX_DEPTH;
+	}
+
+	if (!parent->children) {
 		parent->children = node_list_create();
+		if (!parent->children) return NODE_ERR_NO_MEM;
 	}
 	int res = node_list_add(parent->children, child);
 	if (res == 0) {
+		child->parent = parent;
 		parent->count++;
 	}
 	return res;
@@ -91,7 +161,7 @@ int node_attach(node_t parent, node_t child)
 
 int node_detach(node_t parent, node_t child)
 {
-	if (!parent || !child) return -1;
+	if (!parent || !child) return NODE_ERR_INVALID_ARG;
 	int node_index = node_list_remove(parent->children, child);
 	if (node_index >= 0) {
 		parent->count--;
@@ -101,13 +171,29 @@ int node_detach(node_t parent, node_t child)
 
 int node_insert(node_t parent, unsigned int node_index, node_t child)
 {
-	if (!parent || !child) return -1;
-	child->parent = parent;
-	if(!parent->children) {
+	if (!parent || !child) return NODE_ERR_INVALID_ARG;
+
+	// already parented?
+	if (child->parent) return NODE_ERR_PARENT;
+
+	// self/cycle guard
+	if (parent == child) return NODE_ERR_CIRCULAR_REF;
+	if (would_create_cycle(parent, child)) return NODE_ERR_CIRCULAR_REF;
+
+	// depth guard: depth(parent)+1+max_depth(child_subtree) <= NODE_MAX_DEPTH
+	int pd = node_depth_from_root(parent);
+	int cd = node_subtree_max_depth(child);
+	if (pd + 1 + cd > NODE_MAX_DEPTH) {
+		return NODE_ERR_MAX_DEPTH;
+	}
+
+	if (!parent->children) {
 		parent->children = node_list_create();
+		if (!parent->children) return NODE_ERR_NO_MEM;
 	}
 	int res = node_list_insert(parent->children, node_index, child);
 	if (res == 0) {
+		child->parent = parent;
 		parent->count++;
 	}
 	return res;
@@ -186,7 +272,7 @@ node_t node_next_sibling(node_t node)
 
 int node_child_position(node_t parent, node_t child)
 {
-	if (!parent || !parent->children || !parent->children->begin || !child) return -1;
+	if (!parent || !parent->children || !parent->children->begin || !child) return NODE_ERR_INVALID_ARG;
 	int node_index = 0;
 	int found = 0;
 	node_t ch;
@@ -198,7 +284,7 @@ int node_child_position(node_t parent, node_t child)
 		node_index++;
 	}
 	if (!found) {
-		return -1;
+		return NODE_ERR_NOT_FOUND;
 	}
 	return node_index;
 }
@@ -211,10 +297,18 @@ node_t node_copy_deep(node_t node, copy_func_t copy_func)
 		data = copy_func(node->data);
 	}
 	node_t copy = node_create(NULL, data);
+	if (!copy) return NULL;
 	node_t ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
 		node_t cc = node_copy_deep(ch, copy_func);
-		node_attach(copy, cc);
+		if (!cc) {
+			node_destroy(copy);
+			return NULL;
+		}
+		if (node_attach(copy, cc) < 0) {
+			node_destroy(copy);
+			return NULL;
+		}
 	}
 	return copy;
 }
