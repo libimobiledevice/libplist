@@ -162,9 +162,15 @@ int node_attach(node_t parent, node_t child)
 int node_detach(node_t parent, node_t child)
 {
 	if (!parent || !child) return NODE_ERR_INVALID_ARG;
+	if (!parent->children) return NODE_ERR_NOT_FOUND;
+	if (child->parent && child->parent != parent) return NODE_ERR_PARENT;
+
 	int node_index = node_list_remove(parent->children, child);
 	if (node_index >= 0) {
-		parent->count--;
+		if (parent->count > 0) parent->count--;
+		child->parent = NULL;
+		child->prev = NULL;
+		child->next = NULL;
 	}
 	return node_index;
 }
