@@ -49,8 +49,14 @@
   #endif
 #endif
 
+#include "node.h"
+
 #ifndef PLIST_MAX_NESTING_DEPTH
+#ifdef NODE_MAX_DEPTH
+#define PLIST_MAX_NESTING_DEPTH NODE_MAX_DEPTH
+#else
 #define PLIST_MAX_NESTING_DEPTH 512
+#endif
 #endif
 
 #include "plist/plist.h"

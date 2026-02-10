@@ -413,30 +413,59 @@ void plist_free_data(plist_data_t data)
     }
 }
 
-static int plist_free_node(node_t node)
+static int plist_free_node(node_t root)
 {
-    if (!node) return NODE_ERR_INVALID_ARG;
-    plist_data_t data = NULL;
-    int node_index = -1;
+    if (!root) return NODE_ERR_INVALID_ARG;
 
-    if (node->parent) {
-        node_index = node_detach(node->parent, node);
+    int root_index = -1;
+
+    if (root->parent) {
+        root_index = node_detach(root->parent, root);
+        if (root_index < 0) {
+            return root_index;
+        }
     }
 
-    data = plist_get_data(node);
-    plist_free_data(data);
-    node->data = NULL;
+    size_t cap = 64, sp = 0;
+    node_t *stack = (node_t*)malloc(cap * sizeof(*stack));
+    if (!stack) return NODE_ERR_NO_MEM;
 
-    node_t ch;
-    for (ch = node_first_child(node); ch; ) {
-        node_t next = node_next_sibling(ch);
-        plist_free_node(ch);
-        ch = next;
+    stack[sp++] = root;
+
+    while (sp) {
+        node_t node = stack[sp - 1];
+        node_t ch = node_first_child(node);
+        if (ch) {
+            int di = node_detach(node, ch);
+            if (di < 0) {
+                free(stack);
+                return di;
+            }
+
+            if (sp == cap) {
+                cap += 64;
+                node_t *tmp = (node_t*)realloc(stack, cap * sizeof(*stack));
+                if (!tmp) {
+                    free(stack);
+                    return NODE_ERR_NO_MEM;
+                }
+                stack = tmp;
+            }
+            stack[sp++] = ch;
+            continue;
+        }
+
+        plist_data_t data = plist_get_data(node);
+        plist_free_data(data);
+        node->data = NULL;
+
+        node_destroy(node);
+
+        sp--;
     }
 
-    node_destroy(node);
-
-    return node_index;
+    free(stack);
+    return root_index;
 }
 
 plist_t plist_new_dict(void)
@@ -572,36 +601,43 @@ void plist_mem_free(void* ptr)
     }
 }
 
-static plist_t plist_copy_node(node_t node)
+static int plist_copy_node_shallow(node_t node, plist_t *out_newnode, plist_data_t *out_newdata, plist_type *out_type)
 {
-    plist_type node_type = PLIST_NONE;
-    plist_t newnode = NULL;
-    plist_data_t data = plist_get_data(node);
-    plist_data_t newdata = plist_new_plist_data();
+    if (!node || !out_newnode || !out_newdata || !out_type) return NODE_ERR_INVALID_ARG;
 
-    assert(data);				// plist should always have data
-    assert(newdata);
+    plist_data_t data = plist_get_data(node);
+    if (!data) return NODE_ERR_INVALID_ARG;
+
+    plist_data_t newdata = plist_new_plist_data();
+    if (!newdata) return NODE_ERR_NO_MEM;
 
     memcpy(newdata, data, sizeof(struct plist_data_s));
 
-    node_type = plist_get_node_type(node);
+    plist_type node_type = plist_get_node_type(node);
     switch (node_type) {
         case PLIST_DATA:
             if (data->buff) {
-                newdata->buff = (uint8_t *) malloc(data->length);
-                assert(newdata->buff);
+                newdata->buff = (uint8_t*)malloc(data->length);
+                if (!newdata->buff) {
+                    plist_free_data(newdata);
+                    return NODE_ERR_NO_MEM;
+                }
                 memcpy(newdata->buff, data->buff, data->length);
             } else {
                 newdata->buff = NULL;
                 newdata->length = 0;
             }
             break;
+
         case PLIST_KEY:
         case PLIST_STRING:
             if (data->strval) {
                 size_t n = strlen(data->strval);
                 newdata->strval = (char*)malloc(n+1);
-                assert(newdata->strval);
+                if (!newdata->strval) {
+                    plist_free_data(newdata);
+                    return NODE_ERR_NO_MEM;
+                }
                 memcpy(newdata->strval, data->strval, n+1);
                 newdata->length = (uint64_t)n;
             } else {
@@ -609,59 +645,180 @@ static plist_t plist_copy_node(node_t node)
                 newdata->length = 0;
             }
             break;
+
         case PLIST_ARRAY:
             if (data->hashtable) {
                 ptrarray_t* pa = ptr_array_new(((ptrarray_t*)data->hashtable)->capacity);
-                assert(pa);
+                if (!pa) {
+                    plist_free_data(newdata);
+                    return NODE_ERR_NO_MEM;
+                }
                 newdata->hashtable = pa;
             }
             break;
+
         case PLIST_DICT:
             if (data->hashtable) {
                 hashtable_t* ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
-                assert(ht);
+                if (!ht) {
+                    plist_free_data(newdata);
+                    return NODE_ERR_NO_MEM;
+                }
                 newdata->hashtable = ht;
             }
             break;
+
         default:
             break;
     }
-    newnode = plist_new_node(newdata);
 
-    node_t ch;
-    unsigned int node_index = 0;
-    for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-        /* copy child node */
-        plist_t newch = plist_copy_node(ch);
-        if (!newch) {
-            plist_free_node((node_t)newnode);
+    plist_t newnode = plist_new_node(newdata);
+    if (!newnode) {
+        plist_free_data(newdata);
+        return NODE_ERR_NO_MEM;
+    }
+
+    *out_newnode = newnode;
+    *out_newdata = newdata;
+    *out_type = node_type;
+    return NODE_ERR_SUCCESS;
+}
+
+static plist_t plist_copy_node(node_t root)
+{
+    typedef struct copy_frame {
+        node_t       orig;        // original node
+        plist_t      copy;        // copied node
+        plist_data_t copydata;    // copied node's data (for cache updates)
+        plist_type   type;        // copied node type
+        node_t       next_child;  // next child of orig to process
+        unsigned int node_index;  // child index (for dict key/value odd/even)
+        int          depth;       // optional depth tracking
+    } copy_frame_t;
+
+    if (!root) return NULL;
+
+    // shallow-copy root first
+    plist_t newroot = NULL;
+    plist_data_t newroot_data = NULL;
+    plist_type newroot_type = PLIST_NONE;
+
+    int r = plist_copy_node_shallow(root, &newroot, &newroot_data, &newroot_type);
+    if (r != NODE_ERR_SUCCESS) {
+        PLIST_ERR("%s: shallow node copy failed (%d)\n", __func__, r);
+        return NULL;
+    }
+
+    // stack of frames
+    size_t cap = 64, sp = 0;
+    copy_frame_t *st = (copy_frame_t*)malloc(cap * sizeof(*st));
+    if (!st) {
+        plist_free_node((node_t)newroot);
+        return NULL;
+    }
+
+    copy_frame_t cf;
+    cf.orig = root;
+    cf.copy = newroot;
+    cf.copydata = newroot_data;
+    cf.type = newroot_type;
+    cf.next_child = node_first_child(root);
+    cf.node_index = 0;
+    cf.depth = 0;
+    st[sp++] = cf;
+
+    while (sp) {
+        copy_frame_t *f = &st[sp - 1];
+
+        if (f->depth > NODE_MAX_DEPTH) {
+            plist_free_node((node_t)newroot);
+            free(st);
+            PLIST_ERR("%s: maximum nesting depth exceeded\n", __func__);
             return NULL;
         }
-        /* attach to new parent node */
-        int r = node_attach((node_t)newnode, (node_t)newch);
+
+        // done with this node?
+        if (!f->next_child) {
+            sp--;
+            continue;
+        }
+
+        // take next child and advance iterator
+        node_t ch = f->next_child;
+        f->next_child = node_next_sibling(ch);
+
+        // shallow copy child
+        plist_t newch = NULL;
+        plist_data_t newch_data = NULL;
+        plist_type newch_type = PLIST_NONE;
+
+        r = plist_copy_node_shallow(ch, &newch, &newch_data, &newch_type);
+        if (r != NODE_ERR_SUCCESS) {
+            plist_free_node((node_t)newroot);
+            free(st);
+            PLIST_ERR("%s: shallow node copy failed (%d)\n", __func__, r);
+            return NULL;
+        }
+
+        // attach child to copied parent
+        r = node_attach((node_t)f->copy, (node_t)newch);
         if (r != NODE_ERR_SUCCESS) {
             plist_free_node((node_t)newch);
-            plist_free_node((node_t)newnode);
+            plist_free_node((node_t)newroot);
+            free(st);
+            PLIST_ERR("%s: failed to attach child to copied parent (%d)\n", __func__, r);
             return NULL;
         }
-        /* if needed, add child node to lookup table of parent node */
-        switch (node_type) {
+
+        // update lookup cache on the *parent* copy
+        switch (f->type) {
             case PLIST_ARRAY:
-                if (newdata->hashtable) {
-                    ptr_array_add((ptrarray_t*)newdata->hashtable, newch);
+                if (f->copydata->hashtable) {
+                    ptr_array_add((ptrarray_t*)f->copydata->hashtable, newch);
                 }
                 break;
+
             case PLIST_DICT:
-                if (newdata->hashtable && (node_index % 2 != 0)) {
-                    hash_table_insert((hashtable_t*)newdata->hashtable, (node_prev_sibling((node_t)newch))->data, newch);
+                if (f->copydata->hashtable && (f->node_index % 2 != 0)) {
+                    node_t new_key = node_prev_sibling((node_t)newch);
+                    if (new_key) {
+                        hash_table_insert((hashtable_t*)f->copydata->hashtable, new_key->data, newch);
+                    }
                 }
                 break;
+
             default:
                 break;
         }
-        node_index++;
+
+        f->node_index++;
+
+        // push child frame to process its children
+        if (sp == cap) {
+            cap += 64;
+            copy_frame_t *tmp = (copy_frame_t*)realloc(st, cap * sizeof(*st));
+            if (!tmp) {
+                plist_free_node((node_t)newroot);
+                free(st);
+                PLIST_ERR("%s: out of memory when reallocating\n", __func__);
+                return NULL;
+            }
+            st = tmp;
+        }
+
+        copy_frame_t nf;
+        nf.orig = ch;
+        nf.copy = newch;
+        nf.copydata = newch_data;
+        nf.type = newch_type;
+        nf.next_child = node_first_child(ch);
+        nf.node_index = 0;
+        nf.depth = f->depth + 1;
+        st[sp++] = nf;
     }
-    return newnode;
+
+    free(st);
+    return newroot;
 }
 
 plist_t plist_copy(plist_t node)
