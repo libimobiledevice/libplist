@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -279,6 +278,10 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
 static plist_t parse_int_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
 
     size = 1 << size;			// make length less misleading
     switch (size)
@@ -309,6 +312,10 @@ static plist_t parse_int_node(const char **bnode, uint8_t size)
 static plist_t parse_real_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
 
     size = 1 << size;			// make length less misleading
     switch (size)
@@ -357,6 +364,10 @@ static plist_t parse_date_node(const char **bnode, uint8_t size)
 static plist_t parse_string_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
 
     data->type = PLIST_STRING;
     data->strval = (char *) malloc(sizeof(char) * (size + 1));
@@ -446,6 +457,10 @@ static char *plist_utf16be_to_utf8(uint16_t *unistr, size_t len, size_t *items_r
 static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     size_t items_read = 0;
     size_t items_written = 0;
 
@@ -463,11 +478,14 @@ static plist_t parse_unicode_node(const char **bnode, uint64_t size)
 static plist_t parse_data_node(const char **bnode, uint64_t size)
 {
     plist_data_t data = plist_new_plist_data();
-
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_DATA;
     data->length = size;
     data->buff = (uint8_t *) malloc(sizeof(uint8_t) * size);
-    if (!data->strval) {
+    if (!data->buff) {
         plist_free_data(data);
         PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, sizeof(uint8_t) * size);
         return NULL;
@@ -483,6 +501,10 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
     uint64_t str_i = 0, str_j = 0;
     uint64_t index1, index2;
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     const char *index1_ptr = NULL;
     const char *index2_ptr = NULL;
 
@@ -490,6 +512,11 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
     data->length = size;
 
     plist_t node = node_create(NULL, data);
+    if (!node) {
+        plist_free_data(data);
+        PLIST_BIN_ERR("%s: failed to create node\n", __func__);
+        return NULL;
+    }
 
     for (j = 0; j < data->length; j++) {
         str_i = j * bplist->ref_size;
@@ -562,12 +589,21 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
     uint64_t str_j = 0;
     uint64_t index1;
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     const char *index1_ptr = NULL;
 
     data->type = PLIST_ARRAY;
     data->length = size;
 
     plist_t node = node_create(NULL, data);
+    if (!node) {
+        plist_free_data(data);
+        PLIST_BIN_ERR("%s: failed to create node\n", __func__);
+        return NULL;
+    }
 
     for (j = 0; j < data->length; j++) {
         str_j = j * bplist->ref_size;
@@ -603,6 +639,10 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
 static plist_t parse_uid_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     size = size + 1;
     data->intval = UINT_TO_HOST(*bnode, size);
     if (data->intval > UINT32_MAX) {
@@ -673,6 +713,10 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         case BPLIST_TRUE:
         {
             plist_data_t data = plist_new_plist_data();
+            if (!data) {
+                PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+                return NULL;
+            }
             data->type = PLIST_BOOLEAN;
             data->boolval = TRUE;
             data->length = 1;
@@ -682,6 +726,10 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         case BPLIST_FALSE:
         {
             plist_data_t data = plist_new_plist_data();
+            if (!data) {
+                PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+                return NULL;
+            }
             data->type = PLIST_BOOLEAN;
             data->boolval = FALSE;
             data->length = 1;
@@ -691,6 +739,10 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
         case BPLIST_NULL:
         {
             plist_data_t data = plist_new_plist_data();
+            if (!data) {
+                PLIST_BIN_ERR("%s: failed to allocate plist data\n", __func__);
+                return NULL;
+            }
             data->type = PLIST_NULL;
             data->length = 0;
             return node_create(NULL, data);
@@ -1043,7 +1095,7 @@ static plist_err_t serialize_plist(node_t node, void* data, uint32_t depth)
 
     // insert new ref
     index_val = (uint64_t *) malloc(sizeof(uint64_t));
-    assert(index_val != NULL);
+    if (!index_val) return PLIST_ERR_NO_MEM;
     *index_val = ser->objects->len;
     hash_table_insert(ser->ref_table, node, index_val);
 
@@ -1461,7 +1513,9 @@ plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
     //write objects and table
     offsets = (uint64_t *) malloc(num_objects * sizeof(uint64_t));
-    assert(offsets != NULL);
+    if (!offsets) {
+        return PLIST_ERR_NO_MEM;
+    }
     for (i = 0; i < num_objects; i++)
     {
 

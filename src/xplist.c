@@ -1216,7 +1216,17 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 goto handle_closing;
             }
             plist_data_t data = plist_new_plist_data();
+            if (!data) {
+                PLIST_XML_ERR("failed to allocate plist data\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             subnode = plist_new_node(data);
+            if (!subnode) {
+                PLIST_XML_ERR("failed to create node\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
 
             if (!strcmp(tag, XPLIST_DICT)) {
                 data->type = PLIST_DICT;
@@ -1425,6 +1435,12 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         size_t size = tp->length;
                         if (size > 0) {
                             data->buff = base64decode(str_content, &size);
+                            if (!data->buff) {
+                                text_parts_free((text_part_t*)first_part.next);
+                                PLIST_XML_ERR("failed to decode base64 stream\n");
+                                ctx->err = PLIST_ERR_NO_MEM;
+                                goto err_out;
+                            }
                             data->length = size;
                         }
 

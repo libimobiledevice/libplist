@@ -358,8 +358,7 @@ plist_data_t plist_get_data(plist_t node)
 
 plist_data_t plist_new_plist_data(void)
 {
-    plist_data_t data = (plist_data_t) calloc(1, sizeof(struct plist_data_s));
-    return data;
+    return (plist_data_t) calloc(1, sizeof(struct plist_data_s));
 }
 
 static unsigned int dict_key_hash(const void *data)
@@ -471,6 +470,10 @@ static int plist_free_node(node_t root)
 plist_t plist_new_dict(void)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_DICT;
     return plist_new_node(data);
 }
@@ -478,6 +481,10 @@ plist_t plist_new_dict(void)
 plist_t plist_new_array(void)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_ARRAY;
     return plist_new_node(data);
 }
@@ -486,24 +493,48 @@ plist_t plist_new_array(void)
 static plist_t plist_new_key(const char *val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_KEY;
     data->strval = strdup(val);
-    data->length = strlen(val);
+    if (!data->strval) {
+        plist_free_data(data);
+        PLIST_ERR("%s: strdup failed\n", __func__);
+        return NULL;
+    } else {
+        data->length = strlen(val);
+    }
     return plist_new_node(data);
 }
 
 plist_t plist_new_string(const char *val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_STRING;
     data->strval = strdup(val);
-    data->length = strlen(val);
+    if (!data->strval) {
+        plist_free_data(data);
+        PLIST_ERR("%s: strdup failed\n", __func__);
+        return NULL;
+    } else {
+        data->length = strlen(val);
+    }
     return plist_new_node(data);
 }
 
 plist_t plist_new_bool(uint8_t val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_BOOLEAN;
     data->boolval = val;
     data->length = sizeof(uint8_t);
@@ -513,6 +544,10 @@ plist_t plist_new_bool(uint8_t val)
 plist_t plist_new_uint(uint64_t val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_INT;
     data->intval = val;
     data->length = (val > INT_MAX) ? sizeof(uint64_t)*2 : sizeof(uint64_t);
@@ -522,6 +557,10 @@ plist_t plist_new_uint(uint64_t val)
 plist_t plist_new_int(int64_t val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_INT;
     data->intval = val;
     data->length = sizeof(uint64_t);
@@ -531,6 +570,10 @@ plist_t plist_new_int(int64_t val)
 plist_t plist_new_uid(uint64_t val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_UID;
     data->intval = val;
     data->length = sizeof(uint64_t);
@@ -540,6 +583,10 @@ plist_t plist_new_uid(uint64_t val)
 plist_t plist_new_real(double val)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_REAL;
     data->realval = val;
     data->length = sizeof(double);
@@ -549,11 +596,19 @@ plist_t plist_new_real(double val)
 plist_t plist_new_data(const char *val, uint64_t length)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_DATA;
-if (val && length) {
-    data->buff = (uint8_t *) malloc(length);
-    memcpy(data->buff, val, length);
-}
+    if (val && length) {
+        data->buff = (uint8_t *) malloc(length);
+        if (!data->buff) {
+            PLIST_ERR("%s: failed to allocate %" PRIu64 " bytes\n", __func__, length);
+            return NULL;
+        }
+        memcpy(data->buff, val, length);
+    }
     data->length = length;
     return plist_new_node(data);
 }
@@ -561,6 +616,10 @@ if (val && length) {
 plist_t plist_new_date(int32_t sec, int32_t usec)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_DATE;
     data->realval = (double)sec + (double)usec / 1000000;
     data->length = sizeof(double);
@@ -570,6 +629,10 @@ plist_t plist_new_date(int32_t sec, int32_t usec)
 plist_t plist_new_unix_date(int64_t sec)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_DATE;
     data->realval = (double)sec - MAC_EPOCH;
     data->length = sizeof(double);
@@ -579,6 +642,10 @@ plist_t plist_new_unix_date(int64_t sec)
 plist_t plist_new_null(void)
 {
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        PLIST_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_NULL;
     data->intval = 0;
     data->length = 0;
@@ -1128,7 +1195,6 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
         return NULL;
     }
     plist_data_t data = plist_get_data(node);
-    assert(data);
     if (!data) {
         PLIST_ERR("%s: invalid node\n", __func__);
         return NULL;
@@ -1187,7 +1253,10 @@ void plist_dict_set_item(plist_t node, const char* key, plist_t item)
             PLIST_ERR("%s: corrupt dict (value without key)\n", __func__);
             return;
         }
-        assert(PLIST_IS_KEY((plist_t)old_key));
+        if (!PLIST_IS_KEY((plist_t)old_key)) {
+            PLIST_ERR("%s: corrupt dict ('key' node is not PLIST_KEY\n", __func__);
+            return;
+        }
 
         // detach old value (do NOT free yet)
         int idx = node_detach((node_t)node, old_val);
@@ -1525,10 +1594,11 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
 {
     plist_data_t data = NULL;
 
-    if (!node)
+    if (!node || !type || !value || !length)
         return;
 
     data = plist_get_data(node);
+    if (!data) return;
 
     *type = data->type;
     *length = data->length;
@@ -1549,9 +1619,17 @@ static void plist_get_type_and_value(plist_t node, plist_type * type, void *valu
     case PLIST_KEY:
     case PLIST_STRING:
         *((char **) value) = strdup(data->strval);
+        if (!*((char **) value)) {
+            PLIST_ERR("%s: strdup failed\n", __func__);
+            return;
+        }
         break;
     case PLIST_DATA:
         *((uint8_t **) value) = (uint8_t *) malloc(*length * sizeof(uint8_t));
+        if (!*((uint8_t **) value)) {
+            PLIST_ERR("%s: malloc failed\n", __func__);
+            return;
+        }
         memcpy(*((uint8_t **) value), data->buff, *length * sizeof(uint8_t));
         break;
     case PLIST_ARRAY:
@@ -1789,11 +1867,14 @@ char plist_compare_node_value(plist_t node_l, plist_t node_r)
     return plist_data_compare(node_l, node_r);
 }
 
-static void plist_set_element_val(plist_t node, plist_type type, const void *value, uint64_t length)
+static plist_err_t plist_set_element_val(plist_t node, plist_type type, const void *value, uint64_t length)
 {
     //free previous allocated buffer
     plist_data_t data = plist_get_data(node);
-    assert(data);				// a node should always have data attached
+    if (!data) { // a node should always have data attached
+        PLIST_ERR("%s: Failed to allocate plist data\n", __func__);
+        return PLIST_ERR_NO_MEM;
+    }
 
     switch (data->type)
     {
@@ -1831,9 +1912,17 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     case PLIST_KEY:
     case PLIST_STRING:
         data->strval = strdup((char *) value);
+        if (!data->strval) {
+            PLIST_ERR("%s: strdup failed\n", __func__);
+            return PLIST_ERR_NO_MEM;
+        }
         break;
     case PLIST_DATA:
         data->buff = (uint8_t *) malloc(length);
+        if (!data->buff) {
+            PLIST_ERR("%s: malloc failed\n", __func__);
+            return PLIST_ERR_NO_MEM;
+        }
         memcpy(data->buff, value, length);
         break;
     case PLIST_ARRAY:
@@ -1841,6 +1930,7 @@ static void plist_set_element_val(plist_t node, plist_type type, const void *val
     default:
         break;
     }
+    return PLIST_ERR_SUCCESS;
 }
 
 void plist_set_key_val(plist_t node, const char *val)

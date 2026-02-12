@@ -540,6 +540,10 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         val = plist_new_bool(1);
     } else if (!strncmp("null", str_val, str_len)) {
         plist_data_t data = plist_new_plist_data();
+        if (!data) {
+            PLIST_JSON_ERR("%s: failed to allocate plist data\n", __func__);
+            return NULL;
+        }
         data->type = PLIST_NULL;
         val = plist_new_node(data);
     } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_val+1 < str_end && isdigit(str_val[1]))) {
@@ -597,6 +601,10 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         }
     } else {
         PLIST_JSON_ERR("%s: invalid primitive value '%.*s' encountered\n", __func__, (int)str_len, str_val);
+    }
+    if (!val) {
+        PLIST_JSON_ERR("%s: failed to create node\n", __func__);
+        return NULL;
     }
     (*index)++;
     return val;
@@ -695,10 +703,20 @@ static plist_t parse_string(const char* js, jsmntok_info_t* ti, int* index)
     plist_t node;
 
     plist_data_t data = plist_new_plist_data();
+    if (!data) {
+        free(strval);
+        PLIST_JSON_ERR("%s: failed to allocate plist data\n", __func__);
+        return NULL;
+    }
     data->type = PLIST_STRING;
     data->strval = strval;
     data->length = str_len;
     node = plist_new_node(data);
+    if (!node) {
+        plist_free_data(data);
+        PLIST_JSON_ERR("%s: failed to create node\n", __func__);
+        return NULL;
+    }
 
     (*index)++;
     return node;
