@@ -312,6 +312,7 @@ node_t node_copy_deep(node_t node, copy_func_t copy_func)
 			return NULL;
 		}
 		if (node_attach(copy, cc) < 0) {
+                        node_destroy(cc);
 			node_destroy(copy);
 			return NULL;
 		}
