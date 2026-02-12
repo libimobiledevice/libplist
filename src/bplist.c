@@ -852,7 +852,13 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
         return NULL;
     }
 
-    ptr = bplist->data + UINT_TO_HOST(idx_ptr, bplist->offset_size);
+    uint64_t node_offset = UINT_TO_HOST(idx_ptr, bplist->offset_size);
+    if (node_offset > (uint64_t)bplist->size) {
+        PLIST_BIN_ERR("node offset overflow (%llu)\n", node_offset);
+        bplist->err = PLIST_ERR_PARSE;
+        return NULL;
+    }
+    ptr = bplist->data + node_offset;
     /* make sure the node offset is in a sane range */
     if ((ptr < bplist->data+BPLIST_MAGIC_SIZE+BPLIST_VERSION_SIZE) || (ptr >= bplist->offset_table)) {
         PLIST_BIN_ERR("offset for node index %u points outside of valid range\n", node_index);
