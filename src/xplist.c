@@ -1047,6 +1047,10 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
     struct node_path_item* node_path = NULL;
     int depth = 0;
 
+    /* Track whether the single root value inside <plist> has been parsed.
+       Any additional value nodes before </plist> must result in an error. */
+    int plist_root_done = 0;
+
     while (ctx->pos < ctx->end && !ctx->err) {
         parse_skip_ws(ctx);
         if (ctx->pos >= ctx->end) {
@@ -1209,8 +1213,18 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 struct node_path_item *path_item = node_path;
                 node_path = (struct node_path_item*)node_path->prev;
                 free(path_item);
-                continue;
+
+                /* </plist> marks the end of the document; stop parsing. */
+                break;
             }
+
+            /* Reject any additional top-level nodes after root, while still inside <plist>. */
+            if (node_path && !strcmp(node_path->type, "plist") && plist_root_done && tag[0] != '/') {
+                PLIST_XML_ERR("Unexpected tag <%s> found while </plist> is expected\n", tag);
+                ctx->err = PLIST_ERR_PARSE;
+                goto err_out;
+            }
+
             if (tag[0] == '/') {
                 closing_tag = 1;
                 goto handle_closing;
@@ -1403,12 +1417,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         data->length = length;
                     }
                 } else {
-                    if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
-                        keyname = strdup("");
-                        plist_free(subnode);
-                        subnode = NULL;
-                        continue;
-                    }
                     data->strval = strdup("");
                     data->length = 0;
                 }
@@ -1501,14 +1509,15 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             if (subnode && !closing_tag) {
                 if (!*plist) {
-                    /* first node, make this node the parent node */
+                    /* first node inside <plist> */
                     *plist = subnode;
-                    if (data->type != PLIST_DICT && data->type != PLIST_ARRAY) {
-                        /* if the first node is not a structered node, we're done */
-                        subnode = NULL;
-                        goto err_out;
+
+                    if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
+                        parent = subnode;
+                    } else {
+                        /* scalar root: keep parsing until </plist>, but reject other top-level nodes */
+                        plist_root_done = 1;
                     }
-                    parent = subnode;
                 } else if (parent) {
                     switch (plist_get_node_type(parent)) {
                     case PLIST_DICT:
@@ -1528,6 +1537,11 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
+                } else {
+                    /* We already produced root, and we're not inside a container */
+                    PLIST_XML_ERR("Unexpected tag <%s> found while </plist> is expected\n", tag);
+                    ctx->err = PLIST_ERR_PARSE;
+                    goto err_out;
                 }
                 if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
                     if (depth >= PLIST_MAX_NESTING_DEPTH) {
@@ -1547,6 +1561,8 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
 
                     depth++;
                     parent = subnode;
+                } else {
+                    /* If we inserted a child scalar into a container, nothing to push. */
                 }
                 subnode = NULL;
             }
@@ -1562,12 +1578,42 @@ handle_closing:
                     ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
+
+                /* When closing a dictionary, convert a single-entry
+                   { "CF$UID" : <integer> } dictionary into a PLIST_UID node.
+                   Perform the conversion before moving to the parent node. */
+                if (!strcmp(node_path->type, XPLIST_DICT) && parent && plist_get_node_type(parent) == PLIST_DICT) {
+                    if (plist_dict_get_size(parent) == 1) {
+                        plist_t uid = plist_dict_get_item(parent, "CF$UID");
+                        if (uid) {
+                            uint64_t val = 0;
+                            if (plist_get_node_type(uid) != PLIST_INT) {
+                                ctx->err = PLIST_ERR_PARSE;
+                                PLIST_XML_ERR("Invalid node type for CF$UID dict entry (must be PLIST_INT)\n");
+                                goto err_out;
+                            }
+                            plist_get_uint_val(uid, &val);
+                            plist_dict_remove_item(parent, "CF$UID");
+
+                            plist_data_t nodedata = plist_get_data((node_t*)parent);
+                            free(nodedata->buff);
+                            nodedata->type = PLIST_UID;
+                            nodedata->length = sizeof(uint64_t);
+                            nodedata->intval = val;
+                        }
+                    }
+                }
+
                 if (depth > 0) depth--;
                 struct node_path_item *path_item = node_path;
                 node_path = (struct node_path_item*)node_path->prev;
                 free(path_item);
                 parent = (parent) ? ((node_t)parent)->parent : NULL;
-                /* parent can be NULL when we just closed the root node; keep parsing */
+
+                /* If we just closed the root container under <plist>, mark root as done. */
+                if (node_path && !strcmp(node_path->type, "plist") && !parent && *plist) {
+                    plist_root_done = 1;
+                }
             }
             free(keyname);
             keyname = NULL;
@@ -1596,17 +1642,6 @@ err_out:
         plist_free(*plist);
         *plist = NULL;
         return ctx->err;
-    }
-
-    /* check if we have a UID "dict" so we can replace it with a proper UID node */
-    if (PLIST_IS_DICT(*plist) && plist_dict_get_size(*plist) == 1) {
-        plist_t value = plist_dict_get_item(*plist, "CF$UID");
-        if (PLIST_IS_INT(value)) {
-            uint64_t u64val = 0;
-            plist_get_uint_val(value, &u64val);
-            plist_free(*plist);
-            *plist = plist_new_uid(u64val);
-        }
     }
 
     return PLIST_ERR_SUCCESS;
