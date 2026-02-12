@@ -1092,32 +1092,41 @@ void plist_array_item_remove(plist_t node)
     }
 }
 
+typedef struct {
+    node_t cur;
+} plist_array_iter_private;
+
 void plist_array_new_iter(plist_t node, plist_array_iter *iter)
 {
-    if (iter)
-    {
-        *iter = malloc(sizeof(node_t));
-        *((node_t*)(*iter)) = node_first_child((node_t)node);
-    }
+    if (!iter) return;
+    *iter = NULL;
+    if (!PLIST_IS_ARRAY(node)) return;
+
+    plist_array_iter_private* it = (plist_array_iter_private*)malloc(sizeof(*it));
+    if (!it) return;
+    it->cur = node_first_child((node_t)node);
+    *iter = (plist_array_iter)it;
 }
 
 void plist_array_next_item(plist_t node, plist_array_iter iter, plist_t *item)
 {
-    node_t* iter_node = (node_t*)iter;
+    if (item) *item = NULL;
+    if (!iter) return;
+    if (!PLIST_IS_ARRAY(node)) return;
 
-    if (item)
-    {
-        *item = NULL;
-    }
+    plist_array_iter_private* it = (plist_array_iter_private*)iter;
+    node_t cur = it->cur;
+    if (!cur) return;
 
-    if (node && PLIST_ARRAY == plist_get_node_type(node) && *iter_node)
-    {
-        if (item)
-        {
-            *item = (plist_t)(*iter_node);
-        }
-        *iter_node = node_next_sibling(*iter_node);
+    if (item) {
+        *item = (plist_t)cur;
     }
+    it->cur = node_next_sibling(cur);
+}
+
+void plist_array_free_iter(plist_array_iter iter)
+{
+    free(iter);
 }
 
 uint32_t plist_dict_get_size(plist_t node)
@@ -1130,41 +1139,59 @@ uint32_t plist_dict_get_size(plist_t node)
     return ret;
 }
 
+typedef struct {
+    node_t cur;
+} plist_dict_iter_private;
+
 void plist_dict_new_iter(plist_t node, plist_dict_iter *iter)
 {
-    if (iter)
-    {
-        *iter = malloc(sizeof(node_t));
-        *((node_t*)(*iter)) = node_first_child((node_t)node);
-    }
+    if (!iter) return;
+    *iter = NULL;
+    if (!PLIST_IS_DICT(node)) return;
+
+    plist_dict_iter_private* it = (plist_dict_iter_private*)malloc(sizeof(*it));
+    if (!it) return;
+    it->cur = node_first_child((node_t)node);
+    *iter = (plist_dict_iter)it;
 }
 
 void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val)
 {
-    node_t* iter_node = (node_t*)iter;
+    if (key) *key = NULL;
+    if (val) *val = NULL;
+    if (!iter) return;
+    if (!PLIST_IS_DICT(node)) return;
 
-    if (key)
-    {
-        *key = NULL;
-    }
-    if (val)
-    {
-        *val = NULL;
+    plist_dict_iter_private* it = (plist_dict_iter_private*)iter;
+
+    node_t k = it->cur;
+    if (!k) return;
+
+    if (!PLIST_IS_KEY((plist_t)k)) {
+        // malformed dict, terminate iteration
+        it->cur = NULL;
+        return;
     }
 
-    if (node && PLIST_DICT == plist_get_node_type(node) && *iter_node)
-    {
-        if (key)
-        {
-            plist_get_key_val((plist_t)(*iter_node), key);
-        }
-        *iter_node = node_next_sibling(*iter_node);
-        if (val)
-        {
-            *val = (plist_t)(*iter_node);
-        }
-        *iter_node = node_next_sibling(*iter_node);
+    node_t v = node_next_sibling(k);
+    if (!v) {
+        // key without value, terminate iteration
+        it->cur = NULL;
+        return;
     }
+
+    if (key) {
+        plist_get_key_val((plist_t)k, key);
+    }
+    if (val) {
+        *val = (plist_t)v;
+    }
+    it->cur = node_next_sibling(v);
+}
+
+void plist_dict_free_iter(plist_dict_iter iter)
+{
+    free(iter);
 }
 
 void plist_dict_get_item_key(plist_t node, char **key)

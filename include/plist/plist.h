@@ -400,6 +400,12 @@ extern "C"
      */
     PLIST_API void plist_array_next_item(plist_t node, plist_array_iter iter, plist_t *item);
 
+    /**
+     * Free #PLIST_ARRAY iterator.
+     *
+     * @param iter Iterator to free.
+     */
+    PLIST_API void plist_array_free_iter(plist_array_iter iter);
 
     /********************************************
      *                                          *
@@ -436,6 +442,13 @@ extern "C"
      *		key/value pairs are left to iterate.
      */
     PLIST_API void plist_dict_next_item(plist_t node, plist_dict_iter iter, char **key, plist_t *val);
+
+    /**
+     * Free #PLIST_DICT iterator.
+     *
+     * @param iter Iterator to free.
+     */
+    PLIST_API void plist_dict_free_iter(plist_dict_iter iter);
 
     /**
      * Get key associated key to an item. Item must be member of a dictionary.
