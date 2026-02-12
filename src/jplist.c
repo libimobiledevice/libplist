@@ -613,6 +613,7 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
 static char* unescape_string(const char* str_val, size_t str_len, size_t *new_len)
 {
     char* strval = strndup(str_val, str_len);
+    if (!strval) return NULL;
     size_t i = 0;
     while (i < str_len) {
         if (strval[i] == '\\' && i < str_len-1) {
