@@ -738,6 +738,11 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index, uint3
         return NULL;
     }
     plist_t arr = plist_new_array();
+    if (!arr) {
+        PLIST_JSON_ERR("%s: failed to create array node\n", __func__);
+        ti->err = PLIST_ERR_NO_MEM;
+        return NULL;
+    }
     size_t num_tokens = ti->tokens[*index].size;
     size_t num;
     int j = (*index)+1;
@@ -767,6 +772,13 @@ static plist_t parse_array(const char* js, jsmntok_info_t* ti, int* index, uint3
         }
         if (val) {
             plist_array_append_item(arr, val);
+            // if append failed, val still has no parent, free it and abort
+            if (((node_t)val)->parent == NULL) {
+                plist_free(val);
+                plist_free(arr);
+                ti->err = PLIST_ERR_NO_MEM;
+                return NULL;
+            }
         } else {
             plist_free(arr);
             ti->err = PLIST_ERR_PARSE;
@@ -798,6 +810,11 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index, uint
         return NULL;
     }
     plist_t obj = plist_new_dict();
+    if (!obj) {
+        PLIST_JSON_ERR("%s: failed to create dict node\n", __func__);
+        ti->err = PLIST_ERR_NO_MEM;
+        return NULL;
+    }
     for (num = 0; num < num_tokens; num++) {
         if (j+1 >= ti->count) {
             PLIST_JSON_ERR("%s: token index out of valid range\n", __func__);
@@ -833,6 +850,14 @@ static plist_t parse_object(const char* js, jsmntok_info_t* ti, int* index, uint
             }
             if (val) {
                 plist_dict_set_item(obj, key, val);
+                // if set failed, val still has no parent, free it and abort
+                if (((node_t)val)->parent == NULL) {
+                    plist_free(val);
+                    free(key);
+                    plist_free(obj);
+                    ti->err = PLIST_ERR_NO_MEM;
+                    return NULL;
+                }
             } else {
                 free(key);
                 plist_free(obj);
