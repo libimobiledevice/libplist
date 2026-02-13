@@ -62,3 +62,12 @@ cython/.deps
 cython/.libs
 cython/plist.c
 test-driver
+
+# Generated test output files
+test/data/*.test.bin
+test/data/*.test.signed.bin
+test/data/*.test.unsigned.bin
+test/data/*.test.unsigned.xml
+test/data/*.test.tz*.bin
+test/data/*.test.tz*.xml
+test/data/*.test.xml

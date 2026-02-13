@@ -13,7 +13,8 @@ noinst_PROGRAMS = \
 	integer_set_test \
 	plist_btest \
 	plist_jtest \
-	plist_otest
+	plist_otest \
+	xml_behavior_test
 
 plist_cmp_SOURCES = plist_cmp.c
 plist_cmp_LDADD = \
@@ -37,6 +38,9 @@ plist_jtest_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 plist_otest_SOURCES = plist_otest.c
 plist_otest_LDADD = $(top_builddir)/src/libplist-2.0.la
+
+xml_behavior_test_SOURCES = xml_behavior_test.c
+xml_behavior_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 TESTS = \
 	empty.test \
@@ -79,7 +83,8 @@ TESTS = \
 	ostep2.test \
 	ostep-strings.test \
 	ostep-comments.test \
-	ostep-invalid-types.test
+	ostep-invalid-types.test \
+	xml_behavior.test
 
 EXTRA_DIST = \
 	$(TESTS) \
