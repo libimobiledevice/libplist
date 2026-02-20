@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <getopt.h>
 #include <errno.h>
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -82,105 +83,114 @@ static void print_usage(int argc, char *argv[])
 
 static options_t *parse_arguments(int argc, char *argv[])
 {
-    int i = 0;
+    options_t *options = calloc(1, sizeof(options_t));
+    if (!options)
+        return NULL;
 
-    options_t *options = (options_t*)calloc(1, sizeof(options_t));
     options->out_fmt = 0;
 
-    for (i = 1; i < argc; i++)
+    static struct option long_options[] = {
+        { "infile",   required_argument, 0, 'i' },
+        { "outfile",  required_argument, 0, 'o' },
+        { "format",   required_argument, 0, 'f' },
+        { "compact",  no_argument,       0, 'c' },
+        { "sort",     no_argument,       0, 's' },
+        { "print",    required_argument, 0, 'p' },
+        { "debug",    no_argument,       0, 'd' },
+        { "help",     no_argument,       0, 'h' },
+        { "version",  no_argument,       0, 'v' },
+        { 0, 0, 0, 0 }
+    };
+
+    int c;
+    while ((c = getopt_long(argc, argv, "i:o:f:csp:dhv", long_options, NULL)) != -1)
     {
-        if (!strcmp(argv[i], "--infile") || !strcmp(argv[i], "-i"))
+        switch (c)
         {
-            if ((i + 1) == argc)
-            {
-                free(options);
-                return NULL;
-            }
-            options->in_file = argv[i + 1];
-            i++;
-            continue;
-        }
-        else if (!strcmp(argv[i], "--outfile") || !strcmp(argv[i], "-o"))
-        {
-            if ((i + 1) == argc)
-            {
-                free(options);
-                return NULL;
-            }
-            options->out_file = argv[i + 1];
-            i++;
-            continue;
-        }
-        else if (!strcmp(argv[i], "--format") || !strcmp(argv[i], "-f"))
-        {
-            if ((i + 1) == argc)
-            {
-                free(options);
-                return NULL;
-            }
-            if (!strncmp(argv[i+1], "bin", 3)) {
-                options->out_fmt = PLIST_FORMAT_BINARY;
-            } else if (!strncmp(argv[i+1], "xml", 3)) {
-                options->out_fmt = PLIST_FORMAT_XML;
-            } else if (!strncmp(argv[i+1], "json", 4)) {
-                options->out_fmt = PLIST_FORMAT_JSON;
-            } else if (!strncmp(argv[i+1], "openstep", 8) || !strncmp(argv[i+1], "ostep", 5)) {
-                options->out_fmt = PLIST_FORMAT_OSTEP;
-            } else {
-                fprintf(stderr, "ERROR: Unsupported output format\n");
-                free(options);
-                return NULL;
-            }
-            i++;
-            continue;
-        }
-        else if (!strcmp(argv[i], "--compact") || !strcmp(argv[i], "-c"))
-        {
-            options->flags |= OPT_COMPACT;
-        }
-        else if (!strcmp(argv[i], "--sort") || !strcmp(argv[i], "-s"))
-        {
-            options->flags |= OPT_SORT;
-        }
-        else if (!strcmp(argv[i], "--print") || !strcmp(argv[i], "-p"))
-        {
-            if ((i + 1) == argc)
-            {
-                free(options);
-                return NULL;
-            }
-            options->in_file = argv[i + 1];
-            options->out_fmt = PLIST_FORMAT_PRINT;
-            char *env_fmt = getenv("PLIST_OUTPUT_FORMAT");
-            if (env_fmt) {
-                if (!strcmp(env_fmt, "plutil")) {
-                    options->out_fmt = PLIST_FORMAT_PLUTIL;
-                } else if (!strcmp(env_fmt, "limd")) {
-                    options->out_fmt = PLIST_FORMAT_LIMD;
+            case 'i':
+                if (!optarg || optarg[0] == '\0') {
+                    fprintf(stderr, "ERROR: --infile requires a filename or '-' for stdin\n");
+                    free(options);
+                    return NULL;
                 }
+                options->in_file = optarg;
+                break;
+
+            case 'o':
+                if (!optarg || optarg[0] == '\0') {
+                    fprintf(stderr, "ERROR: --outfile requires a filename or '-' for stdout\n");
+                    free(options);
+                    return NULL;
+                }
+                options->out_file = optarg;
+                break;
+
+            case 'f':
+                if (!optarg || optarg[0] == '\0') {
+                    fprintf(stderr, "ERROR: --format requires a format (bin|xml|json|openstep)\n");
+                    free(options);
+                    return NULL;
+                }
+                if (!strncmp(optarg, "bin", 3)) {
+                    options->out_fmt = PLIST_FORMAT_BINARY;
+                } else if (!strncmp(optarg, "xml", 3)) {
+                    options->out_fmt = PLIST_FORMAT_XML;
+                } else if (!strncmp(optarg, "json", 4)) {
+                    options->out_fmt = PLIST_FORMAT_JSON;
+                } else if (!strncmp(optarg, "openstep", 8) ||
+                           !strncmp(optarg, "ostep", 5)) {
+                    options->out_fmt = PLIST_FORMAT_OSTEP;
+                } else {
+                    fprintf(stderr, "ERROR: Unsupported output format\n");
+                    free(options);
+                    return NULL;
+                }
+                break;
+
+            case 'c':
+                options->flags |= OPT_COMPACT;
+                break;
+
+            case 's':
+                options->flags |= OPT_SORT;
+                break;
+
+            case 'p': {
+                if (!optarg || optarg[0] == '\0') {
+                    fprintf(stderr, "ERROR: --print requires a filename or '-' for stdin\n");
+                    free(options);
+                    return NULL;
+                }
+                options->in_file = optarg;
+                options->out_fmt = PLIST_FORMAT_PRINT;
+
+                char *env_fmt = getenv("PLIST_OUTPUT_FORMAT");
+                if (env_fmt) {
+                    if (!strcmp(env_fmt, "plutil")) {
+                        options->out_fmt = PLIST_FORMAT_PLUTIL;
+                    } else if (!strcmp(env_fmt, "limd")) {
+                        options->out_fmt = PLIST_FORMAT_LIMD;
+                    }
+                }
+                break;
             }
-            i++;
-            continue;
-        }
-        else if (!strcmp(argv[i], "--debug") || !strcmp(argv[i], "-d"))
-        {
-            options->flags |= OPT_DEBUG;
-        }
-        else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h"))
-        {
-            free(options);
-            return NULL;
-        }
-        else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v"))
-        {
-            printf("plistutil %s\n", libplist_version());
-            exit(EXIT_SUCCESS);
-        }
-        else
-        {
-            fprintf(stderr, "ERROR: Invalid option '%s'\n", argv[i]);
-            free(options);
-            return NULL;
+
+            case 'd':
+                options->flags |= OPT_DEBUG;
+                break;
+
+            case 'h':
+                free(options);
+                return NULL;
+
+            case 'v':
+                printf("plistutil %s\n", libplist_version());
+                exit(EXIT_SUCCESS);
+
+            default:
+                fprintf(stderr, "ERROR: Invalid option\n");
+                free(options);
+                return NULL;
         }
     }
 
