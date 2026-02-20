@@ -40,11 +40,12 @@
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #define STDIN_FILENO _fileno(stdin)
+#define strtok_r strtok_s
 #endif
 
 typedef struct _options
 {
-    char *in_file, *out_file;
+    char *in_file, *out_file, *nodepath;
     uint8_t in_fmt, out_fmt; // fmts 0 = undef, 1 = bin, 2 = xml, 3 = json, 4 = openstep
     uint8_t flags;
 } options_t;
@@ -70,6 +71,7 @@ static void print_usage(int argc, char *argv[])
     printf("                       If omitted, XML will be converted to binary,\n");
     printf("                       and binary to XML.\n");
     printf("  -p, --print FILE     Print the PList in human-readable format.\n");
+    printf("  -n, --nodepath PATH  Restrict output to nodepath defined by PATH.\n");
     printf("  -c, --compact        JSON and OpenStep only: Print output in compact form.\n");
     printf("                       By default, the output will be pretty-printed.\n");
     printf("  -s, --sort           Sort all dictionary nodes lexicographically by key\n");
@@ -96,6 +98,7 @@ static options_t *parse_arguments(int argc, char *argv[])
         { "compact",  no_argument,       0, 'c' },
         { "sort",     no_argument,       0, 's' },
         { "print",    required_argument, 0, 'p' },
+        { "nodepath", required_argument, 0, 'n' },
         { "debug",    no_argument,       0, 'd' },
         { "help",     no_argument,       0, 'h' },
         { "version",  no_argument,       0, 'v' },
@@ -103,7 +106,7 @@ static options_t *parse_arguments(int argc, char *argv[])
     };
 
     int c;
-    while ((c = getopt_long(argc, argv, "i:o:f:csp:dhv", long_options, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "i:o:f:csp:n:dhv", long_options, NULL)) != -1)
     {
         switch (c)
         {
@@ -174,6 +177,15 @@ static options_t *parse_arguments(int argc, char *argv[])
                 }
                 break;
             }
+
+            case 'n':
+                if (!optarg || optarg[0] == '\0') {
+                    fprintf(stderr, "ERROR: --extract needs a node path\n");
+                    free(options);
+                    return NULL;
+                }
+                options->nodepath = optarg;
+                break;
 
             case 'd':
                 options->flags |= OPT_DEBUG;
@@ -326,6 +338,60 @@ int main(int argc, char *argv[])
     {
         input_res = plist_from_memory(plist_entire, read_size, &root_node, NULL);
         if (input_res == PLIST_ERR_SUCCESS) {
+
+            if (options->nodepath) {
+                char *copy = strdup(options->nodepath);
+                char *tok, *saveptr = NULL;
+                if (!copy) {
+                    plist_free(root_node);
+                    free(plist_entire);
+                    free(options);
+                    return 1;
+                }
+
+                plist_t current = root_node;
+                for (tok = strtok_r(copy, "/", &saveptr); tok; tok = strtok_r(NULL, "/", &saveptr)) {
+                    if (*tok == '\0') continue;
+                    switch (plist_get_node_type(current)) {
+                        case PLIST_DICT:
+                            current = plist_dict_get_item(current, tok);
+                            break;
+                        case PLIST_ARRAY: {
+                            char* endp = NULL;
+                            uint32_t idx = strtoul(tok, &endp, 10);
+                            if (endp == tok || *endp != '\0') {
+                                current = NULL;
+                                break;
+                            }
+                            if (idx >= plist_array_get_size(current)) {
+                                current = NULL;
+                                break;
+                            }
+                            current = plist_array_get_item(current, idx);
+                            break;
+                        }
+                        default:
+                            current = NULL;
+                            break;
+                    }
+                    if (!current) {
+                        break;
+                    }
+                }
+                free(copy);
+                if (current) {
+                    plist_t destnode = plist_copy(current);
+                    plist_free(root_node);
+                    root_node = destnode;
+                } else {
+                    fprintf(stderr, "ERROR: nodepath '%s' is invalid\n", options->nodepath);
+                    plist_free(root_node);
+                    free(plist_entire);
+                    free(options);
+                    return 1;
+                }
+            }
+
             if (options->flags & OPT_SORT) {
                 plist_sort(root_node);
             }

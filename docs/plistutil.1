@@ -29,6 +29,52 @@ convert to/from JSON or OpenStep the output format needs to specified.
 .B \-p, \-\-print FILE
 Print PList in human-readable format.
 .TP
+.B \-n, \-\-nodepath PATH
+Restrict output to nodepath defined by
+.I PATH
+which selects a specific node within the plist document.
+A node path describes traversal through dictionaries and arrays using / to
+separate the components.
+Traversal begins at the root node and proceeds from left to right.
+Each component selects a child of the current node.
+If the current node is a dictionary, the component is interpreted as a
+dictionary key name.
+If the current node is an array, the component must be a non-negative decimal
+integer specifying the array index (0-based).
+
+Given the following structure:
+.PP
+.RS
+.nf
+<plist version="1.0">
+<dict>
+  <key>Users</key>
+  <array>
+    <dict>
+      <key>Name</key>
+      <string>Alice</string>
+    </dict>
+    <dict>
+      <key>Name</key>
+      <string>Bob</string>
+    </dict>
+  </array>
+</dict>
+</plist>
+.fi
+
+A nodepath of:
+.TP
+\f[B]Users\f[] resolves to the entire array.
+.TP
+\f[B]Users/0\f[] resolves to the first dictionary in the array.
+.TP
+\f[B]Users/0/Name\f[] resolves to the string value "Alice".
+.TP
+\f[B]Users/1/Name\f[] resolves to the string value "Bob".
+.RE
+
+.TP
 .B \-c, \-\-compact
 JSON and OpenStep only: Print output in compact form. By default, the output
 will be pretty-printed.
