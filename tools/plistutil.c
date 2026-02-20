@@ -246,45 +246,49 @@ int main(int argc, char *argv[])
             return 1;
         }
         plist_entire[read_size] = '\0';
-        char ch;
-        while(read(STDIN_FILENO, &ch, 1) > 0)
-        {
-            if (read_size >= read_capacity) {
-                char *old = plist_entire;
-                read_capacity += 4096;
-                plist_entire = realloc(plist_entire, sizeof(char) * read_capacity);
-                if (plist_entire == NULL)
-                {
-                    fprintf(stderr, "ERROR: Failed to reallocate stdin buffer\n");
-                    free(old);
-                    free(options);
-                    return 1;
-                }
-            }
-            plist_entire[read_size] = ch;
-            read_size++;
-        }
-        if (read_size >= read_capacity) {
-            char *old = plist_entire;
-            plist_entire = realloc(plist_entire, sizeof(char) * (read_capacity+1));
-            if (plist_entire == NULL)
-            {
-                fprintf(stderr, "ERROR: Failed to reallocate stdin buffer\n");
-                free(old);
-                free(options);
-                return 1;
-            }
-        }
-        plist_entire[read_size] = '\0';
+        char buf[4096];
+        ssize_t n;
 
-        // Not positive we need this, but it doesnt seem to hurt lol
-        if(ferror(stdin))
-        {
-            fprintf(stderr, "ERROR: reading from stdin.\n");
+        while (1) {
+            n = read(STDIN_FILENO, buf, sizeof(buf));
+            if (n > 0) {
+                size_t needed = read_size + (size_t)n + 1;
+                if (needed > read_capacity) {
+                    size_t newcap = read_capacity ? read_capacity : 4096;
+                    while (newcap < needed) {
+                        newcap *= 2;
+                    }
+
+                    char *tmp = realloc(plist_entire, newcap);
+                    if (!tmp) {
+                        fprintf(stderr, "ERROR: Failed to reallocate stdin buffer\n");
+                        free(plist_entire);
+                        free(options);
+                        return 1;
+                    }
+                    plist_entire = tmp;
+                    read_capacity = newcap;
+                }
+
+                memcpy(plist_entire + read_size, buf, (size_t)n);
+                read_size += (size_t)n;
+                continue;
+            }
+
+            if (n == 0) { // EOF
+                break;
+            }
+
+            // n < 0: error
+            if (errno == EINTR)
+                continue;
+
+            fprintf(stderr, "ERROR: Failed to read from stdin\n");
             free(plist_entire);
             free(options);
             return 1;
         }
+        plist_entire[read_size] = '\0';
     }
     else
     {
