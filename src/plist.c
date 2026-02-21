@@ -2356,7 +2356,7 @@ plist_err_t plist_write_to_string(plist_t plist, char **output, uint32_t* length
             err = plist_to_xml(plist, output, length);
             break;
         case PLIST_FORMAT_JSON:
-            err = plist_to_json(plist, output, length, ((options & PLIST_OPT_COMPACT) == 0));
+            err = plist_to_json_ex(plist, output, length, ((options & PLIST_OPT_COMPACT) == 0), ((options & PLIST_OPT_COERCE) != 0));
             break;
         case PLIST_FORMAT_OSTEP:
             err = plist_to_openstep(plist, output, length, ((options & PLIST_OPT_COMPACT) == 0));
@@ -2394,7 +2394,7 @@ plist_err_t plist_write_to_stream(plist_t plist, FILE *stream, plist_format_t fo
             err = plist_to_xml(plist, &output, &length);
             break;
         case PLIST_FORMAT_JSON:
-            err = plist_to_json(plist, &output, &length, ((options & PLIST_OPT_COMPACT) == 0));
+            err = plist_to_json_ex(plist, &output, &length, ((options & PLIST_OPT_COMPACT) == 0), ((options & PLIST_OPT_COERCE) != 0));
             break;
         case PLIST_FORMAT_OSTEP:
             err = plist_to_openstep(plist, &output, &length, ((options & PLIST_OPT_COMPACT) == 0));

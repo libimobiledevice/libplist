@@ -52,6 +52,7 @@ typedef struct _options
 #define OPT_DEBUG   (1 << 0)
 #define OPT_COMPACT (1 << 1)
 #define OPT_SORT    (1 << 2)
+#define OPT_COERCE  (1 << 3)
 
 static void print_usage(int argc, char *argv[])
 {
@@ -74,6 +75,10 @@ static void print_usage(int argc, char *argv[])
     printf("  -n, --nodepath PATH  Restrict output to nodepath defined by PATH.\n");
     printf("  -c, --compact        JSON and OpenStep only: Print output in compact form.\n");
     printf("                       By default, the output will be pretty-printed.\n");
+    printf("  -C, --coerce         JSON only: Coerce non-JSON plist types to JSON-compatible\n");
+    printf("                       representations. Date values become ISO 8601 strings,\n");
+    printf("                       data values become Base64-encoded strings, and UID values\n");
+    printf("                       become integers. Implied when invoked as plist2json.\n");
     printf("  -s, --sort           Sort all dictionary nodes lexicographically by key\n");
     printf("                       before converting to the output format.\n");
     printf("  -d, --debug          Enable extended debug output\n");
@@ -96,6 +101,7 @@ static options_t *parse_arguments(int argc, char *argv[])
         { "outfile",  required_argument, 0, 'o' },
         { "format",   required_argument, 0, 'f' },
         { "compact",  no_argument,       0, 'c' },
+        { "coerce",   no_argument,       0, 'C' },
         { "sort",     no_argument,       0, 's' },
         { "print",    required_argument, 0, 'p' },
         { "nodepath", required_argument, 0, 'n' },
@@ -106,7 +112,7 @@ static options_t *parse_arguments(int argc, char *argv[])
     };
 
     int c;
-    while ((c = getopt_long(argc, argv, "i:o:f:csp:n:dhv", long_options, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "i:o:f:cCsp:n:dhv", long_options, NULL)) != -1)
     {
         switch (c)
         {
@@ -152,6 +158,10 @@ static options_t *parse_arguments(int argc, char *argv[])
 
             case 'c':
                 options->flags |= OPT_COMPACT;
+                break;
+
+            case 'C':
+                options->flags |= OPT_COERCE;
                 break;
 
             case 's':
@@ -228,6 +238,18 @@ int main(int argc, char *argv[])
     {
         print_usage(argc, argv);
         return 0;
+    }
+
+    // detect invocation as plist2json symlink
+    {
+        char *progname = strrchr(argv[0], '/');
+        progname = progname ? progname + 1 : argv[0];
+        if (!strcmp(progname, "plist2json")) {
+            if (options->out_fmt == 0) {
+                options->out_fmt = PLIST_FORMAT_JSON;
+            }
+            options->flags |= OPT_COERCE;
+        }
     }
 
     if (options->flags & OPT_DEBUG)
@@ -404,7 +426,7 @@ int main(int argc, char *argv[])
             } else if (options->out_fmt == PLIST_FORMAT_XML) {
                 output_res = plist_to_xml(root_node, &plist_out, &size);
             } else if (options->out_fmt == PLIST_FORMAT_JSON) {
-                output_res = plist_to_json(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
+                output_res = plist_to_json_ex(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT), !!(options->flags & OPT_COERCE));
             } else if (options->out_fmt == PLIST_FORMAT_OSTEP) {
                 output_res = plist_to_openstep(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
             } else {
