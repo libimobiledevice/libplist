@@ -1562,6 +1562,26 @@ handle_closing:
                     ctx->err = PLIST_ERR_PARSE;
                     goto err_out;
                 }
+
+                /* When closing a dictionary, convert a single-entry
+                   { "CF$UID" : <integer> } dictionary into a PLIST_UID node.
+                   Perform the conversion before moving to the parent node. */
+                if (!strcmp(node_path->type, XPLIST_DICT) && parent && plist_get_node_type(parent) == PLIST_DICT) {
+                    if (plist_dict_get_size(parent) == 1) {
+                        plist_t uid = plist_dict_get_item(parent, "CF$UID");
+                        if (uid) {
+                            uint64_t val = 0;
+                            if (plist_get_node_type(uid) != PLIST_INT) {
+                                ctx->err = PLIST_ERR_PARSE;
+                                PLIST_XML_ERR("Invalid node type for CF$UID dict entry (must be PLIST_INT)\n");
+                                goto err_out;
+                            }
+                            plist_get_uint_val(uid, &val);
+                            plist_set_uid_val(parent, val);
+                        }
+                    }
+                }
+
                 if (depth > 0) depth--;
                 struct node_path_item *path_item = node_path;
                 node_path = (struct node_path_item*)node_path->prev;

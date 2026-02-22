@@ -386,51 +386,80 @@ static int dict_key_compare(const void* a, const void* b)
     return (strcmp(data_a->strval, data_b->strval) == 0) ? TRUE : FALSE;
 }
 
-void plist_free_data(plist_data_t data)
+static void _plist_free_data(plist_data_t data)
 {
-    if (data)
-    {
-        switch (data->type)
-        {
+    if (!data) return;
+    switch (data->type) {
         case PLIST_KEY:
         case PLIST_STRING:
             free(data->strval);
+            data->strval = NULL;
             break;
         case PLIST_DATA:
             free(data->buff);
+            data->buff = NULL;
             break;
         case PLIST_ARRAY:
             ptr_array_free((ptrarray_t*)data->hashtable);
+            data->hashtable = NULL;
             break;
-        case PLIST_DICT:
-            hash_table_destroy((hashtable_t*)data->hashtable);
-            break;
-        default:
+        case PLIST_DICT: {
+            hashtable_t *ht = (hashtable_t*)data->hashtable;
+            // PLIST_DICT hashtables must not own/free values; values are freed via node tree.
+            assert(!ht || ht->free_func == NULL);
+            if (ht) ht->free_func = NULL;
+            hash_table_destroy(ht);
+            data->hashtable = NULL;
             break;
         }
-        free(data);
+        default:
+            break;
     }
 }
 
-static int plist_free_node(node_t root)
+void plist_free_data(plist_data_t data)
+{
+    if (!data) return;
+    _plist_free_data(data);
+    free(data);
+}
+
+static int plist_free_children(node_t root)
 {
     if (!root) return NODE_ERR_INVALID_ARG;
 
-    int root_index = -1;
-
-    if (root->parent) {
-        root_index = node_detach(root->parent, root);
-        if (root_index < 0) {
-            return root_index;
-        }
+    if (!node_first_child(root)) {
+        return NODE_ERR_SUCCESS;
     }
 
     size_t cap = 64, sp = 0;
     node_t *stack = (node_t*)malloc(cap * sizeof(*stack));
     if (!stack) return NODE_ERR_NO_MEM;
 
-    stack[sp++] = root;
+    // Push *direct* children onto the stack, detached from root.
+    for (;;) {
+        node_t ch = node_first_child(root);
+        if (!ch) break;
 
+        int di = node_detach(root, ch);
+        if (di < 0) {
+            free(stack);
+            return di;
+        }
+
+        if (sp == cap) {
+            cap += 64;
+            node_t *tmp = (node_t*)realloc(stack, cap * sizeof(*stack));
+            if (!tmp) {
+                free(stack);
+                return NODE_ERR_NO_MEM;
+            }
+            stack = tmp;
+        }
+        stack[sp++] = ch;
+    }
+
+    // Now free the detached subtree nodes (and their descendants).
     while (sp) {
         node_t node = stack[sp - 1];
         node_t ch = node_first_child(node);
@@ -464,6 +493,34 @@ static int plist_free_node(node_t root)
     }
 
     free(stack);
+    return NODE_ERR_SUCCESS;
+}
+
+static int plist_free_node(node_t root)
+{
+    if (!root) return NODE_ERR_INVALID_ARG;
+
+    int root_index = -1;
+
+    if (root->parent) {
+        root_index = node_detach(root->parent, root);
+        if (root_index < 0) {
+            return root_index;
+        }
+    }
+
+    int r = plist_free_children(root);
+    if (r < 0) {
+        // root is already detached; caller should treat as error.
+        return r;
+    }
+
+    plist_data_t data = plist_get_data(root);
+    plist_free_data(data);
+    root->data = NULL;
+
+    node_destroy(root);
+
     return root_index;
 }
 
@@ -1896,27 +1953,18 @@ char plist_compare_node_value(plist_t node_l, plist_t node_r)
 
 static plist_err_t plist_set_element_val(plist_t node, plist_type type, const void *value, uint64_t length)
 {
-    //free previous allocated buffer
+    //free previous allocated data
     plist_data_t data = plist_get_data(node);
     if (!data) { // a node should always have data attached
         PLIST_ERR("%s: Failed to allocate plist data\n", __func__);
         return PLIST_ERR_NO_MEM;
     }
 
-    switch (data->type)
-    {
-    case PLIST_KEY:
-    case PLIST_STRING:
-        free(data->strval);
-        data->strval = NULL;
-        break;
-    case PLIST_DATA:
-        free(data->buff);
-        data->buff = NULL;
-        break;
-    default:
-        break;
+    if (node_first_child((node_t)node)) {
+        int r = plist_free_children((node_t)node);
+        if (r < 0) return PLIST_ERR_UNKNOWN;
     }
+    _plist_free_data(data);
 
     //now handle value
 
