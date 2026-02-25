@@ -175,6 +175,11 @@ extern "C"
         PLIST_OPT_PARTIAL_DATA = 1 << 1, /**< Print 24 bytes maximum of #PLIST_DATA values. If the data is longer than 24 bytes,  the first 16 and last 8 bytes will be written. Only valid for #PLIST_FORMAT_PRINT. */
         PLIST_OPT_NO_NEWLINE = 1 << 2, /**< Do not print a final newline character. Only valid for #PLIST_FORMAT_PRINT, #PLIST_FORMAT_LIMD, and #PLIST_FORMAT_PLUTIL. */
         PLIST_OPT_INDENT = 1 << 3, /**< Indent each line of output. Currently only #PLIST_FORMAT_PRINT and #PLIST_FORMAT_LIMD are supported. Use #PLIST_OPT_INDENT_BY() macro to specify the level of indentation. */
+        PLIST_OPT_COERCE = 1 << 4, /**< Coerce plist types that have no native JSON representation into JSON-compatible types.
+                                        #PLIST_DATE is converted to an ISO 8601 date string,
+                                        #PLIST_DATA is converted to a Base64-encoded string, and
+                                        #PLIST_UID is converted to an integer.
+                                        Only valid for #PLIST_FORMAT_JSON. Without this option, these types cause #PLIST_ERR_FORMAT. */
     } plist_write_options_t;
 
     /** To be used with #PLIST_OPT_INDENT - encodes the level of indentation for OR'ing it into the #plist_write_options_t bitfield. */
@@ -936,6 +941,27 @@ extern "C"
      * @note Use plist_mem_free() to free the allocated memory.
      */
     PLIST_API plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, int prettify);
+
+    /**
+     * Export the #plist_t structure to JSON format with extended options.
+     *
+     * When \a coerce is non-zero, plist types that have no native JSON
+     * representation are converted to JSON-compatible types instead of
+     * returning #PLIST_ERR_FORMAT:
+     * - #PLIST_DATE is serialized as an ISO 8601 date string
+     * - #PLIST_DATA is serialized as a Base64-encoded string
+     * - #PLIST_UID is serialized as an integer
+     *
+     * @param plist the root node to export
+     * @param plist_json a pointer to a char* buffer. This function allocates the memory,
+     *     caller is responsible for freeing it.
+     * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @param prettify pretty print the output if != 0
+     * @param coerce convert non-JSON plist types to JSON-compatible representations if != 0
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
+     * @note Use plist_mem_free() to free the allocated memory.
+     */
+    PLIST_API plist_err_t plist_to_json_ex(plist_t plist, char **plist_json, uint32_t* length, int prettify, int coerce);
 
     /**
      * Export the #plist_t structure to OpenStep format.

@@ -39,6 +39,10 @@
 #include "strbuf.h"
 #include "jsmn.h"
 #include "hashtable.h"
+#include "base64.h"
+#include "time64.h"
+
+#define MAC_EPOCH 978307200
 
 #ifdef DEBUG
 static int plist_json_debug = 0;
@@ -115,7 +119,7 @@ static size_t dtostr(char *buf, size_t bufsize, double realval)
     return len;
 }
 
-static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify)
+static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify, int coerce)
 {
     plist_data_t node_data = NULL;
 
@@ -211,7 +215,7 @@ static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t dept
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            plist_err_t res = node_to_json(ch, outbuf, depth+1, prettify);
+            plist_err_t res = node_to_json(ch, outbuf, depth+1, prettify, coerce);
             if (res < 0) {
                 return res;
             }
@@ -239,7 +243,7 @@ static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t dept
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            plist_err_t res = node_to_json(ch, outbuf, depth+1, prettify);
+            plist_err_t res = node_to_json(ch, outbuf, depth+1, prettify, coerce);
             if (res < 0) {
                 return res;
             }
@@ -260,17 +264,60 @@ static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t dept
         str_buf_append(*outbuf, "}", 1);
         } break;
     case PLIST_DATA:
-        // NOT VALID FOR JSON
-        PLIST_JSON_WRITE_ERR("PLIST_DATA type is not valid for JSON format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            size_t b64_len = ((node_data->length + 2) / 3) * 4;
+            char *b64_buf = (char*)malloc(b64_len + 1);
+            if (!b64_buf) {
+                return PLIST_ERR_NO_MEM;
+            }
+            size_t actual_len = base64encode(b64_buf, node_data->buff, node_data->length);
+            str_buf_append(*outbuf, "\"", 1);
+            str_buf_append(*outbuf, b64_buf, actual_len);
+            str_buf_append(*outbuf, "\"", 1);
+            free(b64_buf);
+        } else {
+            PLIST_JSON_WRITE_ERR("PLIST_DATA type is not valid for JSON format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     case PLIST_DATE:
-        // NOT VALID FOR JSON
-        PLIST_JSON_WRITE_ERR("PLIST_DATE type is not valid for JSON format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            Time64_T timev = (Time64_T)node_data->realval + MAC_EPOCH;
+            struct TM _btime;
+            struct TM *btime = gmtime64_r(&timev, &_btime);
+            char datebuf[32];
+            size_t datelen = 0;
+            if (btime) {
+                struct tm _tmcopy;
+                copy_TM64_to_tm(btime, &_tmcopy);
+                datelen = strftime(datebuf, sizeof(datebuf), "%Y-%m-%dT%H:%M:%SZ", &_tmcopy);
+            }
+            if (datelen <= 0) {
+                datelen = snprintf(datebuf, sizeof(datebuf), "1970-01-01T00:00:00Z");
+            }
+            str_buf_append(*outbuf, "\"", 1);
+            str_buf_append(*outbuf, datebuf, datelen);
+            str_buf_append(*outbuf, "\"", 1);
+        } else {
+            PLIST_JSON_WRITE_ERR("PLIST_DATE type is not valid for JSON format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     case PLIST_UID:
-        // NOT VALID FOR JSON
-        PLIST_JSON_WRITE_ERR("PLIST_UID type is not valid for JSON format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            val = (char*)malloc(64);
+            if (node_data->length == 16) {
+                val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
+            } else {
+                val_len = snprintf(val, 64, "%" PRIi64, node_data->intval);
+            }
+            str_buf_append(*outbuf, val, val_len);
+            free(val);
+        } else {
+            PLIST_JSON_WRITE_ERR("PLIST_UID type is not valid for JSON format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     default:
         return PLIST_ERR_UNKNOWN;
     }
@@ -316,7 +363,7 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, hashtable_t *visited)
+static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, int coerce, hashtable_t *visited)
 {
     plist_data_t data;
     if (!node) {
@@ -341,7 +388,7 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
         node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            plist_err_t res = _node_estimate_size(ch, size, depth + 1, prettify, visited);
+            plist_err_t res = _node_estimate_size(ch, size, depth + 1, prettify, coerce, visited);
             if (res < 0) {
                 return res;
             }
@@ -398,17 +445,36 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
             *size += 2;
             break;
         case PLIST_DATA:
-            // NOT VALID FOR JSON
-            PLIST_JSON_WRITE_ERR("PLIST_DATA type is not valid for JSON format\n");
-            return PLIST_ERR_FORMAT;
+            if (coerce) {
+                // base64 encoded string: 2 quotes + ((len+2)/3)*4 base64 chars
+                *size += 2 + ((data->length + 2) / 3) * 4;
+            } else {
+                PLIST_JSON_WRITE_ERR("PLIST_DATA type is not valid for JSON format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
         case PLIST_DATE:
-            // NOT VALID FOR JSON
-            PLIST_JSON_WRITE_ERR("PLIST_DATE type is not valid for JSON format\n");
-            return PLIST_ERR_FORMAT;
+            if (coerce) {
+                // ISO 8601 string: "YYYY-MM-DDTHH:MM:SSZ" = 22 chars max
+                *size += 24;
+            } else {
+                PLIST_JSON_WRITE_ERR("PLIST_DATE type is not valid for JSON format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
         case PLIST_UID:
-            // NOT VALID FOR JSON
-            PLIST_JSON_WRITE_ERR("PLIST_UID type is not valid for JSON format\n");
-            return PLIST_ERR_FORMAT;
+            if (coerce) {
+                // integer representation
+                if (data->length == 16) {
+                    *size += num_digits_u(data->intval);
+                } else {
+                    *size += num_digits_i((int64_t)data->intval);
+                }
+            } else {
+                PLIST_JSON_WRITE_ERR("PLIST_UID type is not valid for JSON format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
         default:
             PLIST_JSON_WRITE_ERR("invalid node type encountered\n");
             return PLIST_ERR_UNKNOWN;
@@ -417,16 +483,21 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
     return PLIST_ERR_SUCCESS;
 }
 
-static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, int coerce)
 {
     hashtable_t *visited = hash_table_new(plist_node_ptr_hash, plist_node_ptr_compare, NULL);
     if (!visited) return PLIST_ERR_NO_MEM;
-    plist_err_t err = _node_estimate_size(node, size, depth, prettify, visited);
+    plist_err_t err = _node_estimate_size(node, size, depth, prettify, coerce, visited);
     hash_table_destroy(visited);
     return err;
 }
 
 plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, int prettify)
+{
+    return plist_to_json_ex(plist, plist_json, length, prettify, 0);
+}
+
+plist_err_t plist_to_json_ex(plist_t plist, char **plist_json, uint32_t* length, int prettify, int coerce)
 {
     uint64_t size = 0;
     plist_err_t res;
@@ -440,7 +511,7 @@ plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, in
         return PLIST_ERR_FORMAT;
     }
 
-    res = node_estimate_size((node_t)plist, &size, 0, prettify);
+    res = node_estimate_size((node_t)plist, &size, 0, prettify, coerce);
     if (res < 0) {
         return res;
     }
@@ -451,7 +522,7 @@ plist_err_t plist_to_json(plist_t plist, char **plist_json, uint32_t* length, in
         return PLIST_ERR_NO_MEM;
     }
 
-    res = node_to_json((node_t)plist, &outbuf, 0, prettify);
+    res = node_to_json((node_t)plist, &outbuf, 0, prettify, coerce);
     if (res < 0) {
         str_buf_free(outbuf);
         *plist_json = NULL;
