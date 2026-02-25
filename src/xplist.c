@@ -1170,8 +1170,9 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             ctx->pos++;
             if (!strcmp(tag, "plist")) {
                 if (!node_path && *plist) {
-                    /* we don't allow another top-level <plist> */
-                    break;
+                    PLIST_XML_ERR("Multiple top-level <plist> elements encountered\n");
+                    ctx->err = PLIST_ERR_PARSE;
+                    goto err_out;
                 }
                 if (is_empty) {
                     PLIST_XML_ERR("Empty plist tag\n");
@@ -1403,12 +1404,6 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         data->length = length;
                     }
                 } else {
-                    if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
-                        keyname = strdup("");
-                        plist_free(subnode);
-                        subnode = NULL;
-                        continue;
-                    }
                     data->strval = strdup("");
                     data->length = 0;
                 }
@@ -1501,14 +1496,15 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             if (subnode && !closing_tag) {
                 if (!*plist) {
-                    /* first node, make this node the parent node */
+                    /* first value node inside <plist> */
                     *plist = subnode;
-                    if (data->type != PLIST_DICT && data->type != PLIST_ARRAY) {
-                        /* if the first node is not a structered node, we're done */
-                        subnode = NULL;
-                        goto err_out;
+
+                    if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
+                        parent = subnode;
+                    } else {
+                        /* scalar root: keep parsing until </plist> */
+                        parent = NULL;
                     }
-                    parent = subnode;
                 } else if (parent) {
                     switch (plist_get_node_type(parent)) {
                     case PLIST_DICT:
@@ -1528,6 +1524,11 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         ctx->err = PLIST_ERR_PARSE;
                         goto err_out;
                     }
+                } else {
+                    /* We already produced root, and we're not inside a container */
+                    PLIST_XML_ERR("Unexpected tag <%s> found while </plist> is expected\n", tag);
+                    ctx->err = PLIST_ERR_PARSE;
+                    goto err_out;
                 }
                 if (!is_empty && (data->type == PLIST_DICT || data->type == PLIST_ARRAY)) {
                     if (depth >= PLIST_MAX_NESTING_DEPTH) {
@@ -1547,6 +1548,8 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
 
                     depth++;
                     parent = subnode;
+                } else {
+                    /* If we inserted a child scalar into a container, nothing to push. */
                 }
                 subnode = NULL;
             }
@@ -1587,7 +1590,6 @@ handle_closing:
                 node_path = (struct node_path_item*)node_path->prev;
                 free(path_item);
                 parent = (parent) ? ((node_t)parent)->parent : NULL;
-                /* parent can be NULL when we just closed the root node; keep parsing */
             }
             free(keyname);
             keyname = NULL;
