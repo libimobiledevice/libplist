@@ -75,10 +75,14 @@ static void print_usage(int argc, char *argv[])
     printf("  -n, --nodepath PATH  Restrict output to nodepath defined by PATH.\n");
     printf("  -c, --compact        JSON and OpenStep only: Print output in compact form.\n");
     printf("                       By default, the output will be pretty-printed.\n");
-    printf("  -C, --coerce         JSON only: Coerce non-JSON plist types to JSON-compatible\n");
-    printf("                       representations. Date values become ISO 8601 strings,\n");
-    printf("                       data values become Base64-encoded strings, and UID values\n");
-    printf("                       become integers. Implied when invoked as plist2json.\n");
+    printf("  -C, --coerce         JSON + OpenStep only: Coerce non-compatible plist types\n");
+    printf("                       to JSON/OpenStep compatible representations.\n");
+    printf("                       Date values become ISO 8601 strings,\n");
+    printf("                       data values become Base64-encoded strings (JSON),\n");
+    printf("                       UID values become integers,\n");
+    printf("                       boolean becomes 1 or 0 (OpenStep),\n");
+    printf("                       and NULL becomes a string 'NULL' (OpenStep)\n");
+    printf("                       This options is implied when invoked as plist2json.\n");
     printf("  -s, --sort           Sort all dictionary nodes lexicographically by key\n");
     printf("                       before converting to the output format.\n");
     printf("  -d, --debug          Enable extended debug output\n");
@@ -431,7 +435,10 @@ int main(int argc, char *argv[])
                 if (options->flags & OPT_COERCE) wropts |= PLIST_OPT_COERCE;
                 output_res = plist_to_json_with_options(root_node, &plist_out, &size, wropts);
             } else if (options->out_fmt == PLIST_FORMAT_OSTEP) {
-                output_res = plist_to_openstep(root_node, &plist_out, &size, !(options->flags & OPT_COMPACT));
+                plist_write_options_t wropts = PLIST_OPT_NONE;
+                if (options->flags & OPT_COMPACT) wropts |= PLIST_OPT_COMPACT;
+                if (options->flags & OPT_COERCE) wropts |= PLIST_OPT_COERCE;
+                output_res = plist_to_openstep_with_options(root_node, &plist_out, &size, wropts);
             } else {
                 plist_write_to_stream(root_node, stdout, options->out_fmt, PLIST_OPT_PARTIAL_DATA);
                 plist_free(root_node);

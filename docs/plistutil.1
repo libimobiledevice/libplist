@@ -79,6 +79,17 @@ A nodepath of:
 JSON and OpenStep only: Print output in compact form. By default, the output
 will be pretty-printed.
 .TP
+.B \-C, \-\-coerce
+JSON and OpenStep only: Coerce non-compatible plist types to JSON/OpenStep
+compatible representations.
+Date values become ISO 8601 strings,
+data values become Base64-encoded strings (JSON),
+UID values become integers,
+boolean becomes 1 or 0 (OpenStep),
+and NULL becomes a string 'NULL' (OpenStep)
+
+This options is implied when invoked as plist2json.
+.TP
 .B \-s, \-\-sort
 Sort all dictionary nodes lexicographically by key before converting to the output format.
 .TP

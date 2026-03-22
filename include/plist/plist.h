@@ -978,6 +978,30 @@ extern "C"
      */
     PLIST_API plist_err_t plist_to_openstep(plist_t plist, char **plist_openstep, uint32_t* length, int prettify);
 
+    /**
+     * Export the #plist_t structure to OpenStep format with extended options.
+     *
+     * When \a PLIST_OPT_COMPACT is set in \a options, the resulting OpenStep output
+     * will be non-prettified.
+     *
+     * When \a PLIST_OPT_COERCE is set in \a options, plist types that have
+     * no native OpenStep representation are converted to OpenStep-compatible types
+     * instead of returning #PLIST_ERR_FORMAT:
+     * - #PLIST_BOOLEAN is serialized as a 1 or 0
+     * - #PLIST_DATE is serialized as an ISO 8601 date string
+     * - #PLIST_NULL is serialized as string 'NULL'
+     * - #PLIST_UID is serialized as an integer
+     *
+     * @param plist the root node to export
+     * @param plist_openstep a pointer to a char* buffer. This function allocates the memory,
+     *     caller is responsible for freeing it.
+     * @param length a pointer to an uint32_t variable. Represents the length of the allocated buffer.
+     * @param options One or more bitwise ORed values of #plist_write_options_t.
+     * @return PLIST_ERR_SUCCESS on success or a #plist_err_t on failure
+     * @note Use plist_mem_free() to free the allocated memory.
+     */
+    PLIST_API plist_err_t plist_to_openstep_with_options(plist_t plist, char **plist_openstep, uint32_t* length, plist_write_options_t options);
+
 
     /**
      * Import the #plist_t structure from XML format.

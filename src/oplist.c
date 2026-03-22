@@ -37,7 +37,10 @@
 
 #include "plist.h"
 #include "strbuf.h"
+#include "time64.h"
 #include "hashtable.h"
+
+#define MAC_EPOCH 978307200
 
 #ifdef DEBUG
 static int plist_ostep_debug = 0;
@@ -144,7 +147,7 @@ static int str_needs_quotes(const char* str, size_t len)
     return 0;
 }
 
-static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify)
+static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t depth, int prettify, int coerce)
 {
     plist_data_t node_data = NULL;
 
@@ -235,7 +238,7 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            plist_err_t res = node_to_openstep(ch, outbuf, depth+1, prettify);
+            plist_err_t res = node_to_openstep(ch, outbuf, depth+1, prettify, coerce);
             if (res < 0) {
                 return res;
             }
@@ -263,7 +266,7 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
                     str_buf_append(*outbuf, "  ", 2);
                 }
             }
-            plist_err_t res = node_to_openstep(ch, outbuf, depth+1, prettify);
+            plist_err_t res = node_to_openstep(ch, outbuf, depth+1, prettify, coerce);
             if (res < 0) {
                 return res;
             }
@@ -302,19 +305,65 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
         str_buf_append(*outbuf, ">", 1);
         } break;
     case PLIST_BOOLEAN:
-        PLIST_OSTEP_WRITE_ERR("PLIST_BOOLEAN type is not valid for OpenStep format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            if (node_data->boolval) {
+                str_buf_append(*outbuf, "1", 1);
+            } else {
+                str_buf_append(*outbuf, "0", 1);
+            }
+        } else {
+            PLIST_OSTEP_WRITE_ERR("PLIST_BOOLEAN type is not valid for OpenStep format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     case PLIST_NULL:
-        PLIST_OSTEP_WRITE_ERR("PLIST_NULL type is not valid for OpenStep format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            str_buf_append(*outbuf, "NULL", 4);
+        } else {
+            PLIST_OSTEP_WRITE_ERR("PLIST_NULL type is not valid for OpenStep format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     case PLIST_DATE:
-        // NOT VALID FOR OPENSTEP
-        PLIST_OSTEP_WRITE_ERR("PLIST_DATE type is not valid for OpenStep format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            Time64_T timev = (Time64_T)node_data->realval + MAC_EPOCH;
+            struct TM _btime;
+            struct TM *btime = gmtime64_r(&timev, &_btime);
+            char datebuf[32];
+            size_t datelen = 0;
+            if (btime) {
+                struct tm _tmcopy;
+                copy_TM64_to_tm(btime, &_tmcopy);
+                datelen = strftime(datebuf, sizeof(datebuf), "%Y-%m-%dT%H:%M:%SZ", &_tmcopy);
+            }
+            if (datelen <= 0) {
+                datelen = snprintf(datebuf, sizeof(datebuf), "1970-01-01T00:00:00Z");
+            }
+            str_buf_append(*outbuf, "\"", 1);
+            str_buf_append(*outbuf, datebuf, datelen);
+            str_buf_append(*outbuf, "\"", 1);
+        } else {
+            // NOT VALID FOR OPENSTEP
+            PLIST_OSTEP_WRITE_ERR("PLIST_DATE type is not valid for OpenStep format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     case PLIST_UID:
-        // NOT VALID FOR OPENSTEP
-        PLIST_OSTEP_WRITE_ERR("PLIST_UID type is not valid for OpenStep format\n");
-        return PLIST_ERR_FORMAT;
+        if (coerce) {
+            val = (char*)malloc(64);
+            if (node_data->length == 16) {
+                val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
+            } else {
+                val_len = snprintf(val, 64, "%" PRIi64, node_data->intval);
+            }
+            str_buf_append(*outbuf, val, val_len);
+            free(val);
+        } else {
+            // NOT VALID FOR OPENSTEP
+            PLIST_OSTEP_WRITE_ERR("PLIST_UID type is not valid for OpenStep format\n");
+            return PLIST_ERR_FORMAT;
+        }
+        break;
     default:
         return PLIST_ERR_UNKNOWN;
     }
@@ -360,7 +409,7 @@ static int num_digits_u(uint64_t i)
     return n;
 }
 
-static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, hashtable_t *visited)
+static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, int coerce, hashtable_t *visited)
 {
     plist_data_t data;
     if (!node) {
@@ -385,7 +434,7 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
         node_t ch;
         unsigned int n_children = node_n_children(node);
         for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
-            plist_err_t res = _node_estimate_size(ch, size, depth + 1, prettify, visited);
+            plist_err_t res = _node_estimate_size(ch, size, depth + 1, prettify, coerce, visited);
             if (res < 0) {
                 return res;
             }
@@ -442,17 +491,46 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
                 *size += data->length/4;
             break;
         case PLIST_BOOLEAN:
-            // NOT VALID FOR OPENSTEP
-            PLIST_OSTEP_WRITE_ERR("PLIST_BOOLEAN type is not valid for OpenStep format\n");
-            return PLIST_ERR_FORMAT;
+            if (coerce) {
+                *size += 1;
+            } else {
+                // NOT VALID FOR OPENSTEP
+                PLIST_OSTEP_WRITE_ERR("PLIST_BOOLEAN type is not valid for OpenStep format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
         case PLIST_DATE:
-            // NOT VALID FOR OPENSTEP
-            PLIST_OSTEP_WRITE_ERR("PLIST_DATE type is not valid for OpenStep format\n");
-            return PLIST_ERR_FORMAT;
+            if (coerce) {
+                // ISO 8601 string: "YYYY-MM-DDTHH:MM:SSZ" = 22 chars max
+                *size += 24;
+            } else {
+                // NOT VALID FOR OPENSTEP
+                PLIST_OSTEP_WRITE_ERR("PLIST_DATE type is not valid for OpenStep format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
         case PLIST_UID:
-            // NOT VALID FOR OPENSTEP
-            PLIST_OSTEP_WRITE_ERR("PLIST_UID type is not valid for OpenStep format\n");
-            return PLIST_ERR_FORMAT;
+            if (coerce) {
+                if (data->length == 16) {
+                    *size += num_digits_u(data->intval);
+                } else {
+                    *size += num_digits_i((int64_t)data->intval);
+                }
+            } else {
+                // NOT VALID FOR OPENSTEP
+                PLIST_OSTEP_WRITE_ERR("PLIST_UID type is not valid for OpenStep format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
+        case PLIST_NULL:
+            if (coerce) {
+                *size += 4;
+            } else {
+                // NOT VALID FOR OPENSTEP
+                PLIST_OSTEP_WRITE_ERR("PLIST_NULL type is not valid for OpenStep format\n");
+                return PLIST_ERR_FORMAT;
+            }
+            break;
         default:
             PLIST_OSTEP_WRITE_ERR("invalid node type encountered\n");
             return PLIST_ERR_UNKNOWN;
@@ -461,16 +539,22 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
     return PLIST_ERR_SUCCESS;
 }
 
-static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify)
+static plist_err_t node_estimate_size(node_t node, uint64_t *size, uint32_t depth, int prettify, int coerce)
 {
     hashtable_t *visited = hash_table_new(plist_node_ptr_hash, plist_node_ptr_compare, NULL);
     if (!visited) return PLIST_ERR_NO_MEM;
-    plist_err_t err = _node_estimate_size(node, size, depth, prettify, visited);
+    plist_err_t err = _node_estimate_size(node, size, depth, prettify, coerce, visited);
     hash_table_destroy(visited);
     return err;
 }
 
 plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, int prettify)
+{
+    plist_write_options_t opts = prettify ? PLIST_OPT_NONE : PLIST_OPT_COMPACT;
+    return plist_to_openstep_with_options(plist, openstep, length, opts);
+}
+
+plist_err_t plist_to_openstep_with_options(plist_t plist, char **openstep, uint32_t* length, plist_write_options_t options)
 {
     uint64_t size = 0;
     plist_err_t res;
@@ -479,7 +563,10 @@ plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, 
         return PLIST_ERR_INVALID_ARG;
     }
 
-    res = node_estimate_size((node_t)plist, &size, 0, prettify);
+    int prettify = !(options & PLIST_OPT_COMPACT);
+    int coerce = options & PLIST_OPT_COERCE;
+
+    res = node_estimate_size((node_t)plist, &size, 0, prettify, coerce);
     if (res < 0) {
         return res;
     }
@@ -490,7 +577,7 @@ plist_err_t plist_to_openstep(plist_t plist, char **openstep, uint32_t* length, 
         return PLIST_ERR_NO_MEM;
     }
 
-    res = node_to_openstep((node_t)plist, &outbuf, 0, prettify);
+    res = node_to_openstep((node_t)plist, &outbuf, 0, prettify, coerce);
     if (res < 0) {
         str_buf_free(outbuf);
         *openstep = NULL;
