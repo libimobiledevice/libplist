@@ -1495,9 +1495,9 @@ uint8_t plist_dict_get_bool(plist_t dict, const char *key)
 	case PLIST_STRING:
 		strval = plist_get_string_ptr(node, NULL);
 		if (strval) {
-			if (strcmp(strval, "true")) {
+			if (strcmp(strval, "true") == 0) {
 				bval = 1;
-			} else if (strcmp(strval, "false")) {
+			} else if (strcmp(strval, "false") == 0) {
 				bval = 0;
 			} else {
 				PLIST_ERR("%s: invalid string '%s' for string to boolean conversion\n", __func__, strval);
