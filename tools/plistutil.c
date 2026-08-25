@@ -41,6 +41,9 @@
 #pragma warning(disable:4996)
 #define STDIN_FILENO _fileno(stdin)
 #define strtok_r strtok_s
+
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
 #endif
 
 typedef struct _options
