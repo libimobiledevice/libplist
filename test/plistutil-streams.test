@@ -1,0 +1,34 @@
+## -*- sh -*-
+set -e
+
+DATASRC=$top_srcdir/test/data
+DATAOUT=$top_builddir/test/data
+PLISTUTIL=$top_builddir/tools/plistutil
+TESTFILE=$DATAOUT/plistutil-streams.test
+
+mkdir -p "$DATAOUT"
+
+# The data contains CR, LF and Ctrl-Z, which Windows text streams translate.
+"$PLISTUTIL" -i "$DATASRC/streams.plist" -f bin -o "$TESTFILE.bin"
+"$PLISTUTIL" -i "$TESTFILE.bin" -f xml -o "$TESTFILE.xml"
+
+echo "Checking binary stdout"
+"$PLISTUTIL" -i "$DATASRC/streams.plist" -f bin > "$TESTFILE.stdout.out"
+cmp "$TESTFILE.bin" "$TESTFILE.stdout.out"
+"$PLISTUTIL" -i "$DATASRC/streams.plist" -f bin -o - > "$TESTFILE.stdout.out"
+cmp "$TESTFILE.bin" "$TESTFILE.stdout.out"
+
+echo "Checking binary stdin"
+"$PLISTUTIL" -f xml -o "$TESTFILE.stdin.out" < "$TESTFILE.bin"
+cmp "$TESTFILE.xml" "$TESTFILE.stdin.out"
+cat "$TESTFILE.bin" | "$PLISTUTIL" -i - -f xml -o "$TESTFILE.stdin.out"
+cmp "$TESTFILE.xml" "$TESTFILE.stdin.out"
+
+echo "Checking binary stdin in print mode"
+"$PLISTUTIL" -p "$TESTFILE.bin" > "$TESTFILE.print.out"
+cat "$TESTFILE.bin" | "$PLISTUTIL" -p - > "$TESTFILE.stdin.out"
+cmp "$TESTFILE.print.out" "$TESTFILE.stdin.out"
+
+echo "Checking XML stdout"
+"$PLISTUTIL" -i "$TESTFILE.bin" -f xml > "$TESTFILE.stdout.out"
+cmp "$TESTFILE.xml" "$TESTFILE.stdout.out"
