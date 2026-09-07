@@ -33,6 +33,10 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include <errno.h>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
@@ -266,6 +270,9 @@ int main(int argc, char *argv[])
 
     if (!options->in_file || !strcmp(options->in_file, "-"))
     {
+#ifdef _WIN32
+        _setmode(_fileno(stdin), _O_BINARY);
+#endif
         read_size = 0;
         plist_entire = malloc(sizeof(char) * read_capacity);
         if(plist_entire == NULL)
@@ -475,8 +482,12 @@ int main(int argc, char *argv[])
             fclose(oplist);
         }
         // if no output file specified, write to stdout
-        else
+        else {
+#ifdef _WIN32
+            _setmode(_fileno(stdout), _O_BINARY);
+#endif
             fwrite(plist_out, size, sizeof(char), stdout);
+        }
 
         free(plist_out);
     }

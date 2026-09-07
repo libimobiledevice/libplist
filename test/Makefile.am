@@ -84,7 +84,8 @@ TESTS = \
 	ostep-strings.test \
 	ostep-comments.test \
 	ostep-invalid-types.test \
-	xml_behavior.test
+	xml_behavior.test \
+	plistutil-streams.test
 
 EXTRA_DIST = \
 	$(TESTS) \
@@ -136,7 +137,8 @@ EXTRA_DIST = \
 	data/o1.ostep \
 	data/o2.ostep \
 	data/o3.ostep \
-	data/test.strings
+	data/test.strings \
+	data/streams.plist
 
 TESTS_ENVIRONMENT = \
 	top_srcdir=$(top_srcdir) \
