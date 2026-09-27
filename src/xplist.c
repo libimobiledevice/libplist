@@ -279,6 +279,9 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
             size_t amount = (node_data->length / 3 * 4) + 4 + (((node_data->length / maxread) + 1) * (indent+1));
             if ((*outbuf)->len + amount > (*outbuf)->capacity) {
                 str_buf_grow(*outbuf, amount);
+                if (!(*outbuf)->data) {
+                    return PLIST_ERR_NO_MEM;
+                }
             }
             while (j < node_data->length) {
                 for (i = 0; i < indent; i++) {
@@ -544,6 +547,13 @@ plist_err_t plist_to_xml(plist_t plist, char **plist_xml, uint32_t * length)
     }
 
     str_buf_append(outbuf, XML_PLIST_EPILOG, sizeof(XML_PLIST_EPILOG));
+
+    if (!outbuf->data) {
+        str_buf_free(outbuf);
+        *plist_xml = NULL;
+        *length = 0;
+        return PLIST_ERR_NO_MEM;
+    }
 
     *plist_xml = (char*)outbuf->data;
     *length = outbuf->len - 1;

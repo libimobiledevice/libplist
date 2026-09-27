@@ -531,6 +531,13 @@ plist_err_t plist_to_openstep_with_options(plist_t plist, char **openstep, uint3
 
     str_buf_append(outbuf, "\0", 1);
 
+    if (!outbuf->data) {
+        str_buf_free(outbuf);
+        *openstep = NULL;
+        *length = 0;
+        return PLIST_ERR_NO_MEM;
+    }
+
     *openstep = (char*)outbuf->data;
     *length = outbuf->len - 1;
 
@@ -780,6 +787,11 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
                 }
                 b = (b << 4) + HEX_DIGIT(*ctx->pos);
                 byte_array_append(bytes, &b, 1);
+                if (!bytes->data) {
+                    PLIST_OSTEP_ERR("Out of memory while parsing data at offset %ld\n", (long int)(ctx->pos - ctx->start));
+                    ctx->err = PLIST_ERR_NO_MEM;
+                    break;
+                }
                 ctx->pos++;
             }
             if (ctx->err) {

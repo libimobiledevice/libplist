@@ -480,6 +480,13 @@ plist_err_t plist_to_json_with_options(plist_t plist, char **plist_json, uint32_
 
     str_buf_append(outbuf, "\0", 1);
 
+    if (!outbuf->data) {
+        str_buf_free(outbuf);
+        *plist_json = NULL;
+        *length = 0;
+        return PLIST_ERR_NO_MEM;
+    }
+
     *plist_json = (char*)outbuf->data;
     *length = outbuf->len - 1;
 

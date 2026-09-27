@@ -54,11 +54,21 @@ void byte_array_free(bytearray_t *ba)
 
 void byte_array_grow(bytearray_t *ba, size_t amount)
 {
-	if (ba->stream) {
+	if (ba->stream || !ba->data) {
 		return;
 	}
 	size_t increase = (amount > PAGE_SIZE) ? (amount+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
-	ba->data = realloc(ba->data, ba->capacity + increase);
+	void *newdata = realloc(ba->data, ba->capacity + increase);
+	if (!newdata) {
+		/* out of memory: put the array into a failed state (data == NULL),
+		 * further appends are ignored and callers must check ba->data */
+		free(ba->data);
+		ba->data = NULL;
+		ba->len = 0;
+		ba->capacity = 0;
+		return;
+	}
+	ba->data = newdata;
 	ba->capacity += increase;
 }
 
@@ -76,6 +86,9 @@ void byte_array_append(bytearray_t *ba, void *buf, size_t len)
 		if (len > remaining) {
 			size_t needed = len - remaining;
 			byte_array_grow(ba, needed);
+			if (!ba->data) {
+				return;
+			}
 		}
 		memcpy(((char*)ba->data) + ba->len, buf, len);
 	}

@@ -435,6 +435,13 @@ plist_err_t plist_write_to_string_limd(plist_t plist, char **output, uint32_t* l
     }
     str_buf_append(outbuf, "\0", 1);
 
+    if (!outbuf->data) {
+        str_buf_free(outbuf);
+        *output = NULL;
+        *length = 0;
+        return PLIST_ERR_NO_MEM;
+    }
+
     *output = (char*)outbuf->data;
     *length = outbuf->len - 1;
 
