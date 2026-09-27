@@ -31,8 +31,8 @@ typedef struct ptrarray_t {
 
 ptrarray_t *ptr_array_new(int capacity);
 void ptr_array_free(ptrarray_t *pa);
-void ptr_array_add(ptrarray_t *pa, void *data);
-void ptr_array_insert(ptrarray_t *pa, void *data, long index);
+int ptr_array_add(ptrarray_t *pa, void *data);
+int ptr_array_insert(ptrarray_t *pa, void *data, long index);
 void ptr_array_remove(ptrarray_t *pa, long index);
 void ptr_array_set(ptrarray_t *pa, void *data, long index);
 void* ptr_array_index(ptrarray_t *pa, long index);

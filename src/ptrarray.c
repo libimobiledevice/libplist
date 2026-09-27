@@ -40,12 +40,16 @@ void ptr_array_free(ptrarray_t *pa)
 	free(pa);
 }
 
-void ptr_array_insert(ptrarray_t *pa, void *data, long array_index)
+int ptr_array_insert(ptrarray_t *pa, void *data, long array_index)
 {
-	if (!pa || !pa->pdata) return;
+	if (!pa || !pa->pdata) return -1;
 	long remaining = pa->capacity-pa->len;
 	if (remaining == 0) {
-		pa->pdata = (void**)realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
+		void **newdata = (void**)realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
+		if (!newdata) {
+			return -1;
+		}
+		pa->pdata = newdata;
 		pa->capacity += pa->capacity_step;
 	}
 	if (array_index < 0 || array_index >= pa->len) {
@@ -55,11 +59,12 @@ void ptr_array_insert(ptrarray_t *pa, void *data, long array_index)
 		pa->pdata[array_index] = data;
 	}
 	pa->len++;
+	return 0;
 }
 
-void ptr_array_add(ptrarray_t *pa, void *data)
+int ptr_array_add(ptrarray_t *pa, void *data)
 {
-	ptr_array_insert(pa, data, -1);
+	return ptr_array_insert(pa, data, -1);
 }
 
 void ptr_array_remove(ptrarray_t *pa, long array_index)

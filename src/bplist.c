@@ -876,7 +876,10 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
     /* store node_index for current recursion level */
     if ((uint32_t)ptr_array_size(bplist->used_indexes) < bplist->level+1) {
         while ((uint32_t)ptr_array_size(bplist->used_indexes) < bplist->level+1) {
-            ptr_array_add(bplist->used_indexes, (void*)(uintptr_t)node_index);
+            if (ptr_array_add(bplist->used_indexes, (void*)(uintptr_t)node_index) < 0) {
+                bplist->err = PLIST_ERR_NO_MEM;
+                return NULL;
+            }
         }
     } else {
 	ptr_array_set(bplist->used_indexes, (void*)(uintptr_t)node_index, bplist->level);
@@ -1106,7 +1109,9 @@ static plist_err_t serialize_plist(node_t node, void* data, uint32_t depth)
     hash_table_insert(ser->ref_table, node, index_val);
 
     // now append current node to object array
-    ptr_array_add(ser->objects, node);
+    if (ptr_array_add(ser->objects, node) < 0) {
+        return PLIST_ERR_NO_MEM;
+    }
 
     // now recurse on children
     node_t ch;

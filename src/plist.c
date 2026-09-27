@@ -898,7 +898,10 @@ static plist_t plist_copy_node(node_t root)
         switch (f->type) {
             case PLIST_ARRAY:
                 if (f->copydata->hashtable) {
-                    ptr_array_add((ptrarray_t*)f->copydata->hashtable, newch);
+                    if (ptr_array_add((ptrarray_t*)f->copydata->hashtable, newch) < 0) {
+                        ptr_array_free((ptrarray_t*)f->copydata->hashtable);
+                        f->copydata->hashtable = NULL;
+                    }
                 }
                 break;
 
@@ -987,7 +990,11 @@ static void _plist_array_post_insert(plist_t node, plist_t item, long n)
     ptrarray_t *pa = (ptrarray_t*)((plist_data_t)((node_t)node)->data)->hashtable;
     if (pa) {
         /* store pointer to item in array */
-        ptr_array_insert(pa, item, n);
+        if (ptr_array_insert(pa, item, n) < 0) {
+            /* lookup array would be out of sync, drop it */
+            ptr_array_free(pa);
+            ((plist_data_t)((node_t)node)->data)->hashtable = NULL;
+        }
         return;
     }
 
@@ -999,7 +1006,10 @@ static void _plist_array_post_insert(plist_t node, plist_t item, long n)
             pa && current;
             current = (plist_t)node_next_sibling((node_t)current))
        {
-           ptr_array_add(pa, current);
+           if (ptr_array_add(pa, current) < 0) {
+               ptr_array_free(pa);
+               pa = NULL;
+           }
        }
        ((plist_data_t)((node_t)node)->data)->hashtable = pa;
     }
