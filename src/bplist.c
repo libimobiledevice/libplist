@@ -1607,6 +1607,13 @@ plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
 
     byte_array_append(bplist_buff, &trailer, sizeof(bplist_trailer_t));
 
+    if (!bplist_buff->data) {
+        byte_array_free(bplist_buff);
+        *plist_bin = NULL;
+        *length = 0;
+        return PLIST_ERR_NO_MEM;
+    }
+
     //set output buffer and size
     *plist_bin = (char*)bplist_buff->data;
     *length = bplist_buff->len;
