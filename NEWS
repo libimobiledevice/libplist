@@ -1,3 +1,48 @@
+Version 2.8.0
+~~~~~~~~~~~~~
+
+- Changes:
+  * Convert plist_array_set_item, plist_array_append_item, plist_array_insert_item,
+    plist_array_remove_item, plist_array_item_remove, plist_dict_set_item,
+    plist_dict_remove_item, and plist_dict_merge from void to plist_err_t return
+    type so that memory allocation and other errors can be reported
+  * Make #PLIST_ARRAY and #PLIST_DICT iterators opaque; add plist_array_free_iter
+    and plist_dict_free_iter to release them
+  * Add JSON coercion support for non-JSON plist types
+  * Add OpenStep coercion support for non-OpenStep plist types
+  * Add circular reference detection to all format writers
+  * Prevent deep nesting of plist structures in all input/output formats
+  * plistutil: Use getopt for solid option parsing
+  * plistutil: Add a --nodepath option to allow selecting a specific node
+  * plistutil: Read STDIN in chunks instead of one byte at a time
+  * plistutil: preserve binary data on Windows standard streams
+  * Add NULL checks and error handling across the codebase (node_attach/insert
+    failures, realloc failures in byte_array_grow/ptr_array_insert, etc.)
+  * Make plist copy and free implementations iterative to avoid stack overflow
+    on deeply nested structures
+  * docs: Add OpenStep to man page
+
+- Bugfixes:
+  * Fix heap overflow caused by incorrect PLIST_STRING length during copy
+  * Fix UTF-8 to UTF-16 decoding and enforce strict validation in bplist
+  * Fix inverted strcmp in string to boolean conversion
+  * Fix incorrect size storage in plist_copy() for PLIST_STRING nodes
+  * Fix is_ascii_string by using a sufficiently large data type
+  * Fix bplist offset_table range check and add overflow check to node offset
+    pointer arithmetic
+  * Reject insertion of plist nodes that already have a parent
+  * xplist: Enforce single root value inside <plist>
+  * xplist: Convert nested {CF$UID:<int>} dicts to PLIST_UID safely
+  * xplist: Harden entity unescaping against malformed input and improve
+    robustness of XML text parsing and value conversion
+  * Fix plist_is_binary() not checking for NULL input
+  * Fix a few memory leaks in JSON parsing and libcnary node_copy_deep()
+  * Fix Cython crashes
+  * Fix fread() unused return values by actually handling errors
+  * Fix Integer constructor to copy plist node (C++ bindings)
+  * Various smaller compiler warning and portability fixes (MSVC ssize_t,
+    format specifiers, WIN32 time_s support)
+
 Version 2.7.0
 ~~~~~~~~~~~~~
 
