@@ -126,5 +126,7 @@ int main(int argc, char** argv)
 	free(xml);
 	xml = NULL;
 
+	plist_free(iii);
+
 	return (err > 0) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
