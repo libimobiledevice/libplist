@@ -395,7 +395,11 @@ static char *plist_utf16be_to_utf8(uint16_t *unistr, size_t len, size_t *items_r
 	uint32_t w;
 	int read_lead_surrogate = 0;
 
-	/* allocate with enough space */
+	/* allocate with enough space, guarding against integer overflow */
+	if (len > (SIZE_MAX / 4) - 1) {
+		PLIST_BIN_ERR("%s: Input length %" PRIu64 " is too large\n", __func__, (uint64_t)len);
+		return NULL;
+	}
 	outbuf = (char*)malloc(4*(len+1));
 	if (!outbuf) {
 		PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)(4*(len+1)));
@@ -1216,6 +1220,10 @@ static uint16_t *plist_utf8_to_utf16be(const unsigned char *unistr, size_t size,
     unsigned char c2;
     unsigned char c3;
 
+    if (size > (SIZE_MAX / sizeof(uint16_t) - 1) / 2) {
+        PLIST_BIN_ERR("%s: Input size %" PRIu64 " is too large\n", __func__, (uint64_t)size);
+        return NULL;
+    }
     outbuf = (uint16_t*)malloc(((size*2)+1)*sizeof(uint16_t));
     if (!outbuf) {
         PLIST_BIN_ERR("%s: Could not allocate %" PRIu64 " bytes\n", __func__, (uint64_t)((size*2)+1)*sizeof(uint16_t));

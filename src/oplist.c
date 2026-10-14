@@ -140,6 +140,9 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
     {
     case PLIST_INT:
         val = (char*)malloc(64);
+        if (!val) {
+            return PLIST_ERR_NO_MEM;
+        }
         if (node_data->length == 16) {
             val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
         } else {
@@ -151,6 +154,9 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
 
     case PLIST_REAL:
         val = (char*)malloc(64);
+        if (!val) {
+            return PLIST_ERR_NO_MEM;
+        }
         val_len = dtostr(val, 64, node_data->realval);
         str_buf_append(*outbuf, val, val_len);
         free(val);
@@ -330,6 +336,9 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
     case PLIST_UID:
         if (coerce) {
             val = (char*)malloc(64);
+            if (!val) {
+                return PLIST_ERR_NO_MEM;
+            }
             if (node_data->length == 16) {
                 val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
             } else {
@@ -850,6 +859,12 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             size_t slen = ctx->pos - p;
             ctx->pos++; // skip the closing quote
             char* strbuf = (char*)malloc(slen+1);
+            if (!strbuf) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             if (num_escapes > 0) {
                 size_t i = 0;
                 size_t o = 0;

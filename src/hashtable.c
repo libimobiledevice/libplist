@@ -24,6 +24,9 @@ hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func, 
 {
 	hashtable_t* ht = (hashtable_t*)malloc(sizeof(hashtable_t));
 	int i;
+	if (!ht) {
+		return NULL;
+	}
 	for (i = 0; i < 4096; i++) {
 		ht->entries[i] = NULL;
 	}
@@ -78,6 +81,9 @@ void hash_table_insert(hashtable_t* ht, void *key, void *value)
 
 	// make a new entry.
 	hashentry_t* entry = (hashentry_t*)malloc(sizeof(hashentry_t));
+	if (!entry) {
+		return;
+	}
 	entry->key = key;
 	entry->value = value;
 	if (!ht->entries[idx0]) {
