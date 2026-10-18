@@ -14,7 +14,8 @@ noinst_PROGRAMS = \
 	plist_btest \
 	plist_jtest \
 	plist_otest \
-	xml_behavior_test
+	xml_behavior_test \
+	bplist_behavior_test
 
 plist_cmp_SOURCES = plist_cmp.c
 plist_cmp_LDADD = \
@@ -41,6 +42,9 @@ plist_otest_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 xml_behavior_test_SOURCES = xml_behavior_test.c
 xml_behavior_test_LDADD = $(top_builddir)/src/libplist-2.0.la
+
+bplist_behavior_test_SOURCES = bplist_behavior_test.c
+bplist_behavior_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 TESTS = \
 	empty.test \
@@ -85,6 +89,7 @@ TESTS = \
 	ostep-comments.test \
 	ostep-invalid-types.test \
 	xml_behavior.test \
+	bplist_behavior.test \
 	plistutil-streams.test
 
 EXTRA_DIST = \
