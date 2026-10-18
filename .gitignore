@@ -55,6 +55,7 @@ test/plist_jtest
 test/plist_otest
 test/integer_set_test
 test/xml_behavior_test
+test/bplist_behavior_test
 test/data/*.out
 test/*.trs
 cython/Makefile
