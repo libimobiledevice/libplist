@@ -11,6 +11,7 @@ noinst_PROGRAMS = \
 	plist_test \
 	plist_test++ \
 	integer_set_test \
+	date_val_test \
 	plist_btest \
 	plist_jtest \
 	plist_otest \
@@ -31,6 +32,9 @@ plist_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 integer_set_test_SOURCES = integer_set.c
 integer_set_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 
+date_val_test_SOURCES = date_val.c
+date_val_test_LDADD = $(top_builddir)/src/libplist-2.0.la
+
 plist_btest_SOURCES = plist_btest.c
 plist_btest_LDADD = $(top_builddir)/src/libplist-2.0.la
 
@@ -47,6 +51,7 @@ bplist_behavior_test_SOURCES = bplist_behavior_test.c
 bplist_behavior_test_LDADD = $(top_builddir)/src/libplist-2.0.la
 
 TESTS = \
+	date_val.test \
 	empty.test \
 	small.test \
 	medium.test \

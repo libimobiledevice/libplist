@@ -1889,13 +1889,23 @@ void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
         return;
     plist_get_type_and_value(node, &type, (void *) &val, &length);
     assert(length == sizeof(double));
-    if (sec)
-        *sec = (int32_t)val;
-    if (usec)
-    {
-	val = fabs((val - (int64_t)val) * 1000000);
-        *usec = (int32_t)val;
+    /* Inverse of plist_set_date_val (val = sec + usec / 1000000):
+     * whole seconds rounded down, the fraction rounded to microseconds. */
+    double whole = floor(val);
+    double frac_usec = round((val - whole) * 1000000);
+    if (frac_usec >= 1000000) {
+        whole += 1;
+        frac_usec -= 1000000;
     }
+    /* keep the int32_t conversion defined */
+    if (whole > INT32_MAX)
+        whole = INT32_MAX;
+    else if (whole < INT32_MIN)
+        whole = INT32_MIN;
+    if (sec)
+        *sec = (int32_t)whole;
+    if (usec)
+        *usec = (int32_t)frac_usec;
 }
 
 void plist_get_unix_date_val(plist_t node, int64_t *sec)

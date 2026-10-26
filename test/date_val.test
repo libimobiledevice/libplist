@@ -1,0 +1,5 @@
+## -*- sh -*-
+
+set -e
+
+$top_builddir/test/date_val_test
