@@ -581,6 +581,9 @@ static plist_t parse_primitive(const char* js, jsmntok_info_t* ti, int* index)
         }
         data->type = PLIST_NULL;
         val = plist_new_node(data);
+        if (!val) {
+            plist_free_data(data);
+        }
     } else if (isdigit(str_val[0]) || (str_val[0] == '-' && str_val+1 < str_end && isdigit(str_val[1]))) {
         char* endp = (char*)str_val;
         int is_neg = (str_val[0] == '-');

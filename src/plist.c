@@ -349,6 +349,16 @@ plist_t plist_new_node(plist_data_t data)
     return (plist_t) node_create(NULL, data);
 }
 
+/* like plist_new_node(), but takes care of data if the node can't be created */
+static plist_t plist_new_node_or_free(plist_data_t data)
+{
+    plist_t node = plist_new_node(data);
+    if (!node) {
+        plist_free_data(data);
+    }
+    return node;
+}
+
 plist_data_t plist_get_data(plist_t node)
 {
     if (!node)
@@ -428,71 +438,30 @@ static int plist_free_children(node_t root)
 {
     if (!root) return NODE_ERR_INVALID_ARG;
 
-    if (!node_first_child(root)) {
-        return NODE_ERR_SUCCESS;
-    }
-
-    size_t cap = 64, sp = 0;
-    node_t *stack = (node_t*)malloc(cap * sizeof(*stack));
-    if (!stack) return NODE_ERR_NO_MEM;
-
-    // Push *direct* children onto the stack, detached from root.
+    /* Walk down to the deepest first child, free it and step back up.
+     * This needs no extra memory, so freeing can't fail with out-of-memory
+     * (which would leak the whole tree). */
+    node_t cur = root;
     for (;;) {
-        node_t ch = node_first_child(root);
-        if (!ch) break;
-
-        int di = node_detach(root, ch);
-        if (di < 0) {
-            free(stack);
-            return di;
-        }
-
-        if (sp == cap) {
-            cap += 64;
-            node_t *tmp = (node_t*)realloc(stack, cap * sizeof(*stack));
-            if (!tmp) {
-                free(stack);
-                return NODE_ERR_NO_MEM;
-            }
-            stack = tmp;
-        }
-        stack[sp++] = ch;
-    }
-
-    // Now free the detached subtree nodes (and their descendants).
-    while (sp) {
-        node_t node = stack[sp - 1];
-        node_t ch = node_first_child(node);
+        node_t ch = node_first_child(cur);
         if (ch) {
-            int di = node_detach(node, ch);
-            if (di < 0) {
-                free(stack);
-                return di;
-            }
-
-            if (sp == cap) {
-                cap += 64;
-                node_t *tmp = (node_t*)realloc(stack, cap * sizeof(*stack));
-                if (!tmp) {
-                    free(stack);
-                    return NODE_ERR_NO_MEM;
-                }
-                stack = tmp;
-            }
-            stack[sp++] = ch;
+            cur = ch;
             continue;
         }
+        if (cur == root) break;
 
-        plist_data_t data = plist_get_data(node);
+        node_t parent = (node_t)cur->parent;
+        int di = node_detach(parent, cur);
+        if (di < 0) {
+            return di;
+        }
+        plist_data_t data = plist_get_data(cur);
         plist_free_data(data);
-        node->data = NULL;
-
-        node_destroy(node);
-
-        sp--;
+        cur->data = NULL;
+        node_destroy(cur);
+        cur = parent;
     }
 
-    free(stack);
     return NODE_ERR_SUCCESS;
 }
 
@@ -532,7 +501,7 @@ plist_t plist_new_dict(void)
         return NULL;
     }
     data->type = PLIST_DICT;
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_array(void)
@@ -543,7 +512,7 @@ plist_t plist_new_array(void)
         return NULL;
     }
     data->type = PLIST_ARRAY;
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 //These nodes should not be handled by users
@@ -563,7 +532,7 @@ static plist_t plist_new_key(const char *val)
     } else {
         data->length = strlen(val);
     }
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_string(const char *val)
@@ -582,7 +551,7 @@ plist_t plist_new_string(const char *val)
     } else {
         data->length = strlen(val);
     }
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_bool(uint8_t val)
@@ -595,7 +564,7 @@ plist_t plist_new_bool(uint8_t val)
     data->type = PLIST_BOOLEAN;
     data->boolval = val;
     data->length = sizeof(uint8_t);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_uint(uint64_t val)
@@ -608,7 +577,7 @@ plist_t plist_new_uint(uint64_t val)
     data->type = PLIST_INT;
     data->intval = val;
     data->length = (val > INT_MAX) ? sizeof(uint64_t)*2 : sizeof(uint64_t);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_int(int64_t val)
@@ -621,7 +590,7 @@ plist_t plist_new_int(int64_t val)
     data->type = PLIST_INT;
     data->intval = val;
     data->length = sizeof(uint64_t);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_uid(uint64_t val)
@@ -634,7 +603,7 @@ plist_t plist_new_uid(uint64_t val)
     data->type = PLIST_UID;
     data->intval = val;
     data->length = sizeof(uint64_t);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_real(double val)
@@ -647,7 +616,7 @@ plist_t plist_new_real(double val)
     data->type = PLIST_REAL;
     data->realval = val;
     data->length = sizeof(double);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_data(const char *val, uint64_t length)
@@ -667,7 +636,7 @@ plist_t plist_new_data(const char *val, uint64_t length)
         memcpy(data->buff, val, length);
     }
     data->length = length;
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_date(int32_t sec, int32_t usec)
@@ -680,7 +649,7 @@ plist_t plist_new_date(int32_t sec, int32_t usec)
     data->type = PLIST_DATE;
     data->realval = (double)sec + (double)usec / 1000000;
     data->length = sizeof(double);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_unix_date(int64_t sec)
@@ -693,7 +662,7 @@ plist_t plist_new_unix_date(int64_t sec)
     data->type = PLIST_DATE;
     data->realval = (double)sec - MAC_EPOCH;
     data->length = sizeof(double);
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 plist_t plist_new_null(void)
@@ -706,7 +675,7 @@ plist_t plist_new_null(void)
     data->type = PLIST_NULL;
     data->intval = 0;
     data->length = 0;
-    return plist_new_node(data);
+    return plist_new_node_or_free(data);
 }
 
 void plist_free(plist_t plist)
@@ -771,6 +740,7 @@ static int plist_copy_node_shallow(node_t node, plist_t *out_newnode, plist_data
             break;
 
         case PLIST_ARRAY:
+            newdata->hashtable = NULL; // don't share (or free) the original's table on error
             if (data->hashtable) {
                 ptrarray_t* pa = ptr_array_new(((ptrarray_t*)data->hashtable)->capacity);
                 if (!pa) {
@@ -782,6 +752,7 @@ static int plist_copy_node_shallow(node_t node, plist_t *out_newnode, plist_data
             break;
 
         case PLIST_DICT:
+            newdata->hashtable = NULL; // don't share (or free) the original's table on error
             if (data->hashtable) {
                 hashtable_t* ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
                 if (!ht) {

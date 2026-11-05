@@ -1212,6 +1212,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
             }
             subnode = plist_new_node(data);
             if (!subnode) {
+                plist_free_data(data);
                 PLIST_XML_ERR("failed to create node\n");
                 ctx->err = PLIST_ERR_NO_MEM;
                 goto err_out;

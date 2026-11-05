@@ -277,6 +277,16 @@ void plist_bin_set_debug(int debug)
 
 static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node_index);
 
+static plist_t bplist_node_new(plist_data_t data)
+{
+    plist_t node = node_create(NULL, data);
+    if (!node) {
+        PLIST_BIN_ERR("%s: failed to create node\n", __func__);
+        plist_free_data(data);
+    }
+    return node;
+}
+
 static plist_t parse_int_node(const char **bnode, uint8_t size)
 {
     plist_data_t data = plist_new_plist_data();
@@ -308,7 +318,7 @@ static plist_t parse_int_node(const char **bnode, uint8_t size)
     (*bnode) += size;
     data->type = PLIST_INT;
 
-    return node_create(NULL, data);
+    return bplist_node_new(data);
 }
 
 static plist_t parse_real_node(const char **bnode, uint8_t size)
@@ -350,12 +360,15 @@ static plist_t parse_real_node(const char **bnode, uint8_t size)
     data->type = PLIST_REAL;
     data->length = sizeof(double);
 
-    return node_create(NULL, data);
+    return bplist_node_new(data);
 }
 
 static plist_t parse_date_node(const char **bnode, uint8_t size)
 {
     plist_t node = parse_real_node(bnode, size);
+    if (!node) {
+        return NULL;
+    }
     plist_data_t data = plist_get_data(node);
 
     data->type = PLIST_DATE;
@@ -382,7 +395,7 @@ static plist_t parse_string_node(const char **bnode, uint64_t size)
     data->strval[size] = '\0';
     data->length = strlen(data->strval);
 
-    return node_create(NULL, data);
+    return bplist_node_new(data);
 }
 
 static char *plist_utf16be_to_utf8(uint16_t *unistr, size_t len, size_t *items_read, size_t *items_written)
@@ -478,7 +491,7 @@ static plist_t parse_unicode_node(const char **bnode, uint64_t size)
     }
     data->length = items_written;
 
-    return node_create(NULL, data);
+    return bplist_node_new(data);
 }
 
 static plist_t parse_data_node(const char **bnode, uint64_t size)
@@ -498,7 +511,7 @@ static plist_t parse_data_node(const char **bnode, uint64_t size)
     }
     memcpy(data->buff, *bnode, sizeof(uint8_t) * size);
 
-    return node_create(NULL, data);
+    return bplist_node_new(data);
 }
 
 static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, uint64_t size)
@@ -582,8 +595,17 @@ static plist_t parse_dict_node(struct bplist_data *bplist, const char** bnode, u
             return NULL;
         }
 
-        node_attach((node_t)node, (node_t)key);
-        node_attach((node_t)node, (node_t)val);
+        if (node_attach((node_t)node, (node_t)key) != NODE_ERR_SUCCESS) {
+            plist_free(key);
+            plist_free(val);
+            plist_free(node);
+            return NULL;
+        }
+        if (node_attach((node_t)node, (node_t)val) != NODE_ERR_SUCCESS) {
+            plist_free(val);
+            plist_free(node);
+            return NULL;
+        }
     }
 
     return node;
@@ -636,7 +658,11 @@ static plist_t parse_array_node(struct bplist_data *bplist, const char** bnode, 
             return NULL;
         }
 
-        node_attach((node_t)node, (node_t)val);
+        if (node_attach((node_t)node, (node_t)val) != NODE_ERR_SUCCESS) {
+            plist_free(val);
+            plist_free(node);
+            return NULL;
+        }
     }
 
     return node;
@@ -661,7 +687,7 @@ static plist_t parse_uid_node(const char **bnode, uint8_t size)
     data->type = PLIST_UID;
     data->length = sizeof(uint64_t);
 
-    return node_create(NULL, data);
+    return bplist_node_new(data);
 }
 
 static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
@@ -726,7 +752,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             data->type = PLIST_BOOLEAN;
             data->boolval = TRUE;
             data->length = 1;
-            return node_create(NULL, data);
+            return bplist_node_new(data);
         }
 
         case BPLIST_FALSE:
@@ -739,7 +765,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             data->type = PLIST_BOOLEAN;
             data->boolval = FALSE;
             data->length = 1;
-            return node_create(NULL, data);
+            return bplist_node_new(data);
         }
 
         case BPLIST_NULL:
@@ -751,7 +777,7 @@ static plist_t parse_bin_node(struct bplist_data *bplist, const char** object)
             }
             data->type = PLIST_NULL;
             data->length = 0;
-            return node_create(NULL, data);
+            return bplist_node_new(data);
         }
 
         default:
@@ -1550,6 +1576,9 @@ plist_err_t plist_to_bin(plist_t plist, char **plist_bin, uint32_t * length)
     //write objects and table
     offsets = (uint64_t *) malloc(num_objects * sizeof(uint64_t));
     if (!offsets) {
+        byte_array_free(bplist_buff);
+        ptr_array_free(objects);
+        hash_table_destroy(ref_table);
         return PLIST_ERR_NO_MEM;
     }
     for (i = 0; i < num_objects; i++)
