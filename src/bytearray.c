@@ -58,7 +58,26 @@ void byte_array_grow(bytearray_t *ba, size_t amount)
 		return;
 	}
 	size_t increase = (amount > PAGE_SIZE) ? (amount+(PAGE_SIZE-1)) & (~(PAGE_SIZE-1)) : PAGE_SIZE;
-	void *newdata = realloc(ba->data, ba->capacity + increase);
+	if (increase < amount || ba->capacity + increase < ba->capacity) {
+		/* size overflow */
+		free(ba->data);
+		ba->data = NULL;
+		ba->len = 0;
+		ba->capacity = 0;
+		return;
+	}
+	/* grow geometrically (doubling) to keep repeated appends linear; if that
+	 * fails, fall back to the minimum required size before giving up */
+	void *newdata = NULL;
+	if (ba->capacity <= ((size_t)-1) / 2 && ba->capacity > increase) {
+		newdata = realloc(ba->data, ba->capacity * 2);
+		if (newdata) {
+			increase = ba->capacity;
+		}
+	}
+	if (!newdata) {
+		newdata = realloc(ba->data, ba->capacity + increase);
+	}
 	if (!newdata) {
 		/* out of memory: put the array into a failed state (data == NULL),
 		 * further appends are ignored and callers must check ba->data */
