@@ -1464,10 +1464,18 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                             ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
-                        plist_dict_set_item(parent, keyname, subnode);
+                        if (plist_dict_set_item(parent, keyname, subnode) != PLIST_ERR_SUCCESS) {
+                            PLIST_XML_ERR("failed to add item to dict\n");
+                            ctx->err = PLIST_ERR_PARSE;
+                            goto err_out;
+                        }
                         break;
                     case PLIST_ARRAY:
-                        plist_array_append_item(parent, subnode);
+                        if (plist_array_append_item(parent, subnode) != PLIST_ERR_SUCCESS) {
+                            PLIST_XML_ERR("failed to add item to array\n");
+                            ctx->err = PLIST_ERR_PARSE;
+                            goto err_out;
+                        }
                         break;
                     default:
                         /* should not happen */
