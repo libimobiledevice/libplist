@@ -20,11 +20,24 @@
  */
 #include "ptrarray.h"
 #include <string.h>
+#include <stdint.h>
+#include <limits.h>
 
 ptrarray_t *ptr_array_new(int capacity)
 {
-	ptrarray_t *pa = (ptrarray_t*)malloc(sizeof(ptrarray_t));
-	pa->pdata = (void**)malloc(sizeof(void*) * capacity);
+	ptrarray_t *pa;
+	if (capacity < 0 || (size_t)capacity > SIZE_MAX / sizeof(void*)) {
+		return NULL;
+	}
+	pa = (ptrarray_t*)malloc(sizeof(ptrarray_t));
+	if (!pa) {
+		return NULL;
+	}
+	pa->pdata = (void**)malloc(sizeof(void*) * (size_t)capacity);
+	if (!pa->pdata) {
+		free(pa);
+		return NULL;
+	}
 	pa->capacity = capacity;
 	pa->capacity_step = (capacity > 4096) ? 4096 : capacity;
 	pa->len = 0;
@@ -45,7 +58,12 @@ int ptr_array_insert(ptrarray_t *pa, void *data, long array_index)
 	if (!pa || !pa->pdata) return -1;
 	long remaining = pa->capacity-pa->len;
 	if (remaining == 0) {
-		void **newdata = (void**)realloc(pa->pdata, sizeof(void*) * (pa->capacity + pa->capacity_step));
+		void **newdata;
+		if (pa->capacity > INT_MAX - pa->capacity_step ||
+		    (size_t)(pa->capacity + pa->capacity_step) > SIZE_MAX / sizeof(void*)) {
+			return -1;
+		}
+		newdata = (void**)realloc(pa->pdata, sizeof(void*) * (size_t)(pa->capacity + pa->capacity_step));
 		if (!newdata) {
 			return -1;
 		}

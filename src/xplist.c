@@ -276,6 +276,7 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
             uint32_t indent = (depth > 8) ? 8 : depth;
             uint32_t maxread = MAX_DATA_BYTES_PER_LINE(indent);
             size_t count = 0;
+            size_t encoded = 0;
             size_t amount = (node_data->length / 3 * 4) + 4 + (((node_data->length / maxread) + 1) * (indent+1));
             if ((*outbuf)->len + amount > (*outbuf)->capacity) {
                 str_buf_grow(*outbuf, amount);
@@ -288,7 +289,14 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
                     str_buf_append(*outbuf, "\t", 1);
                 }
                 count = (node_data->length-j < maxread) ? node_data->length-j : maxread;
-                assert((*outbuf)->len + count < (*outbuf)->capacity);
+                /* base64encode writes 4*ceil(count/3) bytes plus a terminating NUL */
+                encoded = ((count + 2) / 3) * 4 + 1;
+                if ((*outbuf)->len + encoded > (*outbuf)->capacity) {
+                    str_buf_grow(*outbuf, (*outbuf)->len + encoded - (*outbuf)->capacity);
+                    if (!(*outbuf)->data) {
+                        return PLIST_ERR_NO_MEM;
+                    }
+                }
                 (*outbuf)->len += base64encode((char*)(*outbuf)->data + (*outbuf)->len, node_data->buff + j, count);
                 str_buf_append(*outbuf, "\n", 1);
                 j+=count;
@@ -422,7 +430,9 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
     }
 
     // mark as visited
-    hash_table_insert(visited, node, (void*)1);
+    if (hash_table_insert(visited, node, (void*)1) < 0) {
+        return PLIST_ERR_NO_MEM;
+    }
 
     data = plist_get_data(node);
     if (node->children) {
@@ -677,7 +687,9 @@ static void text_parts_free(text_part_t *tp)
 static text_part_t* text_part_append(text_part_t* parts, const char *begin, size_t length, int is_cdata)
 {
     text_part_t* newpart = (text_part_t*)malloc(sizeof(text_part_t));
-    assert(newpart);
+    if (!newpart) {
+        return NULL;
+    }
     parts->next = text_part_init(newpart, begin, length, is_cdata);
     return newpart;
 }
@@ -716,6 +728,10 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
             if (*ctx->pos == '-' && *(ctx->pos+1) == '-') {
                 if (last) {
                     last = text_part_append(last, p, q-p, 0);
+                    if (!last) {
+                        ctx->err = PLIST_ERR_NO_MEM;
+                        return NULL;
+                    }
                 } else if (parts) {
                     last = text_part_init(parts, p, q-p, 0);
                 }
@@ -738,6 +754,10 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                     if (q-p > 0) {
                         if (last) {
                             last = text_part_append(last, p, q-p, 0);
+                            if (!last) {
+                                ctx->err = PLIST_ERR_NO_MEM;
+                                return NULL;
+                            }
                         } else if (parts) {
                             last = text_part_init(parts, p, q-p, 0);
                         }
@@ -753,6 +773,10 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
                     q = ctx->pos;
                     if (last) {
                         last = text_part_append(last, p, q-p, 1);
+                        if (!last) {
+                            ctx->err = PLIST_ERR_NO_MEM;
+                            return NULL;
+                        }
                     } else if (parts) {
                         last = text_part_init(parts, p, q-p, 1);
                     }
@@ -802,6 +826,10 @@ static text_part_t* get_text_parts(parse_ctx ctx, const char* tag, size_t tag_le
     if (q > p) {
         if (last) {
             last = text_part_append(last, p, q-p, 0);
+            if (!last) {
+                ctx->err = PLIST_ERR_NO_MEM;
+                return NULL;
+            }
         } else if (parts) {
             last = text_part_init(parts, p, q-p, 0);
         }
@@ -920,11 +948,12 @@ static int unescape_entities(char *str, size_t *length)
     return 0;
 }
 
-static char* text_parts_get_content(text_part_t *tp, int unesc_entities, int trim_ws, size_t *length, int *requires_free)
+static char* text_parts_get_content(text_part_t *tp, int unesc_entities, int trim_ws, size_t *length, int *requires_free, plist_err_t *err)
 {
     char *str = NULL;
     size_t total_length = 0;
 
+    if (err) *err = PLIST_ERR_PARSE;
     if (!tp) {
         return NULL;
     }
@@ -938,11 +967,18 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, int tri
     }
     text_part_t *tmp = tp;
     while (tp && tp->begin) {
+        if (tp->length > SIZE_MAX - 1 - total_length) {
+            if (err) *err = PLIST_ERR_NO_MEM;
+            return NULL;
+        }
         total_length += tp->length;
         tp = (text_part_t*)tp->next;
     }
     str = (char*)malloc(total_length + 1);
-    assert(str);
+    if (!str) {
+        if (err) *err = PLIST_ERR_NO_MEM;
+        return NULL;
+    }
     p = str;
     tp = tmp;
     while (tp && tp->begin) {
@@ -985,6 +1021,7 @@ static char* text_parts_get_content(text_part_t *tp, int unesc_entities, int tri
 
 static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
 {
+    plist_err_t content_err = PLIST_ERR_PARSE;
     char tag[16] = { 0 };
     char *keyname = NULL;
     plist_t subnode = NULL;
@@ -1191,15 +1228,19 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err = PLIST_ERR_PARSE;
+                        if (PLIST_ERR_SUCCESS == ctx->err) {
+                            ctx->err = PLIST_ERR_PARSE;
+                        }
                         goto err_out;
                     }
                     if (tp->begin) {
-                        char *str_content = text_parts_get_content(tp, 0, 1, NULL, NULL);
+                        char *str_content = text_parts_get_content(tp, 0, 1, NULL, NULL, &content_err);
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err = PLIST_ERR_PARSE;
+                            if (PLIST_ERR_SUCCESS == ctx->err) {
+                                ctx->err = content_err;
+                            }
                             goto err_out;
                         }
                         char *str = str_content;
@@ -1263,15 +1304,19 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err = PLIST_ERR_PARSE;
+                        if (PLIST_ERR_SUCCESS == ctx->err) {
+                            ctx->err = PLIST_ERR_PARSE;
+                        }
                         goto err_out;
                     }
                     if (tp->begin) {
-                        char *str_content = text_parts_get_content(tp, 0, 1, NULL, NULL);
+                        char *str_content = text_parts_get_content(tp, 0, 1, NULL, NULL, &content_err);
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err = PLIST_ERR_PARSE;
+                            if (PLIST_ERR_SUCCESS == ctx->err) {
+                                ctx->err = content_err;
+                            }
                             goto err_out;
                         }
                         errno = 0;
@@ -1335,14 +1380,18 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err = PLIST_ERR_PARSE;
+                        if (PLIST_ERR_SUCCESS == ctx->err) {
+                            ctx->err = PLIST_ERR_PARSE;
+                        }
                         goto err_out;
                     }
-                    str = text_parts_get_content(tp, 1, 0, &length, NULL);
+                    str = text_parts_get_content(tp, 1, 0, &length, NULL, &content_err);
                     text_parts_free((text_part_t*)first_part.next);
                     if (!str) {
                         PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
-                        ctx->err = PLIST_ERR_PARSE;
+                        if (PLIST_ERR_SUCCESS == ctx->err) {
+                            ctx->err = content_err;
+                        }
                         goto err_out;
                     }
                     if (!strcmp(tag, "key") && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
@@ -1366,16 +1415,20 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err = PLIST_ERR_PARSE;
+                        if (PLIST_ERR_SUCCESS == ctx->err) {
+                            ctx->err = PLIST_ERR_PARSE;
+                        }
                         goto err_out;
                     }
                     if (tp->begin) {
                         int requires_free = 0;
-                        char *str_content = text_parts_get_content(tp, 0, 0, NULL, &requires_free);
+                        char *str_content = text_parts_get_content(tp, 0, 0, NULL, &requires_free, &content_err);
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err = PLIST_ERR_PARSE;
+                            if (PLIST_ERR_SUCCESS == ctx->err) {
+                                ctx->err = content_err;
+                            }
                             goto err_out;
                         }
                         size_t size = tp->length;
@@ -1404,16 +1457,20 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     if (!tp) {
                         PLIST_XML_ERR("Could not parse text content for '%s' node\n", tag);
                         text_parts_free((text_part_t*)first_part.next);
-                        ctx->err = PLIST_ERR_PARSE;
+                        if (PLIST_ERR_SUCCESS == ctx->err) {
+                            ctx->err = PLIST_ERR_PARSE;
+                        }
                         goto err_out;
                     }
                     Time64_T timev = 0;
                     if (tp->begin) {
-                        char *str_content = text_parts_get_content(tp, 0, 1, NULL, NULL);
+                        char *str_content = text_parts_get_content(tp, 0, 1, NULL, NULL, &content_err);
                         if (!str_content) {
                             PLIST_XML_ERR("Could not get text content for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
-                            ctx->err = PLIST_ERR_PARSE;
+                            if (PLIST_ERR_SUCCESS == ctx->err) {
+                                ctx->err = content_err;
+                            }
                             goto err_out;
                         }
                         struct TM btime;

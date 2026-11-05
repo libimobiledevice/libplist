@@ -126,6 +126,9 @@ static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t dept
 
     case PLIST_INT:
         val = (char*)malloc(64);
+        if (!val) {
+            return PLIST_ERR_NO_MEM;
+        }
         if (node_data->length == 16) {
             val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
         } else {
@@ -137,6 +140,9 @@ static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t dept
 
     case PLIST_REAL:
         val = (char*)malloc(64);
+        if (!val) {
+            return PLIST_ERR_NO_MEM;
+        }
         val_len = dtostr(val, 64, node_data->realval);
         str_buf_append(*outbuf, val, val_len);
         free(val);
@@ -285,6 +291,9 @@ static plist_err_t node_to_json(node_t node, bytearray_t **outbuf, uint32_t dept
     case PLIST_UID:
         if (coerce) {
             val = (char*)malloc(64);
+            if (!val) {
+                return PLIST_ERR_NO_MEM;
+            }
             if (node_data->length == 16) {
                 val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
             } else {
@@ -322,7 +331,9 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
     }
 
     // mark as visited
-    hash_table_insert(visited, node, (void*)1);
+    if (hash_table_insert(visited, node, (void*)1) < 0) {
+        return PLIST_ERR_NO_MEM;
+    }
 
     data = plist_get_data(node);
     if (node->children) {

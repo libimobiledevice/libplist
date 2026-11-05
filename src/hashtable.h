@@ -43,7 +43,8 @@ typedef struct hashtable_t {
 hashtable_t* hash_table_new(hash_func_t hash_func, compare_func_t compare_func, free_func_t free_func);
 void hash_table_destroy(hashtable_t *ht);
 
-void hash_table_insert(hashtable_t* ht, void *key, void *value);
+/* returns 0 on success, -1 on error (invalid argument or out of memory) */
+int hash_table_insert(hashtable_t* ht, void *key, void *value);
 void* hash_table_lookup(hashtable_t* ht, void *key);
 void hash_table_remove(hashtable_t* ht, void *key);
 

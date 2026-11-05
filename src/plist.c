@@ -909,7 +909,11 @@ static plist_t plist_copy_node(node_t root)
                 if (f->copydata->hashtable && (f->node_index % 2 != 0)) {
                     node_t new_key = node_prev_sibling((node_t)newch);
                     if (new_key) {
-                        hash_table_insert((hashtable_t*)f->copydata->hashtable, new_key->data, newch);
+                        if (hash_table_insert((hashtable_t*)f->copydata->hashtable, new_key->data, newch) < 0) {
+                            /* drop the lookup cache; lookups fall back to a linear search */
+                            hash_table_destroy((hashtable_t*)f->copydata->hashtable);
+                            f->copydata->hashtable = NULL;
+                        }
                     }
                 }
                 break;
@@ -1329,6 +1333,16 @@ plist_t plist_dict_get_item(plist_t node, const char* key)
     return ret;
 }
 
+/* Drop the key lookup cache of a dict; lookups then fall back to a linear search. */
+static void plist_dict_drop_cache(plist_t node)
+{
+    plist_data_t data = plist_get_data(node);
+    if (data && data->hashtable) {
+        hash_table_destroy((hashtable_t*)data->hashtable);
+        data->hashtable = NULL;
+    }
+}
+
 plist_err_t plist_dict_set_item(plist_t node, const char* key, plist_t item)
 {
     if (!PLIST_IS_DICT(node) || !key || !item) {
@@ -1373,7 +1387,10 @@ plist_err_t plist_dict_set_item(plist_t node, const char* key, plist_t item)
             // rollback: reinsert old value
             int rb = node_insert((node_t)node, (unsigned)idx, old_val);
             if (rb == NODE_ERR_SUCCESS && ht) {
-                hash_table_insert(ht, ((node_t)old_key)->data, old_item);
+                if (hash_table_insert(ht, ((node_t)old_key)->data, old_item) < 0) {
+                    plist_dict_drop_cache(node);
+                    ht = NULL;
+                }
             }
             PLIST_ERR("%s: failed to replace dict value (err=%d)\n", __func__, r);
             return PLIST_ERR_UNKNOWN;
@@ -1382,7 +1399,10 @@ plist_err_t plist_dict_set_item(plist_t node, const char* key, plist_t item)
 
         // update hash table
         if (ht) {
-            hash_table_insert(ht, (plist_data_t)((node_t)key_node)->data, item);
+            if (hash_table_insert(ht, (plist_data_t)((node_t)key_node)->data, item) < 0) {
+                plist_dict_drop_cache(node);
+                ht = NULL;
+            }
         }
 
         // now it’s safe to free old value
@@ -1409,7 +1429,10 @@ plist_err_t plist_dict_set_item(plist_t node, const char* key, plist_t item)
 
         if (ht) {
             // store pointer to item in hash table
-            hash_table_insert(ht, (plist_data_t)((node_t)key_node)->data, item);
+            if (hash_table_insert(ht, (plist_data_t)((node_t)key_node)->data, item) < 0) {
+                plist_dict_drop_cache(node);
+                ht = NULL;
+            }
         } else if (((node_t)node)->count > 500) {
             // make new hash table
             ht = hash_table_new(dict_key_hash, dict_key_compare, NULL);
@@ -1419,7 +1442,10 @@ plist_err_t plist_dict_set_item(plist_t node, const char* key, plist_t item)
                  ht && current;
                  current = (plist_t)node_next_sibling(node_next_sibling((node_t)current)))
             {
-                hash_table_insert(ht, ((node_t)current)->data, node_next_sibling((node_t)current));
+                if (hash_table_insert(ht, ((node_t)current)->data, node_next_sibling((node_t)current)) < 0) {
+                    hash_table_destroy(ht);
+                    ht = NULL;
+                }
             }
             ((plist_data_t)((node_t)node)->data)->hashtable = ht;
         }

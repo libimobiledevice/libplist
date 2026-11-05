@@ -140,6 +140,9 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
     {
     case PLIST_INT:
         val = (char*)malloc(64);
+        if (!val) {
+            return PLIST_ERR_NO_MEM;
+        }
         if (node_data->length == 16) {
             val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
         } else {
@@ -151,6 +154,9 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
 
     case PLIST_REAL:
         val = (char*)malloc(64);
+        if (!val) {
+            return PLIST_ERR_NO_MEM;
+        }
         val_len = dtostr(val, 64, node_data->realval);
         str_buf_append(*outbuf, val, val_len);
         free(val);
@@ -330,6 +336,9 @@ static plist_err_t node_to_openstep(node_t node, bytearray_t **outbuf, uint32_t 
     case PLIST_UID:
         if (coerce) {
             val = (char*)malloc(64);
+            if (!val) {
+                return PLIST_ERR_NO_MEM;
+            }
             if (node_data->length == 16) {
                 val_len = snprintf(val, 64, "%" PRIu64, node_data->intval);
             } else {
@@ -368,7 +377,9 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
     }
 
     // mark as visited
-    hash_table_insert(visited, node, (void*)1);
+    if (hash_table_insert(visited, node, (void*)1) < 0) {
+        return PLIST_ERR_NO_MEM;
+    }
 
     data = plist_get_data(node);
     if (node->children) {
@@ -655,7 +666,10 @@ static void parse_dict_data(parse_ctx ctx, plist_t dict)
             break;
         }
 
-        plist_dict_set_item(dict, plist_get_string_ptr(key, NULL), val);
+        if (plist_dict_set_item(dict, plist_get_string_ptr(key, NULL), val) != PLIST_ERR_SUCCESS) {
+            ctx->err = PLIST_ERR_NO_MEM;
+            break;
+        }
         plist_free(key);
         key = NULL;
         val = NULL;
@@ -682,9 +696,20 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             break;
         }
         plist_data_t data = plist_new_plist_data();
+        if (!data) {
+            PLIST_OSTEP_ERR("Out of memory\n");
+            ctx->err = PLIST_ERR_NO_MEM;
+            goto err_out;
+        }
         if (*ctx->pos == '{') {
             data->type = PLIST_DICT;
             subnode = plist_new_node(data);
+            if (!subnode) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             ctx->pos++;
             parse_dict_data(ctx, subnode);
             if (ctx->err) {
@@ -707,6 +732,12 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
         } else if (*ctx->pos == '(') {
             data->type = PLIST_ARRAY;
             subnode = plist_new_node(data);
+            if (!subnode) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             ctx->pos++;
             plist_t tmp = NULL;
             while (ctx->pos < ctx->end && !ctx->err) {
@@ -722,7 +753,10 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
                     ctx->err = PLIST_ERR_PARSE;
                     break;
                 }
-                plist_array_append_item(subnode, tmp);
+                if (plist_array_append_item(subnode, tmp) != PLIST_ERR_SUCCESS) {
+                    ctx->err = PLIST_ERR_NO_MEM;
+                    break;
+                }
                 tmp = NULL;
                 parse_skip_ws(ctx);
                 if (ctx->pos >= ctx->end) {
@@ -758,6 +792,12 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             data->type = PLIST_DATA;
             ctx->pos++;
             bytearray_t *bytes = byte_array_new(256);
+            if (!bytes) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             while (ctx->pos < ctx->end && !ctx->err) {
                 parse_skip_ws(ctx);
                 if (ctx->pos >= ctx->end) {
@@ -819,6 +859,12 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             bytes->data = NULL;
             byte_array_free(bytes);
             *plist = plist_new_node(data);
+            if (!*plist) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             parse_skip_ws(ctx);
             break;
         } else if (*ctx->pos == '"' || *ctx->pos == '\'') {
@@ -850,6 +896,12 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             size_t slen = ctx->pos - p;
             ctx->pos++; // skip the closing quote
             char* strbuf = (char*)malloc(slen+1);
+            if (!strbuf) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             if (num_escapes > 0) {
                 size_t i = 0;
                 size_t o = 0;
@@ -921,6 +973,12 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             data->strval = strbuf;
             data->length = slen;
             *plist = plist_new_node(data);
+            if (!*plist) {
+                plist_free_data(data);
+                PLIST_OSTEP_ERR("Out of memory\n");
+                ctx->err = PLIST_ERR_NO_MEM;
+                goto err_out;
+            }
             parse_skip_ws(ctx);
             break;
         } else {
@@ -938,8 +996,20 @@ static plist_err_t node_from_openstep(parse_ctx ctx, plist_t *plist)
             if (slen > 0) {
                 data->type = PLIST_STRING;
                 data->strval = strndup(p, slen);
+                if (!data->strval) {
+                    plist_free_data(data);
+                    PLIST_OSTEP_ERR("Out of memory\n");
+                    ctx->err = PLIST_ERR_NO_MEM;
+                    goto err_out;
+                }
                 data->length = slen;
                 *plist = plist_new_node(data);
+                if (!*plist) {
+                    plist_free_data(data);
+                    PLIST_OSTEP_ERR("Out of memory\n");
+                    ctx->err = PLIST_ERR_NO_MEM;
+                    goto err_out;
+                }
                 parse_skip_ws(ctx);
                 break;
             } else {
@@ -980,11 +1050,17 @@ plist_err_t plist_from_openstep(const char *plist_ostep, uint32_t length, plist_
         if (!*plist) {
             /* whitespace only file is considered an empty dictionary */
             *plist = plist_new_dict();
+            if (!*plist) {
+                err = PLIST_ERR_NO_MEM;
+            }
         } else if (ctx.pos < ctx.end && *ctx.pos == '=') {
             /* attempt to parse this as 'strings' data */
             plist_free(*plist);
             *plist = NULL;
             plist_t pl = plist_new_dict();
+            if (!pl) {
+                return PLIST_ERR_NO_MEM;
+            }
             ctx.pos = plist_ostep;
             parse_dict_data(&ctx, pl);
             if (ctx.err > 0) {

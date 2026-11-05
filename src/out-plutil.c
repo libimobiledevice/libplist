@@ -311,7 +311,9 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
     }
 
     // mark as visited
-    hash_table_insert(visited, node, (void*)1);
+    if (hash_table_insert(visited, node, (void*)1) < 0) {
+        return PLIST_ERR_NO_MEM;
+    }
 
     data = plist_get_data(node);
     if (node->children) {
