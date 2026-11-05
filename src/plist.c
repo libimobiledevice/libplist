@@ -921,6 +921,8 @@ static plist_t plist_copy_node(node_t root)
         f->node_index++;
 
         // push child frame to process its children
+        // (read depth before realloc, which may invalidate f)
+        int child_depth = f->depth + 1;
         if (sp == cap) {
             cap += 64;
             copy_frame_t *tmp = (copy_frame_t*)realloc(st, cap * sizeof(*st));
@@ -940,7 +942,7 @@ static plist_t plist_copy_node(node_t root)
         nf.type = newch_type;
         nf.next_child = node_first_child(ch);
         nf.node_index = 0;
-        nf.depth = f->depth + 1;
+        nf.depth = child_depth;
         st[sp++] = nf;
     }
 
