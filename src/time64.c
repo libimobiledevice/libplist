@@ -45,6 +45,7 @@ gmtime64_r() is a 64-bit equivalent of gmtime_r().
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <limits.h>
 #include "time64.h"
 #include "time64_limits.h"
 
@@ -125,7 +126,7 @@ static const char dow_year_start[SOLAR_CYCLE_LENGTH] = {
 #define CHEAT_DAYS  (1199145600 / 24 / 60 / 60)
 #define CHEAT_YEARS 108
 
-#define IS_LEAP(n)      ((!(((n) + 1900) % 400) || (!(((n) + 1900) % 4) && (((n) + 1900) % 100))) != 0)
+#define IS_LEAP(n)      ((!(((Year)(n) + 1900) % 400) || (!(((Year)(n) + 1900) % 4) && (((Year)(n) + 1900) % 100))) != 0)
 #define WRAP(a,b,m)     ((a) = ((a) <  0  ) ? ((b)--, (a) + (m)) : (a))
 
 #ifdef USE_SYSTEM_LOCALTIME
@@ -649,7 +650,8 @@ struct TM *gmtime64_r (const Time64_T *in_time, struct TM *p)
     }
 
     p->tm_year = year;
-    if( p->tm_year != year ) {
+    /* The calendar year (tm_year + 1900) must also fit in an int, e.g. for strftime() */
+    if( p->tm_year != year || year > (Year)INT_MAX - 1900 || year < (Year)INT_MIN ) {
 #ifdef EOVERFLOW
         errno = EOVERFLOW;
 #endif
