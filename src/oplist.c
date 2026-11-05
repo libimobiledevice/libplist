@@ -1063,10 +1063,10 @@ plist_err_t plist_from_openstep(const char *plist_ostep, uint32_t length, plist_
             }
             ctx.pos = plist_ostep;
             parse_dict_data(&ctx, pl);
-            if (ctx.err > 0) {
+            if (ctx.err != PLIST_ERR_SUCCESS) {
                 plist_free(pl);
                 PLIST_OSTEP_ERR("Failed to parse strings data\n");
-                err = PLIST_ERR_PARSE;
+                err = ctx.err;
             } else {
                 *plist = pl;
             }
