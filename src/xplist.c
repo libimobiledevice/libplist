@@ -1134,7 +1134,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 struct node_path_item *path_item = (struct node_path_item*)malloc(sizeof(struct node_path_item));
                 if (!path_item) {
                     PLIST_XML_ERR("out of memory when allocating node path item\n");
-                    ctx->err = PLIST_ERR_PARSE;
+                    ctx->err = PLIST_ERR_NO_MEM;
                     goto err_out;
                 }
                 path_item->type = "plist";
@@ -1446,12 +1446,15 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                 goto err_out;
             }
             if (subnode && !closing_tag) {
+                plist_t attached = subnode;
                 if (!*plist) {
                     /* first value node inside <plist> */
                     *plist = subnode;
+                    /* the tree owns the node now; err_out must not free it again */
+                    subnode = NULL;
 
                     if (data->type == PLIST_DICT || data->type == PLIST_ARRAY) {
-                        parent = subnode;
+                        parent = attached;
                     } else {
                         /* scalar root: keep parsing until </plist> */
                         parent = NULL;
@@ -1469,6 +1472,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                             ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
+                        subnode = NULL;
                         break;
                     case PLIST_ARRAY:
                         if (plist_array_append_item(parent, subnode) != PLIST_ERR_SUCCESS) {
@@ -1476,6 +1480,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                             ctx->err = PLIST_ERR_PARSE;
                             goto err_out;
                         }
+                        subnode = NULL;
                         break;
                     default:
                         /* should not happen */
@@ -1498,7 +1503,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     struct node_path_item *path_item = (struct node_path_item*)malloc(sizeof(struct node_path_item));
                     if (!path_item) {
                         PLIST_XML_ERR("out of memory when allocating node path item\n");
-                        ctx->err = PLIST_ERR_PARSE;
+                        ctx->err = PLIST_ERR_NO_MEM;
                         goto err_out;
                     }
                     path_item->type = (data->type == PLIST_DICT) ? XPLIST_DICT : XPLIST_ARRAY;
@@ -1506,11 +1511,10 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                     node_path = path_item;
 
                     depth++;
-                    parent = subnode;
+                    parent = attached;
                 } else {
                     /* If we inserted a child scalar into a container, nothing to push. */
                 }
-                subnode = NULL;
             }
 handle_closing:
             if (closing_tag) {
