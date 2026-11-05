@@ -237,6 +237,8 @@ struct bplist_data {
     uint8_t offset_size;
     const char* offset_table;
     uint32_t level;
+    uint64_t nodes_parsed;
+    uint64_t max_nodes;
     ptrarray_t* used_indexes;
     plist_err_t err;
 };
@@ -866,6 +868,14 @@ static plist_t parse_bin_node_at_index(struct bplist_data *bplist, uint32_t node
         return NULL;
     }
 
+    /* Objects can be referenced multiple times, so limit the total number of
+       nodes created to avoid excessive memory use from reference expansion. */
+    if (++bplist->nodes_parsed > bplist->max_nodes) {
+        PLIST_BIN_ERR("too many nodes created while parsing (reference expansion?)\n");
+        bplist->err = PLIST_ERR_PARSE;
+        return NULL;
+    }
+
     /* check nesting depth */
     if (bplist->level > PLIST_MAX_NESTING_DEPTH) {
         PLIST_BIN_ERR("maximum nesting depth (%u) exceeded\n",(unsigned)PLIST_MAX_NESTING_DEPTH);
@@ -1003,6 +1013,8 @@ plist_err_t plist_from_bin(const char *plist_bin, uint32_t length, plist_t * pli
     bplist.offset_size = offset_size;
     bplist.offset_table = offset_table;
     bplist.level = 0;
+    bplist.nodes_parsed = 0;
+    bplist.max_nodes = num_objects * 16 + 65536;
     bplist.used_indexes = ptr_array_new(16);
     bplist.err = PLIST_ERR_SUCCESS;
 
