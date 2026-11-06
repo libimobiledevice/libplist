@@ -223,7 +223,7 @@ static uint64_t UINT_TO_HOST(const void* x, uint8_t n)
 static int uint64_mul_overflow(uint64_t a, uint64_t b, uint64_t *res)
 {
     *res = a * b;
-    return (a > UINT64_MAX / b);
+    return (b != 0 && a > UINT64_MAX / b);
 }
 #endif
 
