@@ -1,3 +1,33 @@
+Version 2.8.1
+~~~~~~~~~~~~~
+
+- Changes:
+  * bplist: Use length-based range checks for object data
+  * bplist: Limit the total number of parsed nodes to prevent memory
+    exhaustion from crafted reference expansion
+  * bytearray: Grow the buffer geometrically to avoid quadratic appends
+    (fixes a timeout when writing large plists)
+  * Harden allocation failure handling and size arithmetic across the
+    parsers, writers and containers
+  * Add tests for the binary plist parser behavior
+
+- Bugfixes:
+  * Fix use-after-free in plist_copy_node() when the stack is reallocated
+  * Fix double-free in node_from_xml() error paths
+  * Fix memory leak in xplist when adding a node to its parent fails
+  * Fix leaks and crashes on allocation failure in the XML, binary and
+    OpenStep parsers, plist_free_children(), plist_copy_node_shallow(),
+    the dict hashtable and plist_to_bin()
+  * Report PLIST_ERR_NO_MEM from the XML parser on allocation failure
+  * oplist: Fix error detection when parsing 'strings' data
+  * time64: Fix signed integer overflow for extreme years in gmtime64_r()
+  * Fix plist_get_date_val() rounding and sign handling so that it
+    round-trips with plist_set_date_val(); handle out-of-range and NaN
+    values without undefined behavior
+  * bplist: Guard the uint64_mul_overflow fallback against division by zero
+  * Fix leak in integer_set test
+  * [github-actions] Add more msys flavors and an arm64 Windows build
+
 Version 2.8.0
 ~~~~~~~~~~~~~
 
