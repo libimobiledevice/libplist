@@ -1891,6 +1891,8 @@ void plist_get_date_val(plist_t node, int32_t * sec, int32_t * usec)
     assert(length == sizeof(double));
     /* Inverse of plist_set_date_val (val = sec + usec / 1000000):
      * whole seconds rounded down, the fraction rounded to microseconds. */
+    if (isnan(val))
+        val = 0;
     double whole = floor(val);
     double frac_usec = round((val - whole) * 1000000);
     if (frac_usec >= 1000000) {
