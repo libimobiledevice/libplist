@@ -15,7 +15,7 @@ dnl libtool versioning
 #                 changes to the signature and the semantic)
 #  ? :+1 : ?   == just internal changes
 # CURRENT : REVISION : AGE
-LIBPLIST_SO_VERSION=12:0:0
+LIBPLIST_SO_VERSION=12:1:0
 
 AC_SUBST(LIBPLIST_SO_VERSION)
 
