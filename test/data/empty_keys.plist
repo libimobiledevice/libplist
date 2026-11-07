@@ -4,5 +4,10 @@
     <string>empty key</string>
     <key><!-- comment --></key>
     <string>empty key with comment</string>
+    <key>self-closing</key>
+    <dict>
+        <key/>
+        <string>self-closing empty key</string>
+    </dict>
 </dict>
 </plist>
