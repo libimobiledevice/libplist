@@ -1,0 +1,80 @@
+/* config.h.in. Generated into config.h by CMake configure_file(). */
+#ifndef LIBPLIST_CONFIG_H
+#define LIBPLIST_CONFIG_H
+
+/* Package information. */
+#define PACKAGE "libplist"
+#define PACKAGE_NAME "libplist"
+#define PACKAGE_VERSION "@LIBPLIST_VERSION@"
+#define PACKAGE_STRING "libplist @LIBPLIST_VERSION@"
+#define PACKAGE_BUGREPORT "https://github.com/libimobiledevice/libplist/issues"
+#define PACKAGE_URL "https://libimobiledevice.org"
+#define PACKAGE_TARNAME "libplist"
+
+/* Version number of package. */
+#define VERSION "@LIBPLIST_VERSION@"
+
+/* Build options. */
+#cmakedefine DEBUG 1
+#cmakedefine BUILD_TOOLS 1
+#cmakedefine HAVE_FVISIBILITY 1
+
+/* Header files. */
+#cmakedefine HAVE_STDINT_H 1
+#cmakedefine HAVE_STDLIB_H 1
+#cmakedefine HAVE_STRING_H 1
+
+/* Functions. */
+#cmakedefine HAVE_STRDUP 1
+#cmakedefine HAVE_STRNDUP 1
+#cmakedefine HAVE_STRERROR 1
+#cmakedefine HAVE_GMTIME_R 1
+#cmakedefine HAVE_LOCALTIME_R 1
+#cmakedefine HAVE_TIMEGM 1
+#cmakedefine HAVE_STRPTIME 1
+#cmakedefine HAVE_MEMMEM 1
+
+/* struct tm extension members. */
+#cmakedefine HAVE_TM_TM_GMTOFF 1
+#cmakedefine HAVE_TM_TM_ZONE 1
+
+/* Endianness. */
+#cmakedefine __BIG_ENDIAN__ 1
+#cmakedefine __LITTLE_ENDIAN__ 1
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined __BIG_ENDIAN__
+# define WORDS_BIGENDIAN 1
+#endif
+
+/* Types. */
+#cmakedefine HAVE_CONST 1
+#cmakedefine HAVE_SIZE_T 1
+#cmakedefine HAVE_SSIZE_T 1
+#cmakedefine HAVE_UINT_TYPES 1
+
+/* Define to empty if 'const' does not conform to ANSI C. */
+#ifndef HAVE_CONST
+# define const
+#endif
+
+/* Define as 'unsigned int' if <stddef.h> doesn't define. */
+#ifndef HAVE_SIZE_T
+# define size_t unsigned int
+#endif
+
+/* Define as 'int' if <sys/types.h> doesn't define. */
+#if !defined(HAVE_SSIZE_T) && !defined(_WIN32)
+# define ssize_t int
+#endif
+
+/* Define to the type of an unsigned integer type of width exactly 8, 16 and
+   32 bits if such a type exists and the standard includes do not define it. */
+#if !defined(HAVE_UINT_TYPES) && !defined(_MSC_VER)
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+#endif
+
+#endif /* LIBPLIST_CONFIG_H */
