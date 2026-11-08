@@ -33,7 +33,7 @@ void node_list_destroy(node_list_t list)
 	free(list);
 }
 
-node_list_t node_list_create()
+node_list_t node_list_create(void)
 {
 	node_list_t list = (node_list_t)calloc(1, sizeof(struct node_list));
 	if (list == NULL) {
