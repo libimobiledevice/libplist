@@ -41,7 +41,7 @@ struct node_list {
 typedef struct node_list* node_list_t;
 
 void node_list_destroy(node_list_t list);
-node_list_t node_list_create();
+node_list_t node_list_create(void);
 
 int node_list_add(node_list_t list, node_t node);
 int node_list_insert(node_list_t list, unsigned int index, node_t node);
