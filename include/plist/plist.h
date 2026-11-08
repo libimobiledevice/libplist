@@ -1500,7 +1500,7 @@ extern "C"
      *
      * @return The libplist version as static ascii string
      */
-    PLIST_API const char* libplist_version();
+    PLIST_API const char* libplist_version(void);
 
 
     /********************************************
