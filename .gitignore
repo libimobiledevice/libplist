@@ -74,3 +74,17 @@ test/data/*.test.unsigned.xml
 test/data/*.test.tz*.bin
 test/data/*.test.tz*.xml
 test/data/*.test.xml
+
+# CMake build artifacts
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+cmake-build-*/
+compile_commands.json
+
+# The CMake config.h template must be tracked (config.* above is ignored)
+!cmake/config.h.in
+
+/.idea
+/build
+/ai
