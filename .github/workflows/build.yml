@@ -166,5 +166,5 @@ jobs:
     - name: publish artifact
       uses: actions/upload-artifact@v6
       with:
-        name: libplist-latest_${{ matrix.arch }}-${{ env.dest }}
+        name: libplist-latest_${{ matrix.arch }}-windows-${{ env.dest }}
         path: libplist.tar

@@ -1405,6 +1405,17 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         data->length = length;
                     }
                 } else {
+                    if (!strcmp(tag, XPLIST_KEY) && !keyname && parent && (plist_get_node_type(parent) == PLIST_DICT)) {
+                        keyname = strdup("");
+                        if (!keyname) {
+                            PLIST_XML_ERR("failed to allocate key name\n");
+                            ctx->err = PLIST_ERR_NO_MEM;
+                            goto err_out;
+                        }
+                        plist_free(subnode);
+                        subnode = NULL;
+                        continue;
+                    }
                     data->strval = strdup("");
                     data->length = 0;
                 }
