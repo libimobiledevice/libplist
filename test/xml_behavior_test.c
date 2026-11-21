@@ -154,6 +154,40 @@ static int test_scalar_with_comment_is_ok(void)
     return 1;
 }
 
+static int test_cfuid_boolean_stays_dictionary(void)
+{
+    const char *xml =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        "<plist version=\"1.0\">"
+        "  <dict>"
+        "    <key>CF$UID</key>"
+        "    <true/>"
+        "  </dict>"
+        "</plist>";
+    plist_t root = NULL;
+    plist_t value = NULL;
+    plist_err_t err = plist_from_xml(xml, (uint32_t)strlen(xml), &root);
+
+    if (err != PLIST_ERR_SUCCESS || !root) {
+        fprintf(stderr, "CF$UID boolean: plist_from_xml failed (err=%d)\n", err);
+        plist_free(root);
+        return 0;
+    }
+    if (plist_get_node_type(root) != PLIST_DICT) {
+        fprintf(stderr, "CF$UID boolean: expected dict node\n");
+        plist_free(root);
+        return 0;
+    }
+    value = plist_dict_get_item(root, "CF$UID");
+    if (!value || plist_get_node_type(value) != PLIST_BOOLEAN) {
+        fprintf(stderr, "CF$UID boolean: expected boolean value\n");
+        plist_free(root);
+        return 0;
+    }
+    plist_free(root);
+    return 1;
+}
+
 int main(void)
 {
     int ok = 1;
@@ -162,6 +196,7 @@ int main(void)
     ok &= test_extra_root_value_is_rejected();
     ok &= test_scalar_then_extra_node_is_rejected();
     ok &= test_scalar_with_comment_is_ok();
+    ok &= test_cfuid_boolean_stays_dictionary();
 
     return ok ? 0 : 1;
 }
