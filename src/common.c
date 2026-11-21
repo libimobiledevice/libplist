@@ -30,8 +30,8 @@ size_t dtostr(char *buf, size_t bufsize, double realval)
         slen = snprintf(buf, bufsize, "nan");
     } else if (isinf(realval)) {
         slen = snprintf(buf, bufsize, "%cinfinity", (realval > 0.0) ? '+' : '-');
-    } else if (realval == 0.0f) {
-        slen = snprintf(buf, bufsize, "0.0");
+    } else if (realval == 0.0) {
+        slen = snprintf(buf, bufsize, "%s0.0", signbit(realval) ? "-" : "");
     } else {
         slen = snprintf(buf, bufsize, "%.*g", 17, realval);
         if (slen < 0) {

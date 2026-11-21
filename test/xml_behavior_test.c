@@ -20,9 +20,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include "plist/plist.h"
 
@@ -154,6 +156,44 @@ static int test_scalar_with_comment_is_ok(void)
     return 1;
 }
 
+static int test_negative_zero_real_is_preserved(void)
+{
+    plist_t root = plist_new_real(-0.0);
+    char *xml = NULL;
+    uint32_t len = 0;
+    plist_t parsed = NULL;
+    double value = 0.0;
+    int ok = 1;
+
+    if (plist_to_xml(root, &xml, &len) != PLIST_ERR_SUCCESS || !xml) {
+        fprintf(stderr, "negative zero: plist_to_xml failed\n");
+        plist_free(root);
+        return 0;
+    }
+    if (!strstr(xml, "-0.0")) {
+        fprintf(stderr, "negative zero: missing -0.0 in XML output\n");
+        ok = 0;
+    }
+    if (plist_from_xml(xml, len, &parsed) != PLIST_ERR_SUCCESS || !parsed) {
+        fprintf(stderr, "negative zero: plist_from_xml failed\n");
+        ok = 0;
+    } else if (plist_get_node_type(parsed) != PLIST_REAL) {
+        fprintf(stderr, "negative zero: expected real node\n");
+        ok = 0;
+    } else {
+        plist_get_real_val(parsed, &value);
+        if (!signbit(value)) {
+            fprintf(stderr, "negative zero: sign was lost\n");
+            ok = 0;
+        }
+    }
+
+    free(xml);
+    plist_free(parsed);
+    plist_free(root);
+    return ok;
+}
+
 int main(void)
 {
     int ok = 1;
@@ -162,6 +202,7 @@ int main(void)
     ok &= test_extra_root_value_is_rejected();
     ok &= test_scalar_then_extra_node_is_rejected();
     ok &= test_scalar_with_comment_is_ok();
+    ok &= test_negative_zero_real_is_preserved();
 
     return ok ? 0 : 1;
 }
