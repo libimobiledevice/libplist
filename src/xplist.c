@@ -87,6 +87,26 @@ static int plist_xml_debug = 0;
 #define PLIST_XML_WRITE_ERR(...)
 #endif
 
+static int is_non_finite_real_text(const char *text)
+{
+    static const char *values[] = {
+        "nan", "+nan", "-nan",
+        "inf", "+inf", "-inf",
+        "infinity", "+infinity", "-infinity"
+    };
+    size_t index;
+
+    if (!text) {
+        return 0;
+    }
+    for (index = 0; index < sizeof(values) / sizeof(values[0]); index++) {
+        if (!strcmp(text, values[index])) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void plist_xml_init(void)
 {
     /* init XML stuff */
@@ -1322,7 +1342,17 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                         }
                         errno = 0;
                         char *endp = NULL;
-                        data->realval = strtod(str_content, &endp);
+                        int special_real = is_non_finite_real_text(str_content);
+                        if (special_real) {
+                            if (strstr(str_content, "nan")) {
+                                data->realval = NAN;
+                            } else {
+                                data->realval = strchr(str_content, '-') ? -INFINITY : INFINITY;
+                            }
+                            endp = str_content + strlen(str_content);
+                        } else {
+                            data->realval = strtod(str_content, &endp);
+                        }
                         if (errno == ERANGE) {
                             PLIST_XML_ERR("Invalid range while parsing value for '%s' node\n", tag);
                             text_parts_free((text_part_t*)first_part.next);
@@ -1338,7 +1368,7 @@ static plist_err_t node_from_xml(parse_ctx ctx, plist_t *plist)
                             goto err_out;
 
                         }
-                        if (!isfinite(data->realval)) {
+                        if (!isfinite(data->realval) && !special_real) {
                             PLIST_XML_ERR("Invalid real value while parsing '%.20s'\n", str_content);
                             text_parts_free((text_part_t*)first_part.next);
                             ctx->err = PLIST_ERR_PARSE;

@@ -20,9 +20,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include "plist/plist.h"
 
@@ -154,6 +156,48 @@ static int test_scalar_with_comment_is_ok(void)
     return 1;
 }
 
+static int test_non_finite_real_xml_round_trip(void)
+{
+    const double values[] = { NAN, INFINITY, -INFINITY };
+    size_t index;
+
+    for (index = 0; index < sizeof(values) / sizeof(values[0]); index++) {
+        plist_t root = plist_new_real(values[index]);
+        char *xml = NULL;
+        uint32_t len = 0;
+        plist_t parsed = NULL;
+        double value = 0.0;
+        int ok = 1;
+
+        if (plist_to_xml(root, &xml, &len) != PLIST_ERR_SUCCESS || !xml) {
+            fprintf(stderr, "non-finite real: plist_to_xml failed\n");
+            plist_free(root);
+            return 0;
+        }
+        if (plist_from_xml(xml, len, &parsed) != PLIST_ERR_SUCCESS || !parsed) {
+            fprintf(stderr, "non-finite real: plist_from_xml failed for '%s'\n", xml);
+            ok = 0;
+        } else if (plist_get_node_type(parsed) != PLIST_REAL) {
+            fprintf(stderr, "non-finite real: expected real node\n");
+            ok = 0;
+        } else {
+            plist_get_real_val(parsed, &value);
+            if (isnan(values[index]) ? !isnan(value) : value != values[index]) {
+                fprintf(stderr, "non-finite real: value changed\n");
+                ok = 0;
+            }
+        }
+
+        free(xml);
+        plist_free(parsed);
+        plist_free(root);
+        if (!ok) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 int main(void)
 {
     int ok = 1;
@@ -162,6 +206,7 @@ int main(void)
     ok &= test_extra_root_value_is_rejected();
     ok &= test_scalar_then_extra_node_is_rejected();
     ok &= test_scalar_with_comment_is_ok();
+    ok &= test_non_finite_real_xml_round_trip();
 
     return ok ? 0 : 1;
 }
