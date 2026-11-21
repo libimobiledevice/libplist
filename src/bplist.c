@@ -690,12 +690,12 @@ static plist_t parse_uid_node(const char **bnode, uint8_t size)
         return NULL;
     }
     size = size + 1;
-    data->intval = UINT_TO_HOST(*bnode, size);
-    if (data->intval > UINT32_MAX) {
-        PLIST_BIN_ERR("%s: value %" PRIu64 " too large for UID node (must be <= %u)\n", __func__, (uint64_t)data->intval, UINT32_MAX);
+    if (size > 8) {
+        PLIST_BIN_ERR("%s: UID node size %u is larger than 8 bytes\n", __func__, (unsigned)size);
         free(data);
         return NULL;
     }
+    data->intval = UINT_TO_HOST(*bnode, size);
 
     (*bnode) += size;
     data->type = PLIST_UID;
@@ -1411,7 +1411,6 @@ static void write_dict(bytearray_t * bplist, node_t node, hashtable_t* ref_table
 
 static void write_uid(bytearray_t * bplist, uint64_t val)
 {
-    val = (uint32_t)val;
     int size = get_needed_bytes(val);
     uint8_t sz;
     //do not write 3bytes int node

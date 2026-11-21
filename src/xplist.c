@@ -212,11 +212,7 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
     case PLIST_UID:
         tag = XPLIST_DICT;
         tag_len = XPLIST_DICT_LEN;
-        if (node_data->length == 16) {
-            val_len = snprintf(val, sizeof(val), "%" PRIu64, node_data->intval);
-        } else {
-            val_len = snprintf(val, sizeof(val), "%" PRIi64, node_data->intval);
-        }
+        val_len = snprintf(val, sizeof(val), "%" PRIu64, node_data->intval);
         break;
     case PLIST_NULL:
         PLIST_XML_WRITE_ERR("PLIST_NULL type is not valid for XML format\n");
@@ -498,7 +494,7 @@ static plist_err_t _node_estimate_size(node_t node, uint64_t *size, uint32_t dep
             *size += XPLIST_ARRAY_LEN + 4; /* <array/> */
             break;
         case PLIST_UID:
-            *size += num_digits_i((int64_t)data->intval);
+            *size += 20; /* maximum digits of a uint64_t */
             *size += (XPLIST_DICT_LEN << 1) + 7;
             *size += indent + ((indent+1) << 1);
             *size += 18; /* <key>CF$UID</key> */

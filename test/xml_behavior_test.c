@@ -20,6 +20,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -154,6 +155,45 @@ static int test_scalar_with_comment_is_ok(void)
     return 1;
 }
 
+static int test_uid_xml_output_is_unsigned(void)
+{
+    const uint64_t expected = UINT64_C(9223372036854775808);
+    plist_t root = plist_new_uid(expected);
+    char *xml = NULL;
+    uint32_t len = 0;
+    plist_t parsed = NULL;
+    uint64_t uid = 0;
+    int ok = 1;
+
+    if (plist_to_xml(root, &xml, &len) != PLIST_ERR_SUCCESS || !xml) {
+        fprintf(stderr, "uid xml: plist_to_xml failed\n");
+        plist_free(root);
+        return 0;
+    }
+    if (!strstr(xml, "<key>CF$UID</key>") || !strstr(xml, "9223372036854775808")) {
+        fprintf(stderr, "uid xml: wrong UID representation\n");
+        ok = 0;
+    }
+    if (plist_from_xml(xml, len, &parsed) != PLIST_ERR_SUCCESS || !parsed) {
+        fprintf(stderr, "uid xml: plist_from_xml failed\n");
+        ok = 0;
+    } else if (plist_get_node_type(parsed) != PLIST_UID) {
+        fprintf(stderr, "uid xml: expected UID node\n");
+        ok = 0;
+    } else {
+        plist_get_uid_val(parsed, &uid);
+        if (uid != expected) {
+            fprintf(stderr, "uid xml: expected %" PRIu64 ", got %" PRIu64 "\n", expected, uid);
+            ok = 0;
+        }
+    }
+
+    free(xml);
+    plist_free(parsed);
+    plist_free(root);
+    return ok;
+}
+
 int main(void)
 {
     int ok = 1;
@@ -162,6 +202,7 @@ int main(void)
     ok &= test_extra_root_value_is_rejected();
     ok &= test_scalar_then_extra_node_is_rejected();
     ok &= test_scalar_with_comment_is_ok();
+    ok &= test_uid_xml_output_is_unsigned();
 
     return ok ? 0 : 1;
 }
