@@ -76,13 +76,7 @@ extern "C"
 /*}}}*/
 
 #ifndef PLIST_API
-  #ifdef LIBPLIST_STATIC
-    #define PLIST_API
-  #elif defined(_WIN32)
-    #define PLIST_API __declspec(dllimport)
-  #else
-    #define PLIST_API
-  #endif
+  #define PLIST_API
 #endif
 
 #include <sys/types.h>
