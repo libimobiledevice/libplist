@@ -11,5 +11,4 @@ libcnary_la_SOURCES = \
 	node.c \
 	node_list.c \
 	include/node.h \
-	include/node_list.h \
-	include/object.h
+	include/node_list.h

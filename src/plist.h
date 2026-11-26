@@ -29,6 +29,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
 #pragma warning(disable:4244)

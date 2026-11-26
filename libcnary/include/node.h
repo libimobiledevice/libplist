@@ -25,7 +25,6 @@
 #define NODE_H_
 
 #include "node_list.h"
-#include "object.h"
 
 #define NODE_TYPE 1;
 
