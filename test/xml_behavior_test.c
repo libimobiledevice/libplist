@@ -20,6 +20,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -154,6 +155,45 @@ static int test_scalar_with_comment_is_ok(void)
     return 1;
 }
 
+static int test_carriage_return_is_preserved(void)
+{
+    plist_t root = plist_new_string("line1\rline2");
+    char *xml = NULL;
+    uint32_t len = 0;
+    plist_t parsed = NULL;
+    char *value = NULL;
+    int ok = 1;
+
+    if (plist_to_xml(root, &xml, &len) != PLIST_ERR_SUCCESS || !xml) {
+        fprintf(stderr, "carriage return: plist_to_xml failed\n");
+        plist_free(root);
+        return 0;
+    }
+    if (!strstr(xml, "&#13;")) {
+        fprintf(stderr, "carriage return: missing &#13; entity in XML output\n");
+        ok = 0;
+    }
+    if (plist_from_xml(xml, len, &parsed) != PLIST_ERR_SUCCESS || !parsed) {
+        fprintf(stderr, "carriage return: plist_from_xml failed\n");
+        ok = 0;
+    } else if (plist_get_node_type(parsed) != PLIST_STRING) {
+        fprintf(stderr, "carriage return: expected string node\n");
+        ok = 0;
+    } else {
+        plist_get_string_val(parsed, &value);
+        if (!value || strcmp(value, "line1\rline2") != 0) {
+            fprintf(stderr, "carriage return: value changed\n");
+            ok = 0;
+        }
+    }
+
+    free(value);
+    plist_free(parsed);
+    free(xml);
+    plist_free(root);
+    return ok;
+}
+
 int main(void)
 {
     int ok = 1;
@@ -162,6 +202,7 @@ int main(void)
     ok &= test_extra_root_value_is_rejected();
     ok &= test_scalar_then_extra_node_is_rejected();
     ok &= test_scalar_with_comment_is_ok();
+    ok &= test_carriage_return_is_preserved();
 
     return ok ? 0 : 1;
 }

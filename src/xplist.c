@@ -261,6 +261,11 @@ static plist_err_t node_to_xml(node_t node, bytearray_t **outbuf, uint32_t depth
                 str_buf_append(*outbuf, "&amp;", 5);
                 start = cur+1;
                 break;
+            case '\r':
+                str_buf_append(*outbuf, node_data->strval + start, cur - start);
+                str_buf_append(*outbuf, "&#13;", 5);
+                start = cur+1;
+                break;
             default:
                 break;
             }
