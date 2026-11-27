@@ -16,6 +16,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -187,6 +188,69 @@ static int test_data_beyond_object_area_is_rejected(void)
     return ok;
 }
 
+static int check_uid_item(plist_t item, uint64_t expected, const char *name)
+{
+    uint64_t val = 0;
+    if (plist_get_node_type(item) != PLIST_UID) {
+        fprintf(stderr, "%s: expected PLIST_UID item\n", name);
+        return 0;
+    }
+    plist_get_uid_val(item, &val);
+    if (val != expected) {
+        fprintf(stderr, "%s: expected %" PRIu64 ", got %" PRIu64 "\n", name, expected, val);
+        return 0;
+    }
+    return 1;
+}
+
+static int test_large_uid_parse(void)
+{
+    const uint64_t expected = UINT64_C(9223372036854775808);
+    const uint8_t objs[] = { 0x87, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    const uint8_t offs[] = { 0 };
+    uint8_t buf[MAX_BPLIST_SIZE];
+    uint32_t len = build_bplist(buf, objs, sizeof(objs), offs, 1, 1, 0);
+    plist_t root = NULL;
+    plist_err_t err = plist_from_bin((const char*)buf, len, &root);
+    int ok = 1;
+
+    if (err != PLIST_ERR_SUCCESS || !root) {
+        fprintf(stderr, "large uid parse: plist_from_bin failed (err=%d)\n", err);
+        plist_free(root);
+        return 0;
+    }
+    ok &= check_uid_item(root, expected, "large uid parse");
+    plist_free(root);
+    return ok;
+}
+
+static int test_large_uid_write(void)
+{
+    const uint64_t expected = UINT64_C(9223372036854775808);
+    plist_t uid = plist_new_uid(expected);
+    char *buf = NULL;
+    uint32_t len = 0;
+    plist_t parsed = NULL;
+    int ok = 1;
+
+    if (plist_to_bin(uid, &buf, &len) != PLIST_ERR_SUCCESS || !buf) {
+        fprintf(stderr, "large uid write: plist_to_bin failed\n");
+        plist_free(uid);
+        return 0;
+    }
+    if (plist_from_bin(buf, len, &parsed) != PLIST_ERR_SUCCESS || !parsed) {
+        fprintf(stderr, "large uid write: plist_from_bin failed\n");
+        ok = 0;
+    } else {
+        ok &= check_uid_item(parsed, expected, "large uid write");
+    }
+
+    plist_free(parsed);
+    free(buf);
+    plist_free(uid);
+    return ok;
+}
+
 int main(void)
 {
     int ok = 1;
@@ -194,6 +258,8 @@ int main(void)
     ok &= test_array_ref_sizes();
     ok &= test_dict_ref_size();
     ok &= test_data_beyond_object_area_is_rejected();
+    ok &= test_large_uid_parse();
+    ok &= test_large_uid_write();
 
     return ok ? 0 : 1;
 }
